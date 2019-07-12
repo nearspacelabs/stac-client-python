@@ -21,7 +21,10 @@ IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
 class __StacServiceStub(object):
     def __init__(self):
         print("connecting to stac service at: {}\n".format(STAC_METADATA_SERVICE))
-        if STAC_METADATA_SERVICE.startswith("localhost") or IP_REGEX.match(STAC_METADATA_SERVICE):
+        # TODO host env should include http:// so we can just see if it's https or http
+        if STAC_METADATA_SERVICE.startswith("localhost") or \
+                IP_REGEX.match(STAC_METADATA_SERVICE) or \
+                "." not in STAC_METADATA_SERVICE:
             channel = grpc.insecure_channel(STAC_METADATA_SERVICE, options=GRPC_CHANNEL_OPTIONS)
         else:
             channel_credentials = grpc.ssl_channel_credentials()
