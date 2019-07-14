@@ -1,14 +1,18 @@
 from typing import List
+
 from epl.protobuf import stac_pb2
 
 DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
-RASTER_TYPES = (stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF)
+RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
 
 
 def get_asset(stac_item: stac_pb2.StacItem,
-              band: stac_pb2.Eo.Band,
               cloud_platform: stac_pb2.CloudPlatform,
-              asset_types: List[stac_pb2.AssetType] = RASTER_TYPES) -> stac_pb2.Asset:
+              band: stac_pb2.Eo.Band,
+              asset_types: List = None) -> stac_pb2.Asset:
+    if asset_types is None:
+        asset_types = RASTER_TYPES
+
     for asset_type in asset_types:
         for key in stac_item.assets:
             asset = stac_item.assets[key]
@@ -23,8 +27,36 @@ def get_asset(stac_item: stac_pb2.StacItem,
     return None
 
 
-def has_asset_type(stac_item: StacItem,
-                   asset_type: AssetType):
+def get_assets(stac_item: stac_pb2.StacItem,
+               cloud_platform: stac_pb2.CloudPlatform,
+               bands: List = None,
+               asset_types: List = None) -> List:
+    if bands is None:
+        bands = DEFAULT_RGB
+
+    if asset_types is None:
+        asset_types = RASTER_TYPES
+
+    if cloud_platform is None:
+        cloud_platform = stac_pb2.UNKNOWN_CLOUD_PLATFORM
+
+    assets = []
+    for band in bands:
+        if band == stac_pb2.Eo.RGB or band == stac_pb2.Eo.RGBIR:
+            assets.extend(get_assets(stac_item=stac_item, bands=DEFAULT_RGB, cloud_platform=cloud_platform,
+                                     asset_types=asset_types))
+            if band == stac_pb2.Eo.RGBIR:
+                assets.append(get_asset(stac_item=stac_item, band=stac_pb2.Eo.NIR, cloud_platform=cloud_platform,
+                                        asset_types=asset_types))
+        else:
+            assets.append(
+                get_asset(stac_item=stac_item, band=band, cloud_platform=cloud_platform, asset_types=asset_types))
+
+    return assets
+
+
+def has_asset_type(stac_item: stac_pb2.StacItem,
+                   asset_type: stac_pb2.AssetType):
     for key in stac_item.assets:
         asset = stac_item.assets[key]
         if asset.asset_type == asset_type:
