@@ -2,7 +2,7 @@ from typing import List
 from epl.protobuf import stac_pb2
 from epl.protobuf.stac_pb2 import StacItem, AssetType, Eo, CloudPlatform, Asset
 
-DEFAULT_RGB = [Eo.Red, Eo.Green, Eo.Blue]
+DEFAULT_RGB = [Eo.RED, Eo.GREEN, Eo.BLUE]
 RASTER_TYPES = (stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF)
 
 
