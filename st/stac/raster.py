@@ -1,15 +1,14 @@
 from typing import List
 from epl.protobuf import stac_pb2
-from epl.protobuf.stac_pb2 import StacItem, AssetType, Eo, CloudPlatform, Asset
 
-DEFAULT_RGB = [Eo.RED, Eo.GREEN, Eo.BLUE]
+DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
 RASTER_TYPES = (stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF)
 
 
-def get_asset(stac_item: StacItem,
-              band: Eo.Band,
-              asset_types: List[stac_pb2.AssetType] = RASTER_TYPES,
-              cloud_platform: CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM) -> stac_pb2.Asset:
+def get_asset(stac_item: stac_pb2.StacItem,
+              band: stac_pb2.Eo.Band,
+              cloud_platform: stac_pb2.CloudPlatform,
+              asset_types: List[stac_pb2.AssetType] = RASTER_TYPES) -> stac_pb2.Asset:
     for asset_type in asset_types:
         for key in stac_item.assets:
             asset = stac_item.assets[key]
@@ -33,7 +32,7 @@ def has_asset_type(stac_item: StacItem,
     return False
 
 
-def get_uri(asset: Asset, b_vsi_uri=True, prefix: str = "") -> str:
+def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
     """
     construct the uri for the resource in the asset.
     :param asset: 
