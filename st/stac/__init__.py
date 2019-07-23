@@ -32,7 +32,12 @@ class __StacServiceStub(object):
                                           credentials=channel_credentials,
                                           options=GRPC_CHANNEL_OPTIONS)
 
+        self._channel = channel
         self._stub = stac_service_pb2_grpc.StacServiceStub(channel)
+
+    @property
+    def channel(self):
+        return self._channel
 
     @property
     def stub(self):
@@ -46,6 +51,7 @@ class __StacServiceStub(object):
         :return:
         """
         self._stub = stac_service_pb2_grpc.StacServiceStub(channel)
+        self._channel = channel
 
 
 stac_service = __StacServiceStub()
