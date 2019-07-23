@@ -8,21 +8,22 @@ from epl.protobuf import stac_pb2
 
 from st.stac import stac_service
 
-AUTH = os.getenv('AUTH')
-BEARER = os.getenv('BEARER')
-
 
 def search_one(stac_request: stac_pb2.StacRequest) -> stac_pb2.StacItem:
+    auth = os.getenv('auth')
+    bearer = os.getenv('bearer')
     return stac_service.stub.SearchOne(stac_request, metadata=(
-        ('authorization', AUTH),
-        ('bearer', BEARER),
+        ('authorization', auth),
+        ('bearer', bearer),
     ))
 
 
 def search(stac_request: stac_pb2.StacRequest) -> Iterator[stac_pb2.StacItem]:
+    auth = os.getenv('auth')
+    bearer = os.getenv('bearer')
     results_generator = stac_service.stub.Search(stac_request, metadata=(
-        ('authorization', AUTH),
-        ('bearer', BEARER),
+        ('authorization', auth),
+        ('bearer', bearer),
     ))
     return results_generator
 
