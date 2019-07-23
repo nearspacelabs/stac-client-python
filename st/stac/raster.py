@@ -9,7 +9,8 @@ RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
 def get_asset(stac_item: stac_pb2.StacItem,
               cloud_platform: stac_pb2.CloudPlatform,
               band: stac_pb2.Eo.Band,
-              asset_types: List = None) -> stac_pb2.Asset:
+              asset_types: List = None,
+              strict=False) -> stac_pb2.Asset:
     if asset_types is None:
         asset_types = RASTER_TYPES
 
@@ -24,13 +25,16 @@ def get_asset(stac_item: stac_pb2.StacItem,
                 elif asset.cloud_platform == cloud_platform:
                     return asset
 
+    if strict:
+        raise ValueError("asset not found")
     return None
 
 
 def get_assets(stac_item: stac_pb2.StacItem,
                cloud_platform: stac_pb2.CloudPlatform,
                bands: List = None,
-               asset_types: List = None) -> List:
+               asset_types: List = None,
+               strict=False) -> List:
     if bands is None:
         bands = DEFAULT_RGB
 
@@ -44,13 +48,17 @@ def get_assets(stac_item: stac_pb2.StacItem,
     for band in bands:
         if band == stac_pb2.Eo.RGB or band == stac_pb2.Eo.RGBIR:
             assets.extend(get_assets(stac_item=stac_item, bands=DEFAULT_RGB, cloud_platform=cloud_platform,
-                                     asset_types=asset_types))
+                                     asset_types=asset_types, strict=strict))
             if band == stac_pb2.Eo.RGBIR:
                 assets.append(get_asset(stac_item=stac_item, band=stac_pb2.Eo.NIR, cloud_platform=cloud_platform,
-                                        asset_types=asset_types))
+                                        asset_types=asset_types, strict=strict))
         else:
             assets.append(
-                get_asset(stac_item=stac_item, band=band, cloud_platform=cloud_platform, asset_types=asset_types))
+                get_asset(stac_item=stac_item,
+                          band=band,
+                          cloud_platform=cloud_platform,
+                          asset_types=asset_types,
+                          strict=strict))
 
     return assets
 
