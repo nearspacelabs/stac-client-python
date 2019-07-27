@@ -1,4 +1,4 @@
 grpcio-tools
-protobuf
+protobuf>=3.8.0
 epl.protobuf==0.3.19
 epl.geometry==0.3.21

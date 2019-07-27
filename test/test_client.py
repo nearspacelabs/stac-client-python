@@ -26,6 +26,10 @@ class TestProtobufs(unittest.TestCase):
         self.assertEquals(d_end.day, 1)
         self.assertEquals(d_end.month, 1)
 
+        # FromDatetime for protobuf 3.6.1 throws "TypeError: can't subtract offset-naive and offset-aware datetimes"
+        ts = timestamp(datetime(2016, 1, 1, tzinfo=timezone.utc))
+        self.assertIsNotNone(ts)
+
 
 class TestLandsat(unittest.TestCase):
     def test_product_id(self):

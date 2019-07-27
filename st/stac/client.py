@@ -9,10 +9,10 @@ from epl.protobuf import stac_pb2
 from st.stac import stac_service
 
 
-def insert_one(self, stac_item: stac_pb2.StacItem) -> stac_pb2.StacDbResponse:
+def insert_one(stac_item: stac_pb2.StacItem) -> stac_pb2.StacDbResponse:
     auth = os.getenv('AUTH')
     bearer = os.getenv('BEARER')
-    return self.stac_stub.InsertOne(stac_item, metadata=(
+    return stac_service.stub.InsertOne(stac_item, metadata=(
         ('authorization', auth),
         ('bearer', bearer),
     ))
