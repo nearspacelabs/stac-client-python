@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timezone, date
 from typing import Iterator
 
-from google.protobuf import timestamp_pb2
+from google.protobuf import timestamp_pb2, duration_pb2
 from epl.protobuf import stac_pb2
 
 from st.stac import stac_service
@@ -28,11 +28,21 @@ def search(stac_request: stac_pb2.StacRequest) -> Iterator[stac_pb2.StacItem]:
     return results_generator
 
 
-def timestamp(d_utc: datetime or date) -> timestamp_pb2.Timestamp:
-    if isinstance(d_utc, datetime):
-        ts = timestamp_pb2.Timestamp()
-        ts.seconds = int(d_utc.astimezone(tz=timezone.utc).timestamp())
-        return ts
-    elif isinstance(d_utc, date):
+def utc_datetime(d_utc: datetime or date):
+    if isinstance(d_utc, date):
         d_utc = datetime.combine(d_utc, datetime.min.time(), tzinfo=timezone.utc)
-        return timestamp(d_utc)
+    else:
+        d_utc = d_utc.astimezone(tz=timezone.utc)
+    return d_utc
+
+
+def timestamp(d_utc: datetime or date) -> timestamp_pb2.Timestamp:
+    ts = timestamp_pb2.Timestamp()
+    ts.FromDatetime(utc_datetime(d_utc))
+    return ts
+
+
+def duration(d_start: date or datetime, d_end: date or datetime):
+    d = duration_pb2.Duration()
+    d.FromTimedelta(utc_datetime(d_end) - utc_datetime(d_start))
+    return d

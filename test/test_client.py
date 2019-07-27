@@ -1,12 +1,30 @@
 import unittest
 
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 
 from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo
 from epl.protobuf import query_pb2
 
-from st.stac.client import timestamp, search_one, search
+from st.stac.client import timestamp, search_one, search, duration
 from st.stac import raster
+
+
+class TestProtobufs(unittest.TestCase):
+    def test_durations(self):
+        d = duration(datetime(2016, 1, 1), datetime(2017, 1, 1))
+        self.assertEquals(d.seconds, 31622400)
+        d = duration(date(2016, 1, 1), datetime(2017, 1, 1))
+        self.assertEquals(d.seconds, 31622400)
+        d = duration(date(2016, 1, 1), date(2017, 1, 1))
+        self.assertEquals(d.seconds, 31622400)
+        d = duration(datetime(2016, 1, 1), date(2017, 1, 1))
+        self.assertEquals(d.seconds, 31622400)
+
+        td = timedelta(seconds=d.seconds)
+        d_end = datetime(2016, 1, 1) + td
+        self.assertEquals(d_end.year, 2017)
+        self.assertEquals(d_end.day, 1)
+        self.assertEquals(d_end.month, 1)
 
 
 class TestLandsat(unittest.TestCase):
