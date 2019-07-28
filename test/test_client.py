@@ -1,5 +1,6 @@
 import unittest
 
+from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
 from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo
@@ -29,6 +30,29 @@ class TestProtobufs(unittest.TestCase):
         # FromDatetime for protobuf 3.6.1 throws "TypeError: can't subtract offset-naive and offset-aware datetimes"
         ts = timestamp(datetime(2016, 1, 1, tzinfo=timezone.utc))
         self.assertIsNotNone(ts)
+
+        d = duration(datetime(2017, 1, 1), datetime(2017, 1, 1, 0, 0, 59))
+        self.assertEquals(d.seconds, 59)
+
+        now_local = datetime.now().astimezone()
+        now_utc = datetime.now(tz=timezone.utc)
+        d = duration(now_local, now_utc)
+        self.assertLess(d.seconds, 1)
+
+        ts = timestamp(now_local)
+        ts2 = timestamp_pb2.Timestamp()
+        ts2.FromDatetime(now_local)
+        self.assertEquals(ts.seconds, ts2.seconds)
+
+        d = duration(datetime(2016, 1, 1, 0, 0, 59, tzinfo=timezone.utc),
+                     datetime(2016, 1, 1, 0, 1, 59, tzinfo=timezone.utc))
+        self.assertEquals(d.seconds, 60)
+
+        utc_now = now_local.astimezone(tz=timezone.utc)
+        later_now = utc_now + timedelta(seconds=33)
+
+        d = duration(now_local, later_now)
+        self.assertEquals(d.seconds, 33)
 
 
 class TestLandsat(unittest.TestCase):

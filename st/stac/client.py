@@ -1,6 +1,8 @@
 import os
 
-from datetime import datetime, timezone, date
+# https://stackoverflow.com/a/16151611/445372
+import datetime
+
 from typing import Iterator
 
 from google.protobuf import timestamp_pb2, duration_pb2
@@ -37,21 +39,32 @@ def search(stac_request: stac_pb2.StacRequest) -> Iterator[stac_pb2.StacItem]:
     return results_generator
 
 
-def utc_datetime(d_utc: datetime or date):
-    if isinstance(d_utc, date):
-        d_utc = datetime.combine(d_utc, datetime.min.time(), tzinfo=timezone.utc)
-    else:
-        d_utc = d_utc.astimezone(tz=timezone.utc)
+def timezoned(d_utc: datetime.datetime or datetime.date):
+    # datetime is child to datetime.date, so if we reverse the order of this instance of we fail
+    if isinstance(d_utc, datetime.datetime) and d_utc.tzinfo is None:
+        # TODO add warning here:
+        print("warning, no timezone provided with datetime, so UTC is assumed")
+        d_utc = datetime.datetime(d_utc.year,
+                                  d_utc.month,
+                                  d_utc.day,
+                                  d_utc.hour,
+                                  d_utc.minute,
+                                  d_utc.second,
+                                  d_utc.microsecond,
+                                  tzinfo=datetime.timezone.utc)
+    elif not isinstance(d_utc, datetime.datetime):
+        print("warning, no timezone provided with date, so UTC is assumed")
+        d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=datetime.timezone.utc)
     return d_utc
 
 
-def timestamp(d_utc: datetime or date) -> timestamp_pb2.Timestamp:
+def timestamp(d_utc: datetime.datetime or datetime.date) -> timestamp_pb2.Timestamp:
     ts = timestamp_pb2.Timestamp()
-    ts.FromDatetime(utc_datetime(d_utc))
+    ts.FromDatetime(timezoned(d_utc))
     return ts
 
 
-def duration(d_start: date or datetime, d_end: date or datetime):
+def duration(d_start: datetime.date or datetime.datetime, d_end: datetime.date or datetime.datetime):
     d = duration_pb2.Duration()
-    d.FromTimedelta(utc_datetime(d_end) - utc_datetime(d_start))
+    d.FromTimedelta(timezoned(d_end) - timezoned(d_start))
     return d
