@@ -16,7 +16,7 @@ kwargs = {
     'author': 'David Raleigh',
     'author_email': 'david@swiftera.co',
     'license': 'Apache 2.0',
-    'version': '0.0.15',
+    'version': '0.0.16',
     'namespace_package': ['st'],
     'python_requires': '>3.5.2',
     'packages': ['st.stac'],

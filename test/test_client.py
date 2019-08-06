@@ -3,7 +3,7 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo
+from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo, Asset
 from epl.protobuf import query_pb2
 
 from st.stac.client import timestamp, search_one, search, duration
@@ -255,3 +255,19 @@ class TestDatetimeQueries(unittest.TestCase):
         for stac_item in search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
             self.assertTrue(timestamp(end).seconds < stac_item.datetime.seconds)
+
+
+class TestHelpers(unittest.TestCase):
+    def test_has_asset(self):
+        id = "LO81120152015061LGN00"
+        stac_request = StacRequest(id=id)
+        stac_item = search_one(stac_request=stac_request)
+        for key in stac_item.assets:
+            asset = stac_item.assets[key]
+            self.assertTrue(raster.has_asset(stac_item, asset))
+            garbage = Asset(href="pie")
+            self.assertFalse(raster.has_asset(stac_item, garbage))
+            garbage.asset_type = asset.asset_type
+            self.assertFalse(raster.has_asset(stac_item, garbage))
+            garbage.href = asset.href
+            self.assertTrue(raster.has_asset(stac_item, garbage))

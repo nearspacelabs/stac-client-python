@@ -72,6 +72,20 @@ def has_asset_type(stac_item: stac_pb2.StacItem,
     return False
 
 
+def has_asset(stac_item: stac_pb2.StacItem,
+              asset: stac_pb2.Asset):
+    if not has_asset_type(stac_item=stac_item, asset_type=asset.asset_type):
+        return False
+    for key in stac_item.assets:
+        test_asset = stac_item.assets[key]
+        # TODO should iterate over test_asset.DESCRIPTOR.fields, as in this example:
+        #  https://stackoverflow.com/a/29150312/445372
+        # for now we assume href makes for uniqueness of an asset
+        if asset.asset_type == test_asset.asset_type and asset.href == test_asset.href:
+            return True
+    return False
+
+
 def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
     """
     construct the uri for the resource in the asset.
