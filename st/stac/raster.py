@@ -13,6 +13,16 @@ def get_asset(stac_item: stac_pb2.StacItem,
               asset_types: List = None,
               strict=False,
               asset_basename: str = "") -> stac_pb2.Asset:
+    """
+    get an asset protobuf object(pb) from a stac item pb.
+    :param stac_item: stac item whose assets we want to search by parameters
+    :param cloud_platform: only return assets that are hosted on the cloud platform described in the cloud_platform field of the item. default grabs the first asset that meets all the other parameters.
+    :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is not electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
+    :param asset_types: a list of asset_types to seach. if not defined then it is assumed to search all asset types
+    :param strict: set to True means throw exception if nothing is found. otherwise return None
+    :param asset_basename: only return asset if the basename of the object path matches this value
+    :return: asset pb object
+    """
     if asset_types is None:
         asset_types = [stac_pb2.AssetType.Value(asset_type_str) for asset_type_str in stac_pb2.AssetType.keys()]
 
