@@ -101,6 +101,14 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(36, aws_count)
         self.assertEquals(12, gcp_count)
 
+    def test_basename(self):
+        asset_name = 'LO81120152015061LGN00_B2.TIF'
+        id = "LO81120152015061LGN00"
+        stac_request = StacRequest(id=id)
+        stac_item = search_one(stac_request)
+        asset = raster.get_asset(stac_item, asset_basename=asset_name)
+        self.assertIsNotNone(asset)
+
     def test_aws(self):
         id="LC80270392015025LGN00"
         stac_request = StacRequest(id=id)

@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from epl.protobuf import stac_pb2
@@ -7,12 +8,13 @@ RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
 
 
 def get_asset(stac_item: stac_pb2.StacItem,
-              cloud_platform: stac_pb2.CloudPlatform,
-              band: stac_pb2.Eo.Band,
+              cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
+              band: stac_pb2.Eo.Band = stac_pb2.Eo.UNKNOWN_BAND,
               asset_types: List = None,
-              strict=False) -> stac_pb2.Asset:
+              strict=False,
+              asset_basename: str = "") -> stac_pb2.Asset:
     if asset_types is None:
-        asset_types = RASTER_TYPES
+        asset_types = [stac_pb2.AssetType.Value(asset_type_str) for asset_type_str in stac_pb2.AssetType.keys()]
 
     for asset_type in asset_types:
         for key in stac_item.assets:
@@ -20,14 +22,20 @@ def get_asset(stac_item: stac_pb2.StacItem,
             if asset.asset_type != asset_type:
                 continue
             if asset.eo_bands == band:
-                if cloud_platform == stac_pb2.UNKNOWN_CLOUD_PLATFORM:
-                    return asset
-                elif asset.cloud_platform == cloud_platform:
+                if asset.cloud_platform == cloud_platform or cloud_platform == stac_pb2.UNKNOWN_CLOUD_PLATFORM:
+                    if asset_basename and not _asset_has_filename(asset=asset, asset_basename=asset_basename):
+                        continue
                     return asset
 
     if strict:
         raise ValueError("asset not found")
     return None
+
+
+def _asset_has_filename(asset: stac_pb2.Asset, asset_basename):
+    if os.path.basename(asset.object_path).lower() == os.path.basename(asset_basename).lower():
+        return True
+    return False
 
 
 def get_assets(stac_item: stac_pb2.StacItem,
