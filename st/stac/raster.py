@@ -31,7 +31,7 @@ def get_asset(stac_item: stac_pb2.StacItem,
             asset = stac_item.assets[key]
             if asset.asset_type != asset_type:
                 continue
-            if asset.eo_bands == band:
+            if asset.eo_bands == band or band == stac_pb2.Eo.UNKNOWN_BAND:
                 if asset.cloud_platform == cloud_platform or cloud_platform == stac_pb2.UNKNOWN_CLOUD_PLATFORM:
                     if asset_basename and not _asset_has_filename(asset=asset, asset_basename=asset_basename):
                         continue

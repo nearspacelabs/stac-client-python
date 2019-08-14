@@ -3,7 +3,7 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo, Asset
+from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL
 from epl.protobuf import query_pb2
 
 from st.stac.client import timestamp, search_one, search, duration
@@ -107,6 +107,14 @@ class TestLandsat(unittest.TestCase):
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         asset = raster.get_asset(stac_item, asset_basename=asset_name)
+        self.assertIsNotNone(asset)
+
+    def test_thumbnail(self):
+        id = 'LO81120152015061LGN00'
+        stac_request = StacRequest(id=id)
+        stac_item = search_one(stac_request)
+        asset_type = THUMBNAIL
+        asset = raster.get_asset(stac_item, asset_types=[asset_type], cloud_platform=AWS)
         self.assertIsNotNone(asset)
 
     def test_aws(self):
