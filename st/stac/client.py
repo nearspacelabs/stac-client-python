@@ -29,6 +29,16 @@ def search_one(stac_request: stac_pb2.StacRequest) -> stac_pb2.StacItem:
     ))
 
 
+def count(stac_request: stac_pb2.StacRequest) -> int:
+    auth = os.getenv('AUTH')
+    bearer = os.getenv('BEARER')
+    db_result = stac_service.stub.Count(stac_request, metadata=(
+        ('authorization', auth),
+        ('bearer', bearer),
+    ))
+    return db_result.count
+
+
 def search(stac_request: stac_pb2.StacRequest) -> Iterator[stac_pb2.StacItem]:
     auth = os.getenv('AUTH')
     bearer = os.getenv('BEARER')

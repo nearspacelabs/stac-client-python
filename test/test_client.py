@@ -3,10 +3,11 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL
+from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL, EoRequest, Landsat
 from epl.protobuf import query_pb2
 
 from st.stac.client import timestamp, search_one, search, duration
+from st.stac.client import count as count_items
 from st.stac import raster
 
 
@@ -203,6 +204,42 @@ class TestLandsat(unittest.TestCase):
                 gcp_count += 1
         self.assertEquals(56, aws_count)
         self.assertEquals(14, gcp_count)
+
+    def test_L8_processed_id(self):
+        id = "LC81262052018263LGN00"
+        stac_request = StacRequest(id=id)
+        stac_item = search_one(stac_request)
+        self.assertIsNotNone(stac_item)
+        aws_count, gcp_count = 0, 0
+        for key, asset in stac_item.assets.items():
+            if asset.cloud_platform == AWS:
+                aws_count += 1
+            else:
+                print(asset.object_path)
+                gcp_count += 1
+        self.assertEquals(56, aws_count)
+        self.assertEquals(14, gcp_count)
+
+    def test_count(self):
+        id = "LC81262052018263LGN00"
+        stac_request = StacRequest(id=id)
+        number = count_items(stac_request)
+        self.assertEquals(1, number)
+
+    def test_count_more(self):
+        start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
+        end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
+        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
+                                                  between_value2=timestamp(end),
+                                                  rel_type=query_pb2.BETWEEN)
+        stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
+        for stac_item in search(stac_request):
+            self.assertEquals(Eo.LANDSAT, stac_item.eo.constellation)
+            print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
+            self.assertGreaterEqual(timestamp(end).seconds, stac_item.datetime.seconds)
+            self.assertLessEqual(timestamp(start).seconds, stac_item.datetime.seconds)
+
+        self.assertEquals(12, count_items(stac_request))
 
 
 class TestDatetimeQueries(unittest.TestCase):
