@@ -128,7 +128,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(asset)
 
     def test_aws(self):
-        id="LC80270392015025LGN00"
+        id = "LC80270392015025LGN00"
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -140,8 +140,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(29, count)
 
     def test_L1TP(self):
-        id="LT51560171989121KIS00"
-        stac_request = StacRequest(id = id)
+        id = "LT51560171989121KIS00"
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -155,8 +155,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1G(self):
-        id="LT51560202010035IKR02"
-        stac_request = StacRequest(id = id)
+        id = "LT51560202010035IKR02"
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -170,8 +170,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1t(self):
-        id="LT50590132011238PAC00"
-        stac_request = StacRequest(id = id)
+        id = "LT50590132011238PAC00"
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -185,7 +185,7 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1GT(self):
-        id="LE70080622016239EDC00"
+        id = "LE70080622016239EDC00"
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -201,7 +201,7 @@ class TestLandsat(unittest.TestCase):
 
     def test_L8_processed_id(self):
         id = "LC81262052018263LGN00"
-        stac_request = StacRequest(id = id)
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -211,7 +211,7 @@ class TestLandsat(unittest.TestCase):
             else:
                 print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(56, aws_count)
+        self.assertEquals(42, aws_count)
         self.assertEquals(14, gcp_count)
 
     def test_L8_processed_id_2(self):
