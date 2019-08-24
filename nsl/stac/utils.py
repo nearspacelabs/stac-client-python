@@ -1,15 +1,15 @@
 import os
-from typing import Tuple, Iterator
+from typing import List, Iterator
 
 from epl.protobuf import stac_pb2
 
-DEFAULT_RGB = (stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE)
-RASTER_TYPES = (stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF)
+DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
+RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
 
 
 def get_asset(stac_item: stac_pb2.StacItem,
               band: stac_pb2.Eo.Band = stac_pb2.Eo.UNKNOWN_BAND,
-              asset_types: Tuple = None,
+              asset_types: List = None,
               cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
               asset_basename: str = "") -> stac_pb2.Asset:
     """
@@ -30,7 +30,7 @@ def get_asset(stac_item: stac_pb2.StacItem,
 
 def get_assets(stac_item: stac_pb2.StacItem,
                band: stac_pb2.Eo.Band = stac_pb2.Eo.UNKNOWN_BAND,
-               asset_types: Tuple = None,
+               asset_types: List = None,
                cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
                asset_basename: str = "") -> Iterator[stac_pb2.Asset]:
     """
@@ -44,6 +44,9 @@ def get_assets(stac_item: stac_pb2.StacItem,
     """
     if asset_types is None:
         asset_types = [stac_pb2.AssetType.Value(asset_type_str) for asset_type_str in stac_pb2.AssetType.keys()]
+
+    if not isinstance(asset_types, List):
+        asset_types = [asset_types]
 
     for asset_type in asset_types:
         for key in stac_item.assets:
@@ -61,8 +64,8 @@ def get_assets(stac_item: stac_pb2.StacItem,
 
 def get_eo_assets(stac_item: stac_pb2.StacItem,
                   cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
-                  bands: Tuple = DEFAULT_RGB,
-                  asset_types: Tuple = RASTER_TYPES) -> Iterator[stac_pb2.Asset]:
+                  bands: List = DEFAULT_RGB,
+                  asset_types: List = RASTER_TYPES) -> Iterator[stac_pb2.Asset]:
     """
     get generator of electro optical assets that match the restrictions. if no restrictions are set,
     then the default is any cloud platform, RGB for the bands, and all raster types.
