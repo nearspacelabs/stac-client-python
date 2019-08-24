@@ -16,8 +16,8 @@ kwargs = {
     'author': 'David Raleigh',
     'author_email': 'david@swiftera.co',
     'license': 'Apache 2.0',
-    'version': '0.0.21',
-    'python_requires': '>3.5.2',
+    'version': '0.0.22',
+    'python_requires': '>3.6.0',
     'packages': ['nsl.stac'],
     'install_requires': [
         'grpcio-tools',
@@ -31,8 +31,8 @@ kwargs = {
 clssfrs = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
 ]
 kwargs['classifiers'] = clssfrs
 
