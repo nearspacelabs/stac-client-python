@@ -3,7 +3,7 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL, EoRequest, Landsat
+from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL
 from epl.protobuf import query_pb2
 
 from nsl.stac.client import timestamp, search_one, search, duration
@@ -214,7 +214,7 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(56, aws_count)
         self.assertEquals(14, gcp_count)
 
-    def test_L8_processed_id(self):
+    def test_L8_processed_id_2(self):
         id = "LC81262052018263LGN00"
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
