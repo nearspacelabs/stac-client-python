@@ -238,8 +238,8 @@ class TestLandsat(unittest.TestCase):
     def test_count_more(self):
         start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
         for stac_item in search(stac_request):
@@ -273,8 +273,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
@@ -285,8 +285,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
@@ -297,8 +297,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range_asc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
@@ -309,8 +309,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
