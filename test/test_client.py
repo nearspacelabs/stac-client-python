@@ -6,20 +6,20 @@ from datetime import datetime, timezone, date, timedelta
 from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL
 from epl.protobuf import query_pb2
 
-from nsl.stac.client import timestamp, search_one, search, duration
+from nsl.stac.client import search_one, search
 from nsl.stac.client import count as count_items
 from nsl.stac import utils
 
 
 class TestProtobufs(unittest.TestCase):
     def test_durations(self):
-        d = duration(datetime(2016, 1, 1), datetime(2017, 1, 1))
+        d = utils.duration(datetime(2016, 1, 1), datetime(2017, 1, 1))
         self.assertEquals(d.seconds, 31622400)
-        d = duration(date(2016, 1, 1), datetime(2017, 1, 1))
+        d = utils.duration(date(2016, 1, 1), datetime(2017, 1, 1))
         self.assertEquals(d.seconds, 31622400)
-        d = duration(date(2016, 1, 1), date(2017, 1, 1))
+        d = utils.duration(date(2016, 1, 1), date(2017, 1, 1))
         self.assertEquals(d.seconds, 31622400)
-        d = duration(datetime(2016, 1, 1), date(2017, 1, 1))
+        d = utils.duration(datetime(2016, 1, 1), date(2017, 1, 1))
         self.assertEquals(d.seconds, 31622400)
 
         td = timedelta(seconds=d.seconds)
@@ -29,30 +29,30 @@ class TestProtobufs(unittest.TestCase):
         self.assertEquals(d_end.month, 1)
 
         # FromDatetime for protobuf 3.6.1 throws "TypeError: can't subtract offset-naive and offset-aware datetimes"
-        ts = timestamp(datetime(2016, 1, 1, tzinfo=timezone.utc))
+        ts = utils.timestamp(datetime(2016, 1, 1, tzinfo=timezone.utc))
         self.assertIsNotNone(ts)
 
-        d = duration(datetime(2017, 1, 1), datetime(2017, 1, 1, 0, 0, 59))
+        d = utils.duration(datetime(2017, 1, 1), datetime(2017, 1, 1, 0, 0, 59))
         self.assertEquals(d.seconds, 59)
 
         now_local = datetime.now().astimezone()
         now_utc = datetime.now(tz=timezone.utc)
-        d = duration(now_local, now_utc)
+        d = utils.duration(now_local, now_utc)
         self.assertLess(d.seconds, 1)
 
-        ts = timestamp(now_local)
+        ts = utils.timestamp(now_local)
         ts2 = timestamp_pb2.Timestamp()
         ts2.FromDatetime(now_local)
         self.assertEquals(ts.seconds, ts2.seconds)
 
-        d = duration(datetime(2016, 1, 1, 0, 0, 59, tzinfo=timezone.utc),
+        d = utils.duration(datetime(2016, 1, 1, 0, 0, 59, tzinfo=timezone.utc),
                      datetime(2016, 1, 1, 0, 1, 59, tzinfo=timezone.utc))
         self.assertEquals(d.seconds, 60)
 
         utc_now = now_local.astimezone(tz=timezone.utc)
         later_now = utc_now + timedelta(seconds=33)
 
-        d = duration(now_local, later_now)
+        d = utils.duration(now_local, later_now)
         self.assertEquals(d.seconds, 33)
 
 
@@ -238,15 +238,15 @@ class TestLandsat(unittest.TestCase):
     def test_count_more(self):
         start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=timestamp(start),
-                                                  stop=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
+                                                  stop=utils.timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
         for stac_item in search(stac_request):
             self.assertEquals(Eo.LANDSAT, stac_item.eo.constellation)
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertGreaterEqual(timestamp(end).seconds, stac_item.datetime.seconds)
-            self.assertLessEqual(timestamp(start).seconds, stac_item.datetime.seconds)
+            self.assertGreaterEqual(utils.timestamp(end).seconds, stac_item.datetime.seconds)
+            self.assertLessEqual(utils.timestamp(start).seconds, stac_item.datetime.seconds)
 
         self.assertEquals(12, count_items(stac_request))
 
@@ -254,69 +254,69 @@ class TestLandsat(unittest.TestCase):
 class TestDatetimeQueries(unittest.TestCase):
     def test_date_GT_OR_EQ(self):
         bd = date(2015, 11, 3)
-        observed_range = query_pb2.TimestampField(value=timestamp(bd),
+        observed_range = query_pb2.TimestampField(value=utils.timestamp(bd),
                                                   rel_type=query_pb2.GT_OR_EQ)
         stac_request = StacRequest(observed=observed_range)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
-        self.assertLessEqual(timestamp(bd).seconds, stac_item.datetime.seconds)
+        self.assertLessEqual(utils.timestamp(bd).seconds, stac_item.datetime.seconds)
 
     def test_datetime_GT(self):
         bdt = datetime(2015, 11, 3, 1, 1, 1, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(value=timestamp(bdt),
+        observed_range = query_pb2.TimestampField(value=utils.timestamp(bdt),
                                                   rel_type=query_pb2.GT)
         stac_request = StacRequest(observed=observed_range)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
-        self.assertLessEqual(timestamp(bdt).seconds, stac_item.datetime.seconds)
+        self.assertLessEqual(utils.timestamp(bdt).seconds, stac_item.datetime.seconds)
 
     def test_datetime_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=timestamp(start),
-                                                  stop=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
+                                                  stop=utils.timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertGreaterEqual(timestamp(end).seconds, stac_item.datetime.seconds)
-            self.assertLessEqual(timestamp(start).seconds, stac_item.datetime.seconds)
+            self.assertGreaterEqual(utils.timestamp(end).seconds, stac_item.datetime.seconds)
+            self.assertLessEqual(utils.timestamp(start).seconds, stac_item.datetime.seconds)
 
     def test_datetime_not_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=timestamp(start),
-                                                  stop=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
+                                                  stop=utils.timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertTrue(timestamp(end).seconds < stac_item.datetime.seconds or
-                            timestamp(start).seconds > stac_item.datetime.seconds)
+            self.assertTrue(utils.timestamp(end).seconds < stac_item.datetime.seconds or
+                            utils.timestamp(start).seconds > stac_item.datetime.seconds)
 
     def test_datetime_not_range_asc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=timestamp(start),
-                                                  stop=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
+                                                  stop=utils.timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertTrue(timestamp(start).seconds > stac_item.datetime.seconds)
+            self.assertTrue(utils.timestamp(start).seconds > stac_item.datetime.seconds)
 
     def test_datetime_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=timestamp(start),
-                                                  stop=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
+                                                  stop=utils.timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertTrue(timestamp(end).seconds < stac_item.datetime.seconds)
+            self.assertTrue(utils.timestamp(end).seconds < stac_item.datetime.seconds)
 
 
 class TestHelpers(unittest.TestCase):
