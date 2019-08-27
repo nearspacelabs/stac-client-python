@@ -3,12 +3,12 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from epl.protobuf.stac_pb2 import StacRequest, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL, EoRequest, Landsat
+from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL
 from epl.protobuf import query_pb2
 
-from st.stac.client import timestamp, search_one, search, duration
-from st.stac.client import count as count_items
-from st.stac import raster
+from nsl.stac.client import timestamp, search_one, search, duration
+from nsl.stac.client import count as count_items
+from nsl.stac import utils
 
 
 class TestProtobufs(unittest.TestCase):
@@ -56,6 +56,15 @@ class TestProtobufs(unittest.TestCase):
         self.assertEquals(d.seconds, 33)
 
 
+class TestAssetMatching(unittest.TestCase):
+    def test_asset_match(self):
+        asset_1 = Asset(href="pecans")
+        asset_2 = Asset(href="walnuts")
+        stac_item = StacItem()
+        stac_item.assets["test_key"].CopyFrom(asset_1)
+        self.assertFalse(utils.has_asset(stac_item, asset_2))
+
+
 class TestLandsat(unittest.TestCase):
     def test_product_id(self):
         product_id = "LC08_L1TP_027039_20150226_20170228_01_T1"
@@ -76,19 +85,19 @@ class TestLandsat(unittest.TestCase):
         id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
-        asset = raster.get_asset(stac_item, band=Eo.BLUE, cloud_platform=GCP)
+        asset = utils.get_asset(stac_item, band=Eo.BLUE, cloud_platform=GCP)
         self.assertIsNotNone(asset)
-        asset = raster.get_asset(stac_item, band=Eo.BLUE, cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, band=Eo.BLUE, cloud_platform=AWS)
         self.assertIsNotNone(asset)
 
-        asset = raster.get_asset(stac_item, band=Eo.LWIR_1, cloud_platform=GCP)
+        asset = utils.get_asset(stac_item, band=Eo.LWIR_1, cloud_platform=GCP)
         self.assertIsNone(asset)
-        asset = raster.get_asset(stac_item, band=Eo.LWIR_1, cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, band=Eo.LWIR_1, cloud_platform=AWS)
         self.assertIsNone(asset)
 
-        asset = raster.get_asset(stac_item, band=Eo.CIRRUS, cloud_platform=GCP)
+        asset = utils.get_asset(stac_item, band=Eo.CIRRUS, cloud_platform=GCP)
         self.assertIsNotNone(asset)
-        asset = raster.get_asset(stac_item, band=Eo.CIRRUS, cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, band=Eo.CIRRUS, cloud_platform=AWS)
         self.assertIsNotNone(asset)
 
         aws_count, gcp_count = 0, 0
@@ -99,7 +108,7 @@ class TestLandsat(unittest.TestCase):
             else:
                 # print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(36, aws_count)
+        self.assertEquals(25, aws_count)
         self.assertEquals(12, gcp_count)
 
     def test_basename(self):
@@ -107,7 +116,7 @@ class TestLandsat(unittest.TestCase):
         id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
-        asset = raster.get_asset(stac_item, asset_basename=asset_name)
+        asset = utils.get_asset(stac_item, asset_basename=asset_name)
         self.assertIsNotNone(asset)
 
     def test_thumbnail(self):
@@ -115,11 +124,11 @@ class TestLandsat(unittest.TestCase):
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         asset_type = THUMBNAIL
-        asset = raster.get_asset(stac_item, asset_types=[asset_type], cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, asset_types=[asset_type], cloud_platform=AWS)
         self.assertIsNotNone(asset)
 
     def test_aws(self):
-        id="LC80270392015025LGN00"
+        id = "LC80270392015025LGN00"
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -128,11 +137,11 @@ class TestLandsat(unittest.TestCase):
             if asset.cloud_platform == AWS:
                 print(asset.object_path)
                 count += 1
-        self.assertEquals(42, count)
+        self.assertEquals(29, count)
 
     def test_L1TP(self):
-        id="LT51560171989121KIS00"
-        stac_request = StacRequest(id = id)
+        id = "LT51560171989121KIS00"
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -146,8 +155,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1G(self):
-        id="LT51560202010035IKR02"
-        stac_request = StacRequest(id = id)
+        id = "LT51560202010035IKR02"
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -161,8 +170,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1t(self):
-        id="LT50590132011238PAC00"
-        stac_request = StacRequest(id = id)
+        id = "LT50590132011238PAC00"
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -176,8 +185,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1GT(self):
-        id="LE70080622016239EDC00"
-        stac_request = StacRequest(id = id)
+        id = "LE70080622016239EDC00"
+        stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -192,21 +201,6 @@ class TestLandsat(unittest.TestCase):
 
     def test_L8_processed_id(self):
         id = "LC81262052018263LGN00"
-        stac_request = StacRequest(id = id)
-        stac_item = search_one(stac_request)
-        self.assertIsNotNone(stac_item)
-        aws_count, gcp_count = 0, 0
-        for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
-                aws_count += 1
-            else:
-                print(asset.object_path)
-                gcp_count += 1
-        self.assertEquals(56, aws_count)
-        self.assertEquals(14, gcp_count)
-
-    def test_L8_processed_id(self):
-        id = "LC81262052018263LGN00"
         stac_request = StacRequest(id=id)
         stac_item = search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -217,7 +211,22 @@ class TestLandsat(unittest.TestCase):
             else:
                 print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(56, aws_count)
+        self.assertEquals(42, aws_count)
+        self.assertEquals(14, gcp_count)
+
+    def test_L8_processed_id_2(self):
+        id = "LC81262052018263LGN00"
+        stac_request = StacRequest(id=id)
+        stac_item = search_one(stac_request)
+        self.assertIsNotNone(stac_item)
+        aws_count, gcp_count = 0, 0
+        for key, asset in stac_item.assets.items():
+            if asset.cloud_platform == AWS:
+                aws_count += 1
+                print(asset.object_path)
+            else:
+                gcp_count += 1
+        self.assertEquals(42, aws_count)
         self.assertEquals(14, gcp_count)
 
     def test_count(self):
@@ -229,8 +238,8 @@ class TestLandsat(unittest.TestCase):
     def test_count_more(self):
         start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
         for stac_item in search(stac_request):
@@ -264,8 +273,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
@@ -276,8 +285,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in search(stac_request):
@@ -288,8 +297,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range_asc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
@@ -300,8 +309,8 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(between_value1=timestamp(start),
-                                                  between_value2=timestamp(end),
+        observed_range = query_pb2.TimestampField(start=timestamp(start),
+                                                  stop=timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
@@ -317,10 +326,17 @@ class TestHelpers(unittest.TestCase):
         stac_item = search_one(stac_request=stac_request)
         for key in stac_item.assets:
             asset = stac_item.assets[key]
-            self.assertTrue(raster.has_asset(stac_item, asset))
+            self.assertTrue(utils.has_asset(stac_item, asset))
             garbage = Asset(href="pie")
-            self.assertFalse(raster.has_asset(stac_item, garbage))
+            self.assertFalse(utils.has_asset(stac_item, garbage))
             garbage.asset_type = asset.asset_type
-            self.assertFalse(raster.has_asset(stac_item, garbage))
+            self.assertFalse(utils.has_asset(stac_item, garbage))
             garbage.href = asset.href
-            self.assertTrue(raster.has_asset(stac_item, garbage))
+            garbage.bucket = asset.bucket
+            garbage.type = asset.type
+            garbage.eo_bands = asset.eo_bands
+            garbage.cloud_platform = asset.cloud_platform
+            garbage.bucket_manager = asset.bucket_manager
+            garbage.bucket_region = asset.bucket_region
+            garbage.object_path = asset.object_path
+            self.assertTrue(utils.has_asset(stac_item, garbage))

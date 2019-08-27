@@ -5,9 +5,7 @@ import grpc
 
 from epl.protobuf import stac_service_pb2_grpc
 
-STAC_METADATA_SERVICE = "{0}:{1}".format(os.getenv('STAC_SERVICE_HOST', 'localhost'),
-                                         os.getenv('STAC_SERVICE_PORT', 10000))
-
+STAC_SERVICE = os.getenv('STAC_SERVICE', 'localhost:10000')
 BYTES_IN_MB = 1024 * 1024
 # at this point only allowing 4 MB or smaller messages
 MESSAGE_SIZE_MB = 4
@@ -20,15 +18,16 @@ IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
 
 class __StacServiceStub(object):
     def __init__(self):
-        print("connecting to stac service at: {}\n".format(STAC_METADATA_SERVICE))
+        print("connecting to stac service at: {}\n".format(STAC_SERVICE))
         # TODO host env should include http:// so we can just see if it's https or http
-        if STAC_METADATA_SERVICE.startswith("localhost") or \
-                IP_REGEX.match(STAC_METADATA_SERVICE) or \
-                "." not in STAC_METADATA_SERVICE:
-            channel = grpc.insecure_channel(STAC_METADATA_SERVICE, options=GRPC_CHANNEL_OPTIONS)
+        if STAC_SERVICE.startswith("localhost") or IP_REGEX.match(STAC_SERVICE) or \
+                "." not in STAC_SERVICE or STAC_SERVICE.startswith("http://"):
+            stac_service_url = STAC_SERVICE.strip("http://")
+            channel = grpc.insecure_channel(stac_service_url, options=GRPC_CHANNEL_OPTIONS)
         else:
+            stac_service_url = STAC_SERVICE.strip("https://")
             channel_credentials = grpc.ssl_channel_credentials()
-            channel = grpc.secure_channel(STAC_METADATA_SERVICE,
+            channel = grpc.secure_channel(stac_service_url,
                                           credentials=channel_credentials,
                                           options=GRPC_CHANNEL_OPTIONS)
 
