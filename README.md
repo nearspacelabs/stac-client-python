@@ -375,7 +375,7 @@ When it comes to Temporal queries there are a few things to note. One is that we
 
 So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
 
-When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampField](https://geo-grpc.github.io/api/#epl.protobuf.TimestampField), where we define the value using the `value` field or the `start`+`stop` fields. And then we define a relationship type using the `rel_type` field and the [FieldRelationship](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship) enum values of `EQ`, `LT_OR_EQ`, `GT_OR_EQ`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NOT_EQ`.
+When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampField](https://geo-grpc.github.io/api/#epl.protobuf.TimestampField), where we define the value using the `value` field or the `start`&`stop` fields. And then we define a relationship type using the `rel_type` field and the [FieldRelationship](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship) enum values of `EQ`, `LT_OR_EQ`, `GT_OR_EQ`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NOT_EQ`.
 
 ```python
 from datetime import date, datetime, timezone
@@ -429,9 +429,13 @@ Stac item date, 2017-12-31T23:31:22+00:00, is before 2018-01-01T00:00:00+00:00: 
 ```
 
 ### Queries on Parameters Besides the Spatio-Temporal
+Proto3, the version of proto definition used for gRPC STAC creates messages that are similar to structs. One of the drawbacks to structs is that for floats, integers, enums and booleans all fields that are not set are initialized to a value of zero. In geospatial sciences, defaulting to zero can cause problems in that an algorithm or user might interpret that as a true value. 
 
+To get around this, Google uses wrappers for floats and ints and some of those are used in gRPC STAC. For example, some of the fields like `off_nadir`, `azimuth` and others in the Electro Optical protobuf message, [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo) use the `google.protobuf.FloatValue` wrapper. As a consequence, accessing those values requires calling `field_name.value` instead of `field_name` to access the data.
 
-The print out 
+For our ground sampling distance query we're using another query filter; this time it's the [FloatField](https://geo-grpc.github.io/api/#epl.protobuf.FloatField). It behaves just as the TimestampField, but with floats for `value` or for `start`&`stop`.
+
+In order to make our ground sampling query we need to insert it inside of an [EoRequest](https://geo-grpc.github.io/api/#epl.protobuf.EoRequest) container and set that to the `eo` field of the StacRequest.
 
 ```python
 from datetime import datetime, timezone
@@ -441,10 +445,14 @@ from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
 from epl.protobuf.query_pb2 import FloatField, LT_OR_EQ
 from epl.protobuf.stac_pb2 import EoRequest, Eo
 
+# create our ground sampling distance query to only return data less than or equal to 1 meter
 gsd_query = FloatField(value=1.0, rel_type=LT_OR_EQ)
+# create an eo_request container
 eo_request = EoRequest(gsd=gsd_query)
+# define ourselves a point in Fresno California
 fresno_wkt = "POINT(-119.7871 36.7378)"
 geometry_data = GeometryData(wkt=fresno_wkt, sr=SpatialReferenceData(wkid=4326))
+# create a StacRequest with geometry, eo_request and a limit of 20
 stac_request = StacRequest(geometry=geometry_data, eo=eo_request, limit=20)
 for stac_item in client.search(stac_request):
     print("{0} Stac item '{1}' from {2}\nhas a gsd {3}, which should be less than or "
@@ -456,54 +464,23 @@ for stac_item in client.search(stac_request):
         gsd_query.value,
         True))
 ```
-Here the print out only returns 3 values even though the `limit` of the StacRequest is set to 20. That's because the STAC service we're using only holds NAIP and Landsat data, and for NAIP there are only 3 different surveys with 1 meter or higher resolution. 
-## Protocol Buffer and gRPC API
+
+Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_20160629_20161004`. This is because the FloatValue is a float32, but numpy want's all number to be as large and precise as possible. So there's some scrambled mess at the end of the precision of gsd.
+
+Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
+```bash
+NAIP Stac item 'm_3611918_ne_11_h_20160629_20161004' from 2016-06-29T00:00:00+00:00
+has a gsd 0.6000000238418579, which should be less than or equal to requested gsd 1.0: confirmed True
+NAIP Stac item 'm_3611918_ne_11_1_20140619_20141113' from 2014-06-19T00:00:00+00:00
+has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
+NAIP Stac item 'm_3611918_ne_11_1_20120630_20120904' from 2012-06-30T00:00:00+00:00
+has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
+``` 
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC
-If you are already familiar with STAC, you'll need to know that STAC + gRPC + Protobuf is slightly different from the JSON definitions. 
+If you are already familiar with STAC, you'll need to know that gRPC + Protobuf STAC is slightly different from the JSON definitions. 
 
 JSON is naturally a flexible format and with linters you can force it to adhere to rules. Protobuf is a strict data format and that required a few differences between the JSON STAC specification and the protobuf specification:
-
-### StacItem
-A STAC Item contains the spatial extent, the datetime of observation, the downloadable assets of the item, and other metadata uniquely identifying the data. 
- 
-For a summary of the protobuf `StacItem` visit the protobuf documentation [here](https://geo-grpc.github.io/api/#epl.protobuf.StacItem).
-
-To understand where much of the inspiration for the protobuf `StacItem`, check out the summary of the JSON specification (the guide and inspiration for this protobuf version) can be found [here](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#item-fields).
-
-|  Field Name 	| STAC Protobuf Type                                                         	| STAC JSON Type 	| Description 	|   	|
-|-------------	|----------------------------------------------------------------------------	|----------------	|-------------	|---	|
-| id          	| [string](https://geo-grpc.github.io/api/#string)                           	|                	|             	|   	|
-| type        	|                                                                            	|                	|             	|   	|
-| geometry    	| [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData)  	|                	|             	|   	|
-| bbox        	| [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.EnvelopeData)  	|                	|             	|   	|
-| properties  	| [google.protobuf.Any](https://geo-grpc.github.io/api/#google.protobuf.Any) 	|                	|             	|   	|
-| links       	|                                                                            	|                	|             	|   	|
-| assets      	|                                                                            	|                	|             	|   	|
-| collection  	|                                                                            	|                	|             	|   	|
-
-| Field Name | STAC JSON Type                                                               | Description |
-| ---------- | -------------------------------------------------------------------------- | ----------- |
-| id         | string                                                                     | **REQUIRED.** Provider identifier. As most geospatial assets are already defined by some identification scheme by the data provider it is recommended to simply use that ID. Data providers are advised to include sufficient information to make their IDs globally unique, including things like unique satellite IDs. |
-| type       | string                                                                     | **REQUIRED.** Type of the GeoJSON Object. MUST be set to `Feature`. |
-| geometry   | [GeoJSON Geometry Object](https://tools.ietf.org/html/rfc7946#section-3.1) | **REQUIRED.** Defines the full footprint of the asset represented by this item, formatted according to [RFC 7946, section 3.1](https://tools.ietf.org/html/rfc7946). The footprint should be the default GeoJSON geometry, though additional geometries can be included. Specified in Longitude/Latitude based on EPSG:4326. |
-| bbox       | [number]                                                                   | **REQUIRED.** Bounding Box of the asset represented by this item. Specified in Longitude/Latitude based on EPSG:4326 - first two numbers are longitude and latitude of lower left corner, followed by longitude and latitude of upper right corner. This field enables more naive clients to easily index and search geospatially. Most software can easily generate them for footprints. STAC compliant APIs are required to compute intersection operations with the item's geometry field, not its bbox. |
-| properties | Properties Object                                                          | **REQUIRED.** A dictionary of additional metadata for the item. |
-| links      | [Link Object]                                                              | **REQUIRED.** List of link objects to resources and related URLs. A link with the `rel` set to `self` is required. |
-| assets     | Map<string, Asset Object>                                                  | **REQUIRED.** Dictionary of asset objects that can be downloaded, each with a unique key. Some pre-defined keys are listed in the chapter 'Asset types'. |
-| collection | string                                                                     | The `id` of the STAC Collection this Item references to (see `collection` relation type below). This field is *required* if such a relation type is present. This field provides an easy way for a user to search for any Items that belong in a specified Collection. |
-
- 
-The STAC item for a specific observation of data is summarized in the [STAC repo](github.com/radiantearth/stac-spec/item-spec/README.md).
-
-is represented by a protobuf message in the STAC client.  
-
-#### Google DataTypes vs native data types
-   - TimeStamp
-   - FloatValue
-
-### StacRequest
-
 
 ### JSON STAC Compared with Protobuf STAC
 |  Field Name 	| STAC Protobuf Type                                                                                                       	| STAC JSON Type                                                             	|
@@ -526,14 +503,5 @@ is represented by a protobuf message in the STAC client.
 | sar         	| [Sar](https://geo-grpc.github.io/api/#epl.protobuf.Sar)                                                                  	| Inside Properties                                                          	|
 | landsat     	| [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.Landsat)                                                          	| Inside Properties                                                          	|
 
-
-For instance, this client can retrieve Landsat, and NAIP imagery asset information and metadata. This means you can query the service by spatial and temporal extent and get back scene information, including date of observation, scene footprint and the location of publicly accessible assets for the scene (ie, where to download the imagery).
-
-
-
-
-
-You can also use this client library for accessing our Swift data.
-
-
-This is a generic python client for accessing gRPC STAC service to find geo-spatial asset metadata using query filters. 
+### Updating the samples in this README
+Use the Jupyter Notebook included in this repo to update the samples in this README.md
