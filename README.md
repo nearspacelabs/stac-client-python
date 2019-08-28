@@ -67,8 +67,6 @@ python setup.py install
 There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
 
 - STAC_SERVICE, the address of the STAC service you connect to (defaults to "localhost:10000")
-- AUTH
-- BEARER
 
 ### Queries
 
