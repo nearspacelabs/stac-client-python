@@ -486,6 +486,10 @@ JSON is naturally a flexible format and with linters you can force it to adhere 
 
 ### JSON STAC Compared with Protobuf STAC
 
+#### Stac Item Comparison
+For Comparison, here is the [JSON Stac item field summary](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#item-fields) and the [Protobuf STAC item field summary](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Below is a table comparing the two:
+
+
 |  Field Name 	| STAC Protobuf Type                                                                                                       	| STAC JSON Type                                                             	|
 |-------------	|--------------------------------------------------------------------------------------------------------------------------	|----------------------------------------------------------------------------	|
 | id          	| [string](https://geo-grpc.github.io/api/#string)                                                                         	| string                                                                     	|
@@ -505,6 +509,10 @@ JSON is naturally a flexible format and with linters you can force it to adhere 
 | eo          	| [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo)                                                                    	| Inside Properties                                                          	|
 | sar         	| [Sar](https://geo-grpc.github.io/api/#epl.protobuf.Sar)                                                                  	| Inside Properties                                                          	|
 | landsat     	| [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.Landsat)                                                          	| Inside Properties                                                          	|
+
+
+#### Eo Comparison
+For Comparison, here is the [JSON Stac Electro Optical field summary](https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#item-fields) and the [Protobuf STAC Electro Optical field summary](https://geo-grpc.github.io/api/#epl.protobuf.Eo). Below is a table comparing the two:
 
 | JSON Field Name  	| JSON Data Type 	| Protobuf Field Name 	| Protobuf Data Type                  	|
 |------------------	|----------------	|---------------------	|-------------------------------------	|
