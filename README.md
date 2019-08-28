@@ -361,15 +361,15 @@ geometry_data = GeometryData(wkt=lincoln_wkt,
                              sr=SpatialReferenceData(wkid=4326))
 stac_request = StacRequest(geometry=geometry_data, limit=2)
 for stac_item in client.search(stac_request):
-    print("Stac item id: {0} from wkt filter intersects result from geojson filter: {1}"
+    print("STAC item id: {0} from wkt filter intersects result from geojson filter: {1}"
           .format(stac_item.id, stac_item.id in geojson_ids))
 ```
 Should print out:
 ```bash
 STAC item id: LE70380352019169EDC00
 STAC item id: LE70380342019169EDC00
-Stac item id: LE70380352019169EDC00 from wkt filter intersects result from geojson filter: True
-Stac item id: LE70380342019169EDC00 from wkt filter intersects result from geojson filter: True
+STAC item id: LE70380352019169EDC00 from wkt filter intersects result from geojson filter: True
+STAC item id: LE70380342019169EDC00 from wkt filter intersects result from geojson filter: True
 ```
 
 #### Temporal Queries
@@ -392,7 +392,7 @@ start_timestamp = utils.timestamp(date(2017,1,1))
 time_query = TimestampField(value=start_timestamp, rel_type=GT_OR_EQ)
 stac_request = StacRequest(datetime=time_query, limit=2)
 for stac_item in client.search(stac_request):
-    print("Stac item date, {0}, is after {1}: {2}".format(
+    print("STAC item date, {0}, is after {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
         datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds > start_timestamp.seconds))
@@ -400,8 +400,8 @@ for stac_item in client.search(stac_request):
 The results will print out the datetime of the STAC item, the datetime of the query and a confirmation that they satisfy the query filter. Notice the warning, this is because our date doesn't have a timezone associated with it. By default we assume UTC.
 ```bash
 warning, no timezone provided with date, so UTC is assumed
-Stac item date, 2019-08-27T11:16:49+00:00, is after 2017-01-01T00:00:00+00:00: True
-Stac item date, 2019-08-27T10:53:03+00:00, is after 2017-01-01T00:00:00+00:00: True
+STAC item date, 2019-08-27T11:16:49+00:00, is after 2017-01-01T00:00:00+00:00: True
+STAC item date, 2019-08-27T10:53:03+00:00, is after 2017-01-01T00:00:00+00:00: True
 ```
 
 Now we're going to do a range request and select data between two dates
@@ -419,15 +419,15 @@ time_query = TimestampField(start=start_timestamp,
                             rel_type=BETWEEN)
 stac_request = StacRequest(datetime=time_query, limit=2)
 for stac_item in client.search(stac_request):
-    print("Stac item date, {0}, is before {1}: {2}".format(
+    print("STAC item date, {0}, is before {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
         datetime.fromtimestamp(stop_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds < stop_timestamp.seconds))
 ```
 In the below print out we are returned STAC items that are between the dates of Jan 1 2017 and Jan 1 2018. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
 ```bash
-Stac item date, 2017-12-31T23:32:57+00:00, is before 2018-01-01T00:00:00+00:00: True
-Stac item date, 2017-12-31T23:31:22+00:00, is before 2018-01-01T00:00:00+00:00: True
+STAC item date, 2017-12-31T23:32:57+00:00, is before 2018-01-01T00:00:00+00:00: True
+STAC item date, 2017-12-31T23:31:22+00:00, is before 2018-01-01T00:00:00+00:00: True
 ```
 
 ### Queries on Parameters Besides the Spatio-Temporal
@@ -457,7 +457,7 @@ geometry_data = GeometryData(wkt=fresno_wkt, sr=SpatialReferenceData(wkid=4326))
 # create a StacRequest with geometry, eo_request and a limit of 20
 stac_request = StacRequest(geometry=geometry_data, eo=eo_request, limit=20)
 for stac_item in client.search(stac_request):
-    print("{0} Stac item '{1}' from {2}\nhas a gsd {3}, which should be less than or "
+    print("{0} STAC item '{1}' from {2}\nhas a gsd {3}, which should be less than or "
           "equal to requested gsd {4}: confirmed {5}".format(
         Eo.Constellation.Name(stac_item.eo.constellation),
         stac_item.id,
@@ -471,11 +471,11 @@ Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_2016
 
 Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
 ```bash
-NAIP Stac item 'm_3611918_ne_11_h_20160629_20161004' from 2016-06-29T00:00:00+00:00
+NAIP STAC item 'm_3611918_ne_11_h_20160629_20161004' from 2016-06-29T00:00:00+00:00
 has a gsd 0.6000000238418579, which should be less than or equal to requested gsd 1.0: confirmed True
-NAIP Stac item 'm_3611918_ne_11_1_20140619_20141113' from 2014-06-19T00:00:00+00:00
+NAIP STAC item 'm_3611918_ne_11_1_20140619_20141113' from 2014-06-19T00:00:00+00:00
 has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
-NAIP Stac item 'm_3611918_ne_11_1_20120630_20120904' from 2012-06-30T00:00:00+00:00
+NAIP STAC item 'm_3611918_ne_11_1_20120630_20120904' from 2012-06-30T00:00:00+00:00
 has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
 ``` 
 
@@ -486,8 +486,8 @@ JSON is naturally a flexible format and with linters you can force it to adhere 
 
 ### JSON STAC Compared with Protobuf STAC
 
-#### Stac Item Comparison
-For Comparison, here is the [JSON Stac item field summary](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#item-fields) and the [Protobuf STAC item field summary](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Below is a table comparing the two:
+#### STAC Item Comparison
+For Comparison, here is the [JSON STAC item field summary](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#item-fields) and the [Protobuf STAC item field summary](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Below is a table comparing the two:
 
 
 |  Field Name 	| STAC Protobuf Type                                                                                                       	| STAC JSON Type                                                             	|
@@ -512,7 +512,7 @@ For Comparison, here is the [JSON Stac item field summary](https://github.com/ra
 
 
 #### Eo Comparison
-For Comparison, here is the [JSON Stac Electro Optical field summary](https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#item-fields) and the [Protobuf STAC Electro Optical field summary](https://geo-grpc.github.io/api/#epl.protobuf.Eo). Below is a table comparing the two:
+For Comparison, here is the [JSON STAC Electro Optical field summary](https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#item-fields) and the [Protobuf STAC Electro Optical field summary](https://geo-grpc.github.io/api/#epl.protobuf.Eo). Below is a table comparing the two:
 
 | JSON Field Name  	| JSON Data Type 	| Protobuf Field Name 	| Protobuf Data Type                  	|
 |------------------	|----------------	|---------------------	|-------------------------------------	|
