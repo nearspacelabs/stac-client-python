@@ -89,7 +89,7 @@ The print out for the stac item is quite lengthy. Although `stac_item` is a prot
 - [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo) for electro-optical sensor details
 - [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.Landsat) for Landsat sepcific details
 - an array map of [StacItem.AssetsEntry](https://geo-grpc.github.io/api/#epl.protobuf.StacItem.AssetsEntry) with each [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) containing details about [AssetType](https://geo-grpc.github.io/api/#epl.protobuf.AssetType), Electro Optical [Band enums](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Band) (if applicable), and other details for downloading and interpreting data
-```json
+```text
 id: "LE70380352019169EDC00"
 geometry {
   wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\013\000\000\000&\271i\3470\237\\\300\014]J\037b\301A@\215\227n\022\203\240\\\300V\237\253\255\330\267A@\215\227n\022\203 \\\300\264\310v\276\237\222A@)\314\366\0230 \\\300\"A\357;\304\224A@\360*%j\324\004\\\300\356;\241\373\221IB@\010\254\034Zd\003\\\300P\215\227n\022SB@Rf6\004\277\205\\\300\310\021wH\373xB@\366(\\\217\302\205\\\300\360\026HP\374xB@\013\312\004\350J\206\\\300\016\241\001\362#uB@\032x\271\\\025\207\\\300\230\340\226JnoB@&\271i\3470\237\\\300\014]J\037b\301A@"
