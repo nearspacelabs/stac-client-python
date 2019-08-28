@@ -349,7 +349,9 @@ geojson_ids = []
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
     geojson_ids.append(stac_item.id)
-    
+```
+Another version of the same query, but using WKT instead of geojson
+```python
 # Same geometry as above, but a wkt geometry instead of a geojson
 lincoln_wkt = "MULTIPOLYGON (((-114.7057 38.6762,-114.0484 38.6762,-114.0484 38.5721,-114.0484 38.1504,"\
     "-114.0539 37.6027,-114.0484 37.0003,-114.0484 36.8414,-114.0813 36.8414,-115.8942 36.8414,"\
