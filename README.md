@@ -337,7 +337,8 @@ from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
 
 # request the geojson foot print of Lincoln County Nevada
-r = requests.get("https://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/NV/Lincoln.geo.json")
+r = requests.get("https://raw.githubusercontent.com/johan/world.geo.json/master/countries"
+                 "/USA/NV/Lincoln.geo.json")
 lincoln_geojson = json.dumps(r.json()['features'][0]['geometry'])
 # create our GeometryData protobuf from geojson string and WGS-84 SpatialReferenceData protobuf
 geometry_data = GeometryData(geojson=lincoln_geojson, 
@@ -360,14 +361,15 @@ geometry_data = GeometryData(wkt=lincoln_wkt,
                              sr=SpatialReferenceData(wkid=4326))
 stac_request = StacRequest(geometry=geometry_data, limit=2)
 for stac_item in client.search(stac_request):
-    print("Stac item id: {0} from wkt filter intersects result from geojson filter in previous step: {1}".format(stac_item.id, stac_item.id in geojson_ids))
+    print("Stac item id: {0} from wkt filter intersects result from geojson filter: {1}"
+          .format(stac_item.id, stac_item.id in geojson_ids))
 ```
 Should print out:
 ```bash
 STAC item id: LE70380352019169EDC00
 STAC item id: LE70380342019169EDC00
-Stac item id: LE70380352019169EDC00 from wkt filter intersects result from geojson filter in previous step: True
-Stac item id: LE70380342019169EDC00 from wkt filter intersects result from geojson filter in previous step: True
+Stac item id: LE70380352019169EDC00 from wkt filter intersects result from geojson filter: True
+Stac item id: LE70380342019169EDC00 from wkt filter intersects result from geojson filter: True
 ```
 
 #### Temporal Queries
