@@ -342,7 +342,7 @@ STAC item id: LC80370332019154LGN00
 ```
 
 
-<details>
+</details>
 
 
 Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esrishape. 
