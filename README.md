@@ -89,206 +89,211 @@ The print out for the stac item is quite lengthy. Although `stac_item` is a prot
 - [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo) for electro-optical sensor details
 - [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.Landsat) for Landsat sepcific details
 - an array map of [StacItem.AssetsEntry](https://geo-grpc.github.io/api/#epl.protobuf.StacItem.AssetsEntry) with each [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) containing details about [AssetType](https://geo-grpc.github.io/api/#epl.protobuf.AssetType), Electro Optical [Band enums](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Band) (if applicable), and other details for downloading and interpreting data
-```text
-id: "LE70380352019169EDC00"
-geometry {
-  wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\013\000\000\000&\271i\3470\237\\\300\014]J\037b\301A@\215\227n\022\203\240\\\300V\237\253\255\330\267A@\215\227n\022\203 \\\300\264\310v\276\237\222A@)\314\366\0230 \\\300\"A\357;\304\224A@\360*%j\324\004\\\300\356;\241\373\221IB@\010\254\034Zd\003\\\300P\215\227n\022SB@Rf6\004\277\205\\\300\310\021wH\373xB@\366(\\\217\302\205\\\300\360\026HP\374xB@\013\312\004\350J\206\\\300\016\241\001\362#uB@\032x\271\\\025\207\\\300\230\340\226JnoB@&\271i\3470\237\\\300\014]J\037b\301A@"
-  sr {
-    wkid: 4326
-  }
-  simple: STRONG_SIMPLE
-}
-bbox {
-  xmin: -114.508
-  ymin: 35.1455
-  xmax: -112.053
-  ymax: 36.9452
-  sr {
-    wkid: 4326
-  }
-}
-datetime {
-  seconds: 1560880732
-  nanos: 695231000
-}
-observed {
-  seconds: 1560880732
-  nanos: 695231000
-}
-updated {
-  seconds: 1566935318
-  nanos: 354185000
-}
-eo {
-  platform: LANDSAT_7
-  instrument: ETM
-  constellation: LANDSAT
-  gsd {
-    value: 30.0
-  }
-  cloud_cover {
-    value: 10.0
-  }
-}
-landsat {
-  scene_id: "LE70380352019169EDC00"
-  product_id: "LE07_L1TP_038035_20190618_20190618_01_RT"
-  processing_level: L1TP
-  wrs_path: 38
-  wrs_row: 35
-}
-assets {
-  key: "GEOTIFF_GCP_BLUE"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: BLUE
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_BQA"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
-    type: "image/vnd.stac.geotiff"
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_GREEN"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: GREEN
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_LWIR_1"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: LWIR_1
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_NIR"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: NIR
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_PAN"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: PAN
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_RED"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: RED
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_SWIR_1"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: SWIR_1
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
-  }
-}
-assets {
-  key: "GEOTIFF_GCP_SWIR_2"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
-    type: "image/vnd.stac.geotiff"
-    eo_bands: SWIR_2
-    asset_type: GEOTIFF
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
-  }
-}
-assets {
-  key: "TXT_GCP_ANG"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
-    type: "text/plain"
-    asset_type: TXT
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
-  }
-}
-assets {
-  key: "TXT_GCP_MTL"
-  value {
-    href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
-    type: "text/plain"
-    asset_type: TXT
-    cloud_platform: GCP
-    bucket_manager: "Google"
-    bucket_region: "us-multi-region"
-    bucket: "gcp-public-data-landsat"
-    object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
-  }
-}
-```
+
+<details>
+  <summary>StacItem print out</summary>
+  
+  ```text
+    id: "LE70380352019169EDC00"
+    geometry {
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\013\000\000\000&\271i\3470\237\\\300\014]J\037b\301A@\215\227n\022\203\240\\\300V\237\253\255\330\267A@\215\227n\022\203 \\\300\264\310v\276\237\222A@)\314\366\0230 \\\300\"A\357;\304\224A@\360*%j\324\004\\\300\356;\241\373\221IB@\010\254\034Zd\003\\\300P\215\227n\022SB@Rf6\004\277\205\\\300\310\021wH\373xB@\366(\\\217\302\205\\\300\360\026HP\374xB@\013\312\004\350J\206\\\300\016\241\001\362#uB@\032x\271\\\025\207\\\300\230\340\226JnoB@&\271i\3470\237\\\300\014]J\037b\301A@"
+      sr {
+        wkid: 4326
+      }
+      simple: STRONG_SIMPLE
+    }
+    bbox {
+      xmin: -114.508
+      ymin: 35.1455
+      xmax: -112.053
+      ymax: 36.9452
+      sr {
+        wkid: 4326
+      }
+    }
+    datetime {
+      seconds: 1560880732
+      nanos: 695231000
+    }
+    observed {
+      seconds: 1560880732
+      nanos: 695231000
+    }
+    updated {
+      seconds: 1566935318
+      nanos: 354185000
+    }
+    eo {
+      platform: LANDSAT_7
+      instrument: ETM
+      constellation: LANDSAT
+      gsd {
+        value: 30.0
+      }
+      cloud_cover {
+        value: 10.0
+      }
+    }
+    landsat {
+      scene_id: "LE70380352019169EDC00"
+      product_id: "LE07_L1TP_038035_20190618_20190618_01_RT"
+      processing_level: L1TP
+      wrs_path: 38
+      wrs_row: 35
+    }
+    assets {
+      key: "GEOTIFF_GCP_BLUE"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: BLUE
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_BQA"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
+        type: "image/vnd.stac.geotiff"
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_GREEN"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: GREEN
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_LWIR_1"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: LWIR_1
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_NIR"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: NIR
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_PAN"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: PAN
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_RED"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: RED
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_SWIR_1"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: SWIR_1
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_SWIR_2"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: SWIR_2
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
+      }
+    }
+    assets {
+      key: "TXT_GCP_ANG"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
+        type: "text/plain"
+        asset_type: TXT
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
+      }
+    }
+    assets {
+      key: "TXT_GCP_MTL"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
+        type: "text/plain"
+        asset_type: TXT
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
+      }
+    }
+    ```
+</details>
 
 You may have notice that the [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) has a number of additional parameters not included in the JSON STAC specification. 
 
