@@ -326,6 +326,7 @@ This should print the STAC ids of 10 items (10 is the default limit for the serv
 
 <details><summary>StacItem print out</summary>
 
+
 ```bash
 STAC item id: LC80370342019170LGN00
 STAC item id: LC80370332019170LGN00
@@ -338,6 +339,7 @@ STAC item id: LC80380332019161LGN00
 STAC item id: LC80370342019154LGN00
 STAC item id: LC80370332019154LGN00
 ```
+
 
 <details>
 
