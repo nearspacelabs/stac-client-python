@@ -383,12 +383,21 @@ for stac_item in client.search(stac_request):
           .format(stac_item.id, stac_item.id in geojson_ids))
 ```
 Should print out:
+
+
+<details><summary>StacItem print out</summary>
+
+
 ```bash
 STAC item id: LE70380352019169EDC00
 STAC item id: LE70380342019169EDC00
 STAC item id: LE70380352019169EDC00 from wkt filter intersects result from geojson filter: True
 STAC item id: LE70380342019169EDC00 from wkt filter intersects result from geojson filter: True
 ```
+
+
+</details>
+
 
 #### Temporal Queries
 When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with a `int64` for seconds and a `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
@@ -416,11 +425,20 @@ for stac_item in client.search(stac_request):
         stac_item.observed.seconds > start_timestamp.seconds))
 ```
 The results will print out the datetime of the STAC item, the datetime of the query and a confirmation that they satisfy the query filter. Notice the warning, this is because our date doesn't have a timezone associated with it. By default we assume UTC.
+
+
+<details><summary>StacItem print out</summary>
+
+
 ```bash
 warning, no timezone provided with date, so UTC is assumed
 STAC item date, 2019-08-27T11:16:49+00:00, is after 2017-01-01T00:00:00+00:00: True
 STAC item date, 2019-08-27T10:53:03+00:00, is after 2017-01-01T00:00:00+00:00: True
 ```
+
+
+</details>
+
 
 Now we're going to do a range request and select data between two dates
 ```python
@@ -443,10 +461,19 @@ for stac_item in client.search(stac_request):
         stac_item.observed.seconds < stop_timestamp.seconds))
 ```
 In the below print out we are returned STAC items that are between the dates of Jan 1 2017 and Jan 1 2018. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
+
+
+<details><summary>StacItem print out</summary>
+
+
 ```bash
 STAC item date, 2017-12-31T23:32:57+00:00, is before 2018-01-01T00:00:00+00:00: True
 STAC item date, 2017-12-31T23:31:22+00:00, is before 2018-01-01T00:00:00+00:00: True
 ```
+
+
+</details>
+
 
 ### Queries on Parameters Besides the Spatio-Temporal
 Proto3, the version of proto definition used for gRPC STAC, creates messages that are similar to structs in C. One of the drawbacks to structs is that for floats, integers, enums and booleans all fields that are not set are initialized to a value of zero. In geospatial sciences, defaulting to zero can cause problems in that an algorithm or user might interpret that as a true value. 
@@ -488,6 +515,11 @@ for stac_item in client.search(stac_request):
 Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_20160629_20161004`. This is because the FloatValue is a float32, but numpy want's all number to be as large and precise as possible. So there's some scrambled mess at the end of the precision of gsd.
 
 Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
+
+
+<details><summary>StacItem print out</summary>
+
+
 ```bash
 NAIP STAC item 'm_3611918_ne_11_h_20160629_20161004' from 2016-06-29T00:00:00+00:00
 has a gsd 0.6000000238418579, which should be less than or equal to requested gsd 1.0: confirmed True
@@ -496,6 +528,10 @@ has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirme
 NAIP STAC item 'm_3611918_ne_11_1_20120630_20120904' from 2012-06-30T00:00:00+00:00
 has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
 ``` 
+
+
+</details>
+
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC
 If you are already familiar with STAC, you'll need to know that gRPC + Protobuf STAC is slightly different from the JSON definitions. 
