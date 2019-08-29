@@ -46,7 +46,7 @@ class TestProtobufs(unittest.TestCase):
         self.assertEquals(ts.seconds, ts2.seconds)
 
         d = utils.duration(datetime(2016, 1, 1, 0, 0, 59, tzinfo=timezone.utc),
-                     datetime(2016, 1, 1, 0, 1, 59, tzinfo=timezone.utc))
+                           datetime(2016, 1, 1, 0, 1, 59, tzinfo=timezone.utc))
         self.assertEquals(d.seconds, 60)
 
         utc_now = now_local.astimezone(tz=timezone.utc)
