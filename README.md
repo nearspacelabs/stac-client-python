@@ -323,6 +323,9 @@ for stac_item in client.search(stac_request):
 ```
 
 This should print the STAC ids of 10 items (10 is the default limit for the service we connected to):
+
+<details><summary>StacItem print out</summary>
+
 ```bash
 STAC item id: LC80370342019170LGN00
 STAC item id: LC80370332019170LGN00
@@ -335,6 +338,8 @@ STAC item id: LC80380332019161LGN00
 STAC item id: LC80370342019154LGN00
 STAC item id: LC80370332019154LGN00
 ```
+
+<details>
 
 Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esrishape. 
 
