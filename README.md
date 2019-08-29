@@ -295,6 +295,7 @@ The print out for the stac item is quite lengthy. Although `stac_item` is a prot
     ```
 </details>
 
+
 You may have notice that the [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) has a number of additional parameters not included in the JSON STAC specification. 
 
 #### Spatial Queries
