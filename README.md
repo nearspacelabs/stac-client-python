@@ -90,9 +90,10 @@ The print out for the stac item is quite lengthy. Although `stac_item` is a prot
 - [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.Landsat) for Landsat sepcific details
 - an array map of [StacItem.AssetsEntry](https://geo-grpc.github.io/api/#epl.protobuf.StacItem.AssetsEntry) with each [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) containing details about [AssetType](https://geo-grpc.github.io/api/#epl.protobuf.AssetType), Electro Optical [Band enums](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Band) (if applicable), and other details for downloading and interpreting data
 
+
 <details><summary>StacItem print out</summary>
-    <p>
-  
+
+
 ```text
 id: "LE70380352019169EDC00"
 geometry {
@@ -293,8 +294,8 @@ assets {
   }
 }
 ```
-    
-    </p>
+
+
 </details>
 
 
