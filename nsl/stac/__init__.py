@@ -14,6 +14,8 @@ GRPC_CHANNEL_OPTIONS = [('grpc.max_message_length', MESSAGE_SIZE_MB * BYTES_IN_M
 
 # TODO prep for ip v6
 IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
+# DEFAULT Insecure until we have a https service
+INSECURE = True
 
 
 class __StacServiceStub(object):
@@ -21,7 +23,7 @@ class __StacServiceStub(object):
         print("connecting to stac service at: {}\n".format(STAC_SERVICE))
         # TODO host env should include http:// so we can just see if it's https or http
         if STAC_SERVICE.startswith("localhost") or IP_REGEX.match(STAC_SERVICE) or \
-                "." not in STAC_SERVICE or STAC_SERVICE.startswith("http://"):
+                "." not in STAC_SERVICE or STAC_SERVICE.startswith("http://") or INSECURE:
             stac_service_url = STAC_SERVICE.strip("http://")
             channel = grpc.insecure_channel(stac_service_url, options=GRPC_CHANNEL_OPTIONS)
         else:
