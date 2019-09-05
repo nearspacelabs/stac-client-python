@@ -32,7 +32,7 @@ STAC item id: LE70980132019174EDC00
 Date observed: 06/23/2019, 03:00:46
 ```
 
-### What are Protobus, gRPC, and Spatio Temporal Asset Catalogs? 
+### What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
 This python client library is used for connecting to a gRPC enabled STAC service. STAC items and STAC requests are Protocol Buffers (protobuf) instead of traditional JSON.
 
 Never hear of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about this open source projects.
