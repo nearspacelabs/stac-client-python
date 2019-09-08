@@ -48,7 +48,6 @@ def _generate_grpc_channel(stac_service_url=None):
 
 class __StacServiceStub(object):
     def __init__(self):
-        print("connecting to stac service at: {}\n".format(STAC_SERVICE))
         channel, stub = _generate_grpc_channel()
         self._channel = channel
         self._stub = stub

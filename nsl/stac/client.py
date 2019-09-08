@@ -8,21 +8,22 @@ from nsl.stac import stac_service as stac_singleton
 
 
 class NSLClient:
-    def __init__(self, stac_service=None):
-        if stac_service is not None:
-            self._stac_service = stac_service
-        else:
-            self._stac_service = stac_singleton
+    def __init__(self):
+        self._stac_service = stac_singleton
         self._auth = os.getenv('AUTH')
         self._bearer = os.getenv('BEARER')
 
     def update_service_url(self, stac_service_url):
-        """allows you to update your stac service address"""
+        """
+        update the stac service address
+        :param stac_service_url: localhost:8080, 34.34.34.34:9000, http://demo.nearspacelabs.com, etc
+        :return:
+        """
         self._stac_service.update_service_url(stac_service_url=stac_service_url)
 
     def insert_one(self, stac_item: stac_pb2.StacItem) -> stac_pb2.StacDbResponse:
         """
-        Insert on item into the service
+        Insert on item into the stac service
         :param stac_item: item to insert
         :return: StacDbResponse, the response of the success of the insert
         """
