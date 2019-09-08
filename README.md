@@ -10,11 +10,14 @@ from datetime import datetime
 # the query string in a url
 from epl.protobuf.stac_pb2 import StacRequest
 # the client package stubs out a little bit of the gRPC connection code 
-from nsl.stac import client
+from nsl.stac.client import NSLClient
 
 # This search looks for any type of imagery hosted in the STAC service; anywhere in the world, at any 
 # moment in time and of any data type
 stac_request = StacRequest()
+
+# get a client interface to the gRPC channel
+client = NSLClient()
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
 # the item returned is a StacItem protobuf message
 stac_item = client.search_one(stac_request)
@@ -73,10 +76,13 @@ There are a few environment variables that the stac-client-python library relies
 #### Simple Query and the Makeup of a StacItem
 There easiest query to construct is a `StacRequest` constructor with no variables, and the next simplest, is the case where we know the STAC item `id` that we want to search. If we already know the STAC `id` of an item, we can construct the `StacRequest` as follows:
 ```python
-from nsl.stac import client
+from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
 
 stac_request = StacRequest(id='LE70380352019169EDC00')
+
+# get a client interface to the gRPC channel
+client = NSLClient()
 # for this request we might as well use the search one, as STAC ids ought to be unique
 stac_item = client.search_one(stac_request)
 print(stac_item)
@@ -306,7 +312,7 @@ The STAC specification has a bounding box `bbox` specification for STAC items. H
 ```python
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.geometry_pb2 import EnvelopeData, SpatialReferenceData
-from nsl.stac import client
+from nsl.stac.client import NSLClient
 
 # define our area of interest bounds
 utah_box = (-112.66342163085938, 37.738141282210385, -111.79824829101562, 38.44821130413263)
@@ -318,6 +324,9 @@ envelope_data = EnvelopeData(xmin=utah_box[0],
                              sr=SpatialReferenceData(wkid=4326))
 # Search for data that intersects the bounding box
 stac_request = StacRequest(bbox=envelope_data)
+
+# get a client interface to the gRPC channel
+client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
 ```
@@ -350,7 +359,7 @@ Next we want to try searching by geometry instead of bounding box. We'll use a g
 ```python
 import json
 import requests
-from nsl.stac import client
+from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
 
@@ -365,6 +374,9 @@ geometry_data = GeometryData(geojson=lincoln_geojson,
 stac_request = StacRequest(geometry=geometry_data, limit=2)
 # collect the ids from STAC items to compare against results from wkt GeometryData
 geojson_ids = []
+
+# get a client interface to the gRPC channel
+client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
     geojson_ids.append(stac_item.id)
@@ -408,16 +420,20 @@ When creating a time query filter, we want to use the >, >=, <, <=, ==, != opera
 
 ```python
 from datetime import date, datetime, timezone
-from nsl.stac import client, utils
+from nsl.stac.client import NSLClient
+from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.query_pb2 import TimestampField, GT_OR_EQ
 
 # the utils package has a helper for converting `date` or 
 # `datetime` objects to google.protobuf.Timestamp protobufs
-start_timestamp = utils.timestamp(date(2017,1,1))
+start_timestamp = utils.pb_timestamp(date(2017,1,1))
 # make a filter that selects all data on or after January 1st, 2017
 time_query = TimestampField(value=start_timestamp, rel_type=GT_OR_EQ)
 stac_request = StacRequest(datetime=time_query, limit=2)
+
+# get a client interface to the gRPC channel
+client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item date, {0}, is after {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
@@ -443,17 +459,21 @@ STAC item date, 2019-08-27T10:53:03+00:00, is after 2017-01-01T00:00:00+00:00: T
 Now we're going to do a range request and select data between two dates
 ```python
 from datetime import datetime, timezone
-from nsl.stac import client, utils
+from nsl.stac.client import NSLClient
+from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.query_pb2 import TimestampField, BETWEEN
 # Query data from January 1st, 2017 ...
-start_timestamp = utils.timestamp(datetime(2017, 1, 1, 0, 0, 0, tzinfo=timezone.utc))
+start_timestamp = utils.pb_timestamp(datetime(2017, 1, 1, 0, 0, 0, tzinfo=timezone.utc))
 # ... up until January 1st, 2018
-stop_timestamp = utils.timestamp(datetime(2018, 1, 1, 0, 0, 0, tzinfo=timezone.utc))
+stop_timestamp = utils.pb_timestamp(datetime(2018, 1, 1, 0, 0, 0, tzinfo=timezone.utc))
 time_query = TimestampField(start=start_timestamp,
                             stop=stop_timestamp,
                             rel_type=BETWEEN)
 stac_request = StacRequest(datetime=time_query, limit=2)
+
+# get a client interface to the gRPC channel
+client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item date, {0}, is before {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
@@ -486,7 +506,7 @@ In order to make our ground sampling query we need to insert it inside of an [Eo
 
 ```python
 from datetime import datetime, timezone
-from nsl.stac import client
+from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
 from epl.protobuf.query_pb2 import FloatField, LT_OR_EQ
@@ -501,6 +521,9 @@ fresno_wkt = "POINT(-119.7871 36.7378)"
 geometry_data = GeometryData(wkt=fresno_wkt, sr=SpatialReferenceData(wkid=4326))
 # create a StacRequest with geometry, eo_request and a limit of 20
 stac_request = StacRequest(geometry=geometry_data, eo=eo_request, limit=20)
+
+# get a client interface to the gRPC channel
+client = NSLClient()
 for stac_item in client.search(stac_request):
     print("{0} STAC item '{1}' from {2}\nhas a gsd {3}, which should be less than or "
           "equal to requested gsd {4}: confirmed {5}".format(

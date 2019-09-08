@@ -6,9 +6,10 @@ from datetime import datetime, timezone, date, timedelta
 from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL
 from epl.protobuf import query_pb2
 
-from nsl.stac.client import search_one, search
-from nsl.stac.client import count as count_items
+from nsl.stac.client import NSLClient
 from nsl.stac import utils
+
+client = NSLClient()
 
 
 class TestProtobufs(unittest.TestCase):
@@ -29,7 +30,7 @@ class TestProtobufs(unittest.TestCase):
         self.assertEquals(d_end.month, 1)
 
         # FromDatetime for protobuf 3.6.1 throws "TypeError: can't subtract offset-naive and offset-aware datetimes"
-        ts = utils.timestamp(datetime(2016, 1, 1, tzinfo=timezone.utc))
+        ts = utils.pb_timestamp(datetime(2016, 1, 1, tzinfo=timezone.utc))
         self.assertIsNotNone(ts)
 
         d = utils.duration(datetime(2017, 1, 1), datetime(2017, 1, 1, 0, 0, 59))
@@ -40,7 +41,7 @@ class TestProtobufs(unittest.TestCase):
         d = utils.duration(now_local, now_utc)
         self.assertLess(d.seconds, 1)
 
-        ts = utils.timestamp(now_local)
+        ts = utils.pb_timestamp(now_local)
         ts2 = timestamp_pb2.Timestamp()
         ts2.FromDatetime(now_local)
         self.assertEquals(ts.seconds, ts2.seconds)
@@ -69,7 +70,7 @@ class TestLandsat(unittest.TestCase):
     def test_product_id(self):
         product_id = "LC08_L1TP_027039_20150226_20170228_01_T1"
         stac_request = StacRequest(landsat=LandsatRequest(product_id=product_id))
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         self.assertEquals("LC80270392015057LGN01", stac_item.id)
 
@@ -78,13 +79,13 @@ class TestLandsat(unittest.TestCase):
         wrs_row = 38
 
         stac_request = StacRequest(landsat=LandsatRequest(wrs_path=wrs_path, wrs_row=wrs_row))
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
 
     def test_OLI(self):
         id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         asset = utils.get_asset(stac_item, band=Eo.BLUE, cloud_platform=GCP)
         self.assertIsNotNone(asset)
         asset = utils.get_asset(stac_item, band=Eo.BLUE, cloud_platform=AWS)
@@ -115,14 +116,14 @@ class TestLandsat(unittest.TestCase):
         asset_name = 'LO81120152015061LGN00_B2.TIF'
         id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         asset = utils.get_asset(stac_item, asset_basename=asset_name)
         self.assertIsNotNone(asset)
 
     def test_thumbnail(self):
         id = 'LO81120152015061LGN00'
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         asset_type = THUMBNAIL
         asset = utils.get_asset(stac_item, asset_types=[asset_type], cloud_platform=AWS)
         self.assertIsNotNone(asset)
@@ -130,7 +131,7 @@ class TestLandsat(unittest.TestCase):
     def test_aws(self):
         id = "LC80270392015025LGN00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         count = 0
         for key, asset in stac_item.assets.items():
@@ -142,7 +143,7 @@ class TestLandsat(unittest.TestCase):
     def test_L1TP(self):
         id = "LT51560171989121KIS00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
@@ -157,7 +158,7 @@ class TestLandsat(unittest.TestCase):
     def test_L1G(self):
         id = "LT51560202010035IKR02"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
@@ -172,7 +173,7 @@ class TestLandsat(unittest.TestCase):
     def test_L1t(self):
         id = "LT50590132011238PAC00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
@@ -187,7 +188,7 @@ class TestLandsat(unittest.TestCase):
     def test_L1GT(self):
         id = "LE70080622016239EDC00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
@@ -202,7 +203,7 @@ class TestLandsat(unittest.TestCase):
     def test_L8_processed_id(self):
         id = "LC81262052018263LGN00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
@@ -217,7 +218,7 @@ class TestLandsat(unittest.TestCase):
     def test_L8_processed_id_2(self):
         id = "LC81262052018263LGN00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
@@ -232,98 +233,99 @@ class TestLandsat(unittest.TestCase):
     def test_count(self):
         id = "LC81262052018263LGN00"
         stac_request = StacRequest(id=id)
-        number = count_items(stac_request)
+        number = client.count(stac_request)
         self.assertEquals(1, number)
 
     def test_count_more(self):
         start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
-                                                  stop=utils.timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
+                                                  stop=utils.pb_timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
-        for stac_item in search(stac_request):
+        for stac_item in client.search(stac_request):
             self.assertEquals(Eo.LANDSAT, stac_item.eo.constellation)
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertGreaterEqual(utils.timestamp(end).seconds, stac_item.datetime.seconds)
-            self.assertLessEqual(utils.timestamp(start).seconds, stac_item.datetime.seconds)
+            self.assertGreaterEqual(utils.pb_timestamp(end).seconds, stac_item.datetime.seconds)
+            self.assertLessEqual(utils.pb_timestamp(start).seconds, stac_item.datetime.seconds)
 
-        self.assertEquals(12, count_items(stac_request))
+        self.assertEquals(12, client.count(stac_request))
 
 
 class TestDatetimeQueries(unittest.TestCase):
     def test_date_GT_OR_EQ(self):
         bd = date(2015, 11, 3)
-        observed_range = query_pb2.TimestampField(value=utils.timestamp(bd),
+        observed_range = query_pb2.TimestampField(value=utils.pb_timestamp(bd),
                                                   rel_type=query_pb2.GT_OR_EQ)
         stac_request = StacRequest(observed=observed_range)
-        stac_item = search_one(stac_request)
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
-        self.assertLessEqual(utils.timestamp(bd).seconds, stac_item.datetime.seconds)
+        self.assertLessEqual(utils.pb_timestamp(bd).seconds, stac_item.datetime.seconds)
 
     def test_datetime_GT(self):
         bdt = datetime(2015, 11, 3, 1, 1, 1, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(value=utils.timestamp(bdt),
+        observed_range = query_pb2.TimestampField(value=utils.pb_timestamp(bdt),
                                                   rel_type=query_pb2.GT)
         stac_request = StacRequest(observed=observed_range)
-        stac_item = search_one(stac_request)
+        client.update_service('localhost:10000')
+        stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
-        self.assertLessEqual(utils.timestamp(bdt).seconds, stac_item.datetime.seconds)
+        self.assertLessEqual(utils.pb_timestamp(bdt).seconds, stac_item.datetime.seconds)
 
     def test_datetime_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
-                                                  stop=utils.timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
+                                                  stop=utils.pb_timestamp(end),
                                                   rel_type=query_pb2.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
-        for stac_item in search(stac_request):
+        for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertGreaterEqual(utils.timestamp(end).seconds, stac_item.datetime.seconds)
-            self.assertLessEqual(utils.timestamp(start).seconds, stac_item.datetime.seconds)
+            self.assertGreaterEqual(utils.pb_timestamp(end).seconds, stac_item.datetime.seconds)
+            self.assertLessEqual(utils.pb_timestamp(start).seconds, stac_item.datetime.seconds)
 
     def test_datetime_not_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
-                                                  stop=utils.timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
+                                                  stop=utils.pb_timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
-        for stac_item in search(stac_request):
+        for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertTrue(utils.timestamp(end).seconds < stac_item.datetime.seconds or
-                            utils.timestamp(start).seconds > stac_item.datetime.seconds)
+            self.assertTrue(utils.pb_timestamp(end).seconds < stac_item.datetime.seconds or
+                            utils.pb_timestamp(start).seconds > stac_item.datetime.seconds)
 
     def test_datetime_not_range_asc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
-                                                  stop=utils.timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
+                                                  stop=utils.pb_timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
-        for stac_item in search(stac_request):
+        for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertTrue(utils.timestamp(start).seconds > stac_item.datetime.seconds)
+            self.assertTrue(utils.pb_timestamp(start).seconds > stac_item.datetime.seconds)
 
     def test_datetime_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.timestamp(start),
-                                                  stop=utils.timestamp(end),
+        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
+                                                  stop=utils.pb_timestamp(end),
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
-        for stac_item in search(stac_request):
+        for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertTrue(utils.timestamp(end).seconds < stac_item.datetime.seconds)
+            self.assertTrue(utils.pb_timestamp(end).seconds < stac_item.datetime.seconds)
 
 
 class TestHelpers(unittest.TestCase):
     def test_has_asset(self):
         id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=id)
-        stac_item = search_one(stac_request=stac_request)
+        stac_item = client.search_one(stac_request=stac_request)
         for key in stac_item.assets:
             asset = stac_item.assets[key]
             self.assertTrue(utils.has_asset(stac_item, asset))

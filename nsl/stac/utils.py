@@ -179,7 +179,12 @@ def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
     return "{0}/{1}/{2}".format(prefix, asset.bucket, asset.object_path)
 
 
-def timestamp(d_utc: datetime.datetime or datetime.date) -> timestamp_pb2.Timestamp:
+def pb_timestamp(d_utc: datetime.datetime or datetime.date) -> timestamp_pb2.Timestamp:
+    """
+    create a google.protobuf.Timestamp from a python datetime
+    :param d_utc: python datetime or date
+    :return:
+    """
     ts = timestamp_pb2.Timestamp()
     ts.FromDatetime(timezoned(d_utc))
     return ts

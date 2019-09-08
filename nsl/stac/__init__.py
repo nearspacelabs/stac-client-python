@@ -18,23 +18,34 @@ IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
 INSECURE = True
 
 
+def _generate_grpc_channel(stac_service_url=None):
+    # TODO host env should include http:// so we can just see if it's https or http
+
+    if stac_service_url is None:
+        stac_service_url = STAC_SERVICE
+
+    if stac_service_url.startswith("localhost") or IP_REGEX.match(stac_service_url) or \
+            "." not in stac_service_url or stac_service_url.startswith("http://") or INSECURE:
+        stac_service_url = stac_service_url.strip("http://")
+        channel = grpc.insecure_channel(stac_service_url, options=GRPC_CHANNEL_OPTIONS)
+    else:
+        stac_service_url = stac_service_url.strip("https://")
+        channel_credentials = grpc.ssl_channel_credentials()
+        channel = grpc.secure_channel(stac_service_url,
+                                      credentials=channel_credentials,
+                                      options=GRPC_CHANNEL_OPTIONS)
+
+    # print("connecting to stac service at: {}\n".format(stac_service_url))
+
+    return channel, stac_service_pb2_grpc.StacServiceStub(channel)
+
+
 class __StacServiceStub(object):
     def __init__(self):
         print("connecting to stac service at: {}\n".format(STAC_SERVICE))
-        # TODO host env should include http:// so we can just see if it's https or http
-        if STAC_SERVICE.startswith("localhost") or IP_REGEX.match(STAC_SERVICE) or \
-                "." not in STAC_SERVICE or STAC_SERVICE.startswith("http://") or INSECURE:
-            stac_service_url = STAC_SERVICE.strip("http://")
-            channel = grpc.insecure_channel(stac_service_url, options=GRPC_CHANNEL_OPTIONS)
-        else:
-            stac_service_url = STAC_SERVICE.strip("https://")
-            channel_credentials = grpc.ssl_channel_credentials()
-            channel = grpc.secure_channel(stac_service_url,
-                                          credentials=channel_credentials,
-                                          options=GRPC_CHANNEL_OPTIONS)
-
+        channel, stub = _generate_grpc_channel()
         self._channel = channel
-        self._stub = stac_service_pb2_grpc.StacServiceStub(channel)
+        self._stub = stub
 
     @property
     def channel(self):
@@ -53,6 +64,10 @@ class __StacServiceStub(object):
         """
         self._stub = stac_service_pb2_grpc.StacServiceStub(channel)
         self._channel = channel
+
+    def update_service(self, stac_service_url):
+        """allows you to update your stac service address"""
+        self._channel, self._stub = _generate_grpc_channel(stac_service_url=stac_service_url)
 
 
 stac_service = __StacServiceStub()
