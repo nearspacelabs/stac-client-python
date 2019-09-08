@@ -16,9 +16,9 @@ class NSLClient:
         self._auth = os.getenv('AUTH')
         self._bearer = os.getenv('BEARER')
 
-    def update_service(self, stac_service_url):
+    def update_service_url(self, stac_service_url):
         """allows you to update your stac service address"""
-        self._stac_service.update_service(stac_service_url=stac_service_url)
+        self._stac_service.update_service_url(stac_service_url=stac_service_url)
 
     def insert_one(self, stac_item: stac_pb2.StacItem) -> stac_pb2.StacDbResponse:
         """

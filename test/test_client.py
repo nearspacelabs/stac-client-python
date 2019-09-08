@@ -267,7 +267,7 @@ class TestDatetimeQueries(unittest.TestCase):
         observed_range = query_pb2.TimestampField(value=utils.pb_timestamp(bdt),
                                                   rel_type=query_pb2.GT)
         stac_request = StacRequest(observed=observed_range)
-        client.update_service('localhost:10000')
+        client.update_service_url('localhost:10000')
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         self.assertLessEqual(utils.pb_timestamp(bdt).seconds, stac_item.datetime.seconds)
