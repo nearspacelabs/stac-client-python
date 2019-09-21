@@ -13,7 +13,7 @@ py_regex = r"```python\n((^(?!```).+\n)|([\n ]+)){1,}```"
 
 if __name__ == "__main__":
     # requires nbconvert
-    os.system('jupyter nbconvert --to MARKDOWN README.ipynb')
+    os.system('jupyter nbconvert --to MARKDOWN --execute README.ipynb')
 
     with open('README.md', 'r+') as f:
         all_text = f.read()
