@@ -1,6 +1,4 @@
-# coding=utf8
-# the above tag defines encoding for this document and is for Python 2.x compatibility
-
+import sys
 import re
 import os
 
@@ -12,10 +10,19 @@ py_regex = r"```python\n((^(?!```).+\n)|([\n ]+)){1,}```"
 
 
 if __name__ == "__main__":
-    # requires nbconvert
-    os.system('jupyter nbconvert --to MARKDOWN --execute README.ipynb')
+    filename = 'README.ipynb'
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
 
-    with open('README.md', 'r+') as f:
+    # requires nbconvert
+    os.system('jupyter nbconvert --to MARKDOWN --execute {}'.format(filename))
+
+    name = os.path.splitext(filename)[0]
+
+    markdown_filename = '{}.md'.format(name)
+    with open(markdown_filename, 'r+') as f:
+        print("code collapse section re-write for file {}".format(markdown_filename))
+
         all_text = f.read()
 
         matches = re.finditer(regex, all_text, re.MULTILINE)

@@ -13,7 +13,7 @@ Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) 
 <details><summary>Python Code Sample</summary>
 
 
-```python
+```pytho
 from datetime import datetime
 # the StacRequest is a protobuf message for making filter queries for data, you can think of it as 
 # the query string in a url
