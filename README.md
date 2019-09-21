@@ -43,6 +43,22 @@ print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 
 
 
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    nsl client connecting to stac service at: localhost:10000
+    
+    STAC item id 20190917T201159Z_3_POM2_ST1
+    Date observed 09/17/2019, 16:11:16
+```
+
+
+</details>
+
+
+
 ### What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
 This python client library is used for connecting to a gRPC enabled STAC service. STAC items and STAC requests are Protocol Buffers (protobuf) instead of traditional JSON.
 
@@ -109,6 +125,217 @@ print(stac_item)
 
 
 
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    id: "LE70380352019169EDC00"
+    geometry {
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\013\000\000\000&\271i\3470\237\\\300\014]J\037b\301A@\215\227n\022\203\240\\\300V\237\253\255\330\267A@\215\227n\022\203 \\\300\264\310v\276\237\222A@)\314\366\0230 \\\300\"A\357;\304\224A@\360*%j\324\004\\\300\356;\241\373\221IB@\010\254\034Zd\003\\\300P\215\227n\022SB@Rf6\004\277\205\\\300\310\021wH\373xB@\366(\\\217\302\205\\\300\360\026HP\374xB@\013\312\004\350J\206\\\300\016\241\001\362#uB@\032x\271\\\025\207\\\300\230\340\226JnoB@&\271i\3470\237\\\300\014]J\037b\301A@"
+      sr {
+        wkid: 4326
+      }
+      simple: STRONG_SIMPLE
+    }
+    bbox {
+      xmin: -114.508
+      ymin: 35.1455
+      xmax: -112.053
+      ymax: 36.9452
+      sr {
+        wkid: 4326
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_BLUE"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: BLUE
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_BQA"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
+        type: "image/vnd.stac.geotiff"
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_GREEN"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: GREEN
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_LWIR_1"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: LWIR_1
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_NIR"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: NIR
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_PAN"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: PAN
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_RED"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: RED
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_SWIR_1"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: SWIR_1
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
+      }
+    }
+    assets {
+      key: "GEOTIFF_GCP_SWIR_2"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
+        type: "image/vnd.stac.geotiff"
+        eo_bands: SWIR_2
+        asset_type: GEOTIFF
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
+      }
+    }
+    assets {
+      key: "TXT_GCP_ANG"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
+        type: "text/plain"
+        asset_type: TXT
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
+      }
+    }
+    assets {
+      key: "TXT_GCP_MTL"
+      value {
+        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
+        type: "text/plain"
+        asset_type: TXT
+        cloud_platform: GCP
+        bucket_manager: "Google"
+        bucket_region: "us-multi-region"
+        bucket: "gcp-public-data-landsat"
+        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
+      }
+    }
+    datetime {
+      seconds: 1560880732
+      nanos: 695231000
+    }
+    observed {
+      seconds: 1560880732
+      nanos: 695231000
+    }
+    updated {
+      seconds: 1566935318
+      nanos: 354185000
+    }
+    eo {
+      platform: LANDSAT_7
+      instrument: ETM
+      constellation: LANDSAT
+      gsd {
+        value: 30.0
+      }
+      cloud_cover {
+        value: 10.0
+      }
+    }
+    landsat {
+      scene_id: "LE70380352019169EDC00"
+      product_id: "LE07_L1TP_038035_20190618_20190618_01_RT"
+      processing_level: L1TP
+      wrs_path: 38
+      wrs_row: 35
+    }
+    
+```
+
+
+</details>
+
+
+
 The above print out for the stac item is quite lengthy. Although `stac_item` is a protobuf object, it's `__str__` method prints out a JSON-like object. You can see in the below example that this `StacItem` contains the following:
 - [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) which is defined with a WGS-84 well-known binary geometry
 - [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.EnvelopeData) which is also WGS-84
@@ -149,6 +376,28 @@ stac_request = StacRequest(bbox=envelope_data)
 client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
+```
+
+
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    STAC item id: LC80370342019170LGN00
+    STAC item id: LC80370332019170LGN00
+    STAC item id: LE70380342019169EDC00
+    STAC item id: LE70380332019169EDC00
+    STAC item id: LE70370342019162EDC00
+    STAC item id: LE70370332019162EDC00
+    STAC item id: LC80380342019161LGN00
+    STAC item id: LC80380332019161LGN00
+    STAC item id: LC80370342019154LGN00
+    STAC item id: LC80370332019154LGN00
 ```
 
 
@@ -199,6 +448,20 @@ for stac_item in client.search(stac_request):
 
 
 
+<details><summary>Python Print-out</summary>
+
+
+```text
+    STAC item id: LE70380352019169EDC00
+    STAC item id: LE70380342019169EDC00
+```
+
+
+</details>
+
+
+
+
 
 
 
@@ -216,6 +479,20 @@ stac_request = StacRequest(geometry=geometry_data, limit=2)
 for stac_item in client.search(stac_request):
     print("STAC item id: {0} from wkt filter intersects result from geojson filter: {1}"
           .format(stac_item.id, stac_item.id in geojson_ids))
+```
+
+
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    STAC item id: LE70380352019169EDC00 from wkt filter intersects result from geojson filter: True
+    STAC item id: LE70380342019169EDC00 from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -265,6 +542,21 @@ for stac_item in client.search(stac_request):
 
 
 
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    warning, no timezone provided with date, so UTC is assumed
+    STAC item date, 2019-09-17T20:11:16+00:00, is after 2017-01-01T00:00:00+00:00: True
+    STAC item date, 2019-09-17T17:43:15+00:00, is after 2017-01-01T00:00:00+00:00: True
+```
+
+
+</details>
+
+
+
 The above result shows the datetime of the STAC item, the datetime of the query and a confirmation that they satisfy the query filter. Notice the warning, this is because our date doesn't have a timezone associated with it. By default we assume UTC.
 
 Now we're going to do a range request and select data between two dates:
@@ -298,6 +590,20 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
         datetime.fromtimestamp(stop_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds < stop_timestamp.seconds))
+```
+
+
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    STAC item date, 2017-12-31T23:32:57+00:00, is before 2018-01-01T00:00:00+00:00: True
+    STAC item date, 2017-12-31T23:31:22+00:00, is before 2018-01-01T00:00:00+00:00: True
 ```
 
 
@@ -360,6 +666,24 @@ for stac_item in client.search(stac_request):
 
 
 
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    NAIP STAC item 'm_3611918_ne_11_h_20160629_20161004' from 2016-06-29T00:00:00+00:00
+    has a gsd 0.6000000238418579, which should be less than or equal to requested gsd 1.0: confirmed True
+    NAIP STAC item 'm_3611918_ne_11_1_20140619_20141113' from 2014-06-19T00:00:00+00:00
+    has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
+    NAIP STAC item 'm_3611918_ne_11_1_20120630_20120904' from 2012-06-30T00:00:00+00:00
+    has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
+```
+
+
+</details>
+
+
+
 Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_20160629_20161004`. This is because the FloatValue is a float32, but numpy want's all number to be as large and precise as possible. So there's some scrambled mess at the end of the precision of gsd.
 
 Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
@@ -393,6 +717,21 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
         datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds < start_timestamp.seconds))
+```
+
+
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
+
+
+```text
+    warning, no timezone provided with date, so UTC is assumed
+    Stac item date, 1972-07-25T04:00:01+00:00, is before 2017-01-01T00:00:00+00:00: True
+    Stac item date, 1972-07-25T04:00:26+00:00, is before 2017-01-01T00:00:00+00:00: True
 ```
 
 
