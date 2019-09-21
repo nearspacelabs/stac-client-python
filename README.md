@@ -7,6 +7,12 @@ Use this library to access download information and other details for aerial ima
 Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) query the service for one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the client.search_one method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
 
 
+
+
+
+<details><summary>Python Code Sample</summary>
+
+
 ```python
 from datetime import datetime
 # the StacRequest is a protobuf message for making filter queries for data, you can think of it as 
@@ -33,7 +39,12 @@ print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -90,6 +101,12 @@ There are a few environment variables that the stac-client-python library relies
 There easiest query to construct is a `StacRequest` constructor with no variables, and the next simplest, is the case where we know the STAC item `id` that we want to search. If we already know the STAC `id` of an item, we can construct the `StacRequest` as follows:
 
 
+
+
+
+<details><summary>Python Code Sample</summary>
+
+
 ```python
 from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
@@ -104,7 +121,12 @@ print(stac_item)
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -328,6 +350,12 @@ You may have notice that the [Asset](https://geo-grpc.github.io/api/#epl.protobu
 The STAC specification has a bounding box `bbox` specification for STAC items. Here we make a STAC request using a bounding box. One slight difference from JSON STAC, is that we define an [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.EnvelopeData) protobuf object. This allows us to use other projections besides WGS84
 
 
+
+
+
+<details><summary>Python Code Sample</summary>
+
+
 ```python
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.geometry_pb2 import EnvelopeData, SpatialReferenceData
@@ -351,7 +379,12 @@ for stac_item in client.search(stac_request):
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -375,6 +408,12 @@ for stac_item in client.search(stac_request):
 Above should be printed the STAC ids of 10 items (10 is the default limit for the service we connected to).
 
 Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esrishape:
+
+
+
+
+
+<details><summary>Python Code Sample</summary>
 
 
 ```python
@@ -404,7 +443,12 @@ for stac_item in client.search(stac_request):
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -416,6 +460,12 @@ for stac_item in client.search(stac_request):
 </details>
 
 
+
+
+
+
+
+<details><summary>Python Code Sample</summary>
 
 
 ```python
@@ -432,7 +482,12 @@ for stac_item in client.search(stac_request):
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -451,6 +506,12 @@ When it comes to Temporal queries there are a few things to note. One is that we
 So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
 
 When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampField](https://geo-grpc.github.io/api/#epl.protobuf.TimestampField), where we define the value using the `value` field or the `start`&`stop` fields. And then we define a relationship type using the `rel_type` field and the [FieldRelationship](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship) enum values of `EQ`, `LT_OR_EQ`, `GT_OR_EQ`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NOT_EQ`.
+
+
+
+
+
+<details><summary>Python Code Sample</summary>
 
 
 ```python
@@ -477,7 +538,12 @@ for stac_item in client.search(stac_request):
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -494,6 +560,12 @@ for stac_item in client.search(stac_request):
 The above result shows the datetime of the STAC item, the datetime of the query and a confirmation that they satisfy the query filter. Notice the warning, this is because our date doesn't have a timezone associated with it. By default we assume UTC.
 
 Now we're going to do a range request and select data between two dates:
+
+
+
+
+
+<details><summary>Python Code Sample</summary>
 
 
 ```python
@@ -521,7 +593,12 @@ for stac_item in client.search(stac_request):
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -545,6 +622,12 @@ For our ground sampling distance query we're using another query filter; this ti
 
 In order to make our ground sampling query we need to insert it inside of an [EoRequest](https://geo-grpc.github.io/api/#epl.protobuf.EoRequest) container and set that to the `eo` field of the `StacRequest`.
 
+
+
+
+
+
+<details><summary>Python Code Sample</summary>
 
 
 ```python
@@ -579,7 +662,12 @@ for stac_item in client.search(stac_request):
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
@@ -601,6 +689,12 @@ Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_2016
 Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
 
 We can also apply a sort direction to our results so that they are ascending or decending. In the below sample we search all data before 2017 starting with the oldest results first by specifiying the `ASC`, ascending parameter.
+
+
+
+
+
+<details><summary>Python Code Sample</summary>
 
 
 ```python
@@ -626,7 +720,12 @@ for stac_item in client.search(stac_request):
 ```
 
 
-<details><summary>Python print out</summary>
+</details>
+
+
+
+
+<details><summary>Python Print-out</summary>
 
 
 ```text
