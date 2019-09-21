@@ -461,6 +461,8 @@ for stac_item in client.search(stac_request):
 
 
 
+Same geometry as above, but a wkt geometry instead of a geojson:
+
 
 
 
