@@ -10,16 +10,17 @@ py_regex = r"```python\n((^(?!```).+\n)|([\n ]+)){1,}```"
 
 
 if __name__ == "__main__":
-    filename = 'README.ipynb'
-    if len(sys.argv) > 1:
-        filename = sys.argv[1]
+    input_filename = 'README.ipynb'
+    if len(sys.argv) >= 2:
+        input_filename = sys.argv[1]
+
+    if len(sys.argv) == 3:
+        markdown_filename = sys.argv[2]
+    else:
+        markdown_filename = '{}.md'.format(os.path.splitext(input_filename)[0])
 
     # requires nbconvert
-    os.system('jupyter nbconvert --to MARKDOWN --execute {}'.format(filename))
-
-    name = os.path.splitext(filename)[0]
-
-    markdown_filename = '{}.md'.format(name)
+    os.system('jupyter nbconvert --to MARKDOWN --execute {0} --output {1}'.format(input_filename, markdown_filename))
     with open(markdown_filename, 'r+') as f:
         print("code collapse section re-write for file {}".format(markdown_filename))
 
