@@ -31,6 +31,8 @@ print("STAC item id {}".format(stac_item.id))
 dt_observed = datetime.fromtimestamp(stac_item.observed.seconds)
 print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -100,6 +102,8 @@ client = NSLClient()
 stac_item = client.search_one(stac_request)
 print(stac_item)
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -345,6 +349,8 @@ client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -396,6 +402,8 @@ for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
     geojson_ids.append(stac_item.id)
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -422,6 +430,8 @@ for stac_item in client.search(stac_request):
     print("STAC item id: {0} from wkt filter intersects result from geojson filter: {1}"
           .format(stac_item.id, stac_item.id in geojson_ids))
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -465,6 +475,8 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds > start_timestamp.seconds))
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -507,6 +519,8 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(stop_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds < stop_timestamp.seconds))
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -563,6 +577,8 @@ for stac_item in client.search(stac_request):
         gsd_query.value,
         True))
 ```
+
+
 <details><summary>Python print out</summary>
 
 
@@ -608,6 +624,8 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds < start_timestamp.seconds))
 ```
+
+
 <details><summary>Python print out</summary>
 
 
