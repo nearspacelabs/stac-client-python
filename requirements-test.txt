@@ -2,3 +2,4 @@ pytest
 pytest-flake8
 numpy
 requests
+treon
