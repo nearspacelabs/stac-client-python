@@ -792,5 +792,5 @@ For Comparison, here is the [JSON STAC Electro Optical field summary](https://gi
 
 
 ### Updating the samples in this README
-Use the Jupyter Notebook included in this repo to update the README.md. Do not directly edit the README.md. It will be overwritten by output from `ipynb2md.py`. First edit the jupyter notebook README.ipynb, then run the python script `python ipynb2md.py`.
+Use this Jupyter Notebook to update the README.md. Do not directly edit the README.md. It will be overwritten by output from `ipynb2md.py`. First edit this README.ipynb, in kernel Restart & Run All to confirm your changes worked, Save and Checkpoint, then run the python script `python ipynb2md.py`.
 
