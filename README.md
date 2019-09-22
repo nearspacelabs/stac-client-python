@@ -1,5 +1,5 @@
 
-# gRPC stac-client-python
+# gRPC stac-client-pytho
 ### What is this Good for
 Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search.  
 
@@ -13,7 +13,7 @@ Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) 
 <details><summary>Python Code Sample</summary>
 
 
-```pytho
+```python
 from datetime import datetime
 # the StacRequest is a protobuf message for making filter queries for data, you can think of it as 
 # the query string in a url
