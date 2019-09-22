@@ -20,7 +20,7 @@ if __name__ == "__main__":
         markdown_filename = '{}.md'.format(os.path.splitext(input_filename)[0])
 
     # requires nbconvert
-    os.system('jupyter nbconvert --to MARKDOWN --execute {0} --output {1}'.format(input_filename, markdown_filename))
+    os.system('jupyter nbconvert --to MARKDOWN --execute {0} --output {1} --ExecutePreprocessor.kernel_name=python3'.format(input_filename, markdown_filename))
     with open(markdown_filename, 'r+') as f:
         print("code collapse section re-write for file {}".format(markdown_filename))
 
