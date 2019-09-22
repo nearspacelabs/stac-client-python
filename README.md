@@ -1,5 +1,5 @@
 
-# gRPC stac-client-pytho
+# gRPC stac-client-python
 ### What is this Good for
 Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search.  
 
