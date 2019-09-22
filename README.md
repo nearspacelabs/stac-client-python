@@ -34,7 +34,7 @@ stac_item = client.search_one(stac_request)
 print("STAC item id {}".format(stac_item.id))
 
 # display the observed date of the scene. The observed 
-dt_observed = datetime.fromtimestamp(stac_item.observed.seconds)
+dt_observed = datetime.utcfromtimestamp(stac_item.observed.seconds)
 print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 ```
 
@@ -51,7 +51,7 @@ print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
     nsl client connecting to stac service at: localhost:10000
     
     STAC item id 20190917T201159Z_3_POM2_ST1
-    Date observed 09/17/2019, 16:11:16
+    Date observed 09/17/2019, 20:11:16
 ```
 
 
