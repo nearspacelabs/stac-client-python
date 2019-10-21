@@ -1,14 +1,87 @@
 import os
-# https://stackoverflow.com/a/16151611/445372
 import datetime
 
-from typing import List, Iterator
+from typing import List, Iterator, BinaryIO
 
+from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 from epl.protobuf import stac_pb2
 
+from nsl.stac import storage_client
+
 DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
 RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
+
+
+def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
+    """
+    get metadata/interface for one asset in google cloud storage
+    :param bucket: bucket name
+    :param blob_name: complete blob name of item (doesn't include bucket name)
+    :return: Blob interface item
+    """
+    bucket = storage_client.get_bucket(bucket)
+    return bucket.get_blob(blob_name=blob_name.strip('/'))
+
+
+def _download_gcp_file(bucket: str,
+                       blob_name: str,
+                       file_obj: BinaryIO = None,
+                       save_filename: str = "") -> str:
+    """
+    download a specific blob from Google Cloud Storage (GCS) to a file object handle
+    :param bucket: bucket name
+    :param blob_name: the full prefix to a specific asset in GCS. Does not include bucket name
+    :param file_obj: file object (or BytesIO string_buffer) where data should be written
+    :return: returns path to downloaded file if applicable
+    """
+    blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
+
+    if file_obj is not None:
+        result = file_obj.name
+        blob.download_to_file(file_obj=file_obj, client=storage_client)
+        file_obj.seek(0)
+
+        return result
+    elif len(save_filename) > 0:
+        blob.download_to_filename(filename=save_filename, client=storage_client)
+        return save_filename
+    else:
+        raise ValueError("must provide filename or file_obj")
+
+
+def download_asset(asset: stac_pb2.Asset,
+                   b_from_bucket: bool = True,
+                   file_obj: BinaryIO = None,
+                   save_filename: str = "",
+                   save_directory: str = ""):
+    if file_obj is not None and (len(save_filename) > 0 or len(save_directory) > 0):
+        raise ValueError("either file_obj, save_filename or save_directory must be defined")
+    elif len(save_directory):
+        if os.path.exists(save_directory):
+            save_filename = os.path.join(save_directory, os.path.basename(asset.object_path))
+        else:
+            raise ValueError("directory 'save_directory' doesn't exist")
+
+    if b_from_bucket and asset.cloud_platform == stac_pb2.GCP:
+        return _download_gcp_file(bucket=asset.bucket,
+                                  blob_name=asset.object_path,
+                                  file_obj=file_obj,
+                                  save_filename=save_filename)
+    else:
+        raise ValueError("only GCP bucket downloads supported")
+
+
+def download_assets(stac_item: stac_pb2.StacItem,
+                    b_from_bucket: bool = True,
+                    save_directory: str = "") -> List[str]:
+    filenames = []
+    for asset_key in stac_item.assets:
+        asset = stac_item.assets[asset_key]
+        filenames.append(download_asset(asset=asset,
+                                        b_from_bucket=b_from_bucket,
+                                        save_directory=save_directory))
+    return filenames
 
 
 def get_asset(stac_item: stac_pb2.StacItem,
@@ -194,7 +267,7 @@ def timezoned(d_utc: datetime.datetime or datetime.date):
     # datetime is child to datetime.date, so if we reverse the order of this instance of we fail
     if isinstance(d_utc, datetime.datetime) and d_utc.tzinfo is None:
         # TODO add warning here:
-        print("warning, no timezone provided with datetime, so UTC is assumed")
+        # print("warning, no timezone provided with datetime, so UTC is assumed")
         d_utc = datetime.datetime(d_utc.year,
                                   d_utc.month,
                                   d_utc.day,
@@ -204,7 +277,7 @@ def timezoned(d_utc: datetime.datetime or datetime.date):
                                   d_utc.microsecond,
                                   tzinfo=datetime.timezone.utc)
     elif not isinstance(d_utc, datetime.datetime):
-        print("warning, no timezone provided with date, so UTC is assumed")
+        # print("warning, no timezone provided with date, so UTC is assumed")
         d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=datetime.timezone.utc)
     return d_utc
 
