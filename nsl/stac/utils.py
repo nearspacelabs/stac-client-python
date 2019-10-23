@@ -10,7 +10,7 @@ from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 from epl.protobuf import stac_pb2
 
-from nsl.stac import storage_client
+from nsl.stac import gcs_storage_client
 
 DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
 RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
@@ -23,7 +23,7 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     :param blob_name: complete blob name of item (doesn't include bucket name)
     :return: Blob interface item
     """
-    bucket = storage_client.get_bucket(bucket)
+    bucket = gcs_storage_client.get_bucket(bucket)
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
 
@@ -42,12 +42,12 @@ def _download_gcp_file(bucket: str,
 
     if file_obj is not None:
         result = file_obj.name
-        blob.download_to_file(file_obj=file_obj, client=storage_client)
+        blob.download_to_file(file_obj=file_obj, client=gcs_storage_client)
         file_obj.seek(0)
 
         return result
     elif len(save_filename) > 0:
-        blob.download_to_filename(filename=save_filename, client=storage_client)
+        blob.download_to_filename(filename=save_filename, client=gcs_storage_client)
         return save_filename
     else:
         raise ValueError("must provide filename or file_obj")

@@ -98,4 +98,4 @@ class __StacServiceStub(object):
 
 
 stac_service = __StacServiceStub()
-storage_client = _get_storage_client()
+gcs_storage_client = _get_storage_client()
