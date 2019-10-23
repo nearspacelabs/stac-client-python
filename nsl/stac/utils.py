@@ -1,6 +1,9 @@
 import os
 import datetime
 
+import boto3
+import botocore
+
 from typing import List, Iterator, BinaryIO
 
 from google.cloud import storage
@@ -50,6 +53,27 @@ def _download_gcp_file(bucket: str,
         raise ValueError("must provide filename or file_obj")
 
 
+def _download_aws_bucket_item(bucket: str,
+                              blob_name: str,
+                              file_obj: BinaryIO = None,
+                              save_filename: str = ""):
+    # TODO, can this be global?
+    s3 = boto3.resource('s3')
+    try:
+        bucket_obj = s3.Bucket(bucket)
+        if file_obj is not None:
+            bucket_obj .download_fileobj('mykey', file_obj)
+        elif len(save_filename) > 0:
+            bucket_obj.download_file(blob_name, save_filename)
+        else:
+            raise ValueError("must provide filename or file_obj")
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            print("The object does not exist.")
+        else:
+            raise
+
+
 def download_asset(asset: stac_pb2.Asset,
                    b_from_bucket: bool = True,
                    file_obj: BinaryIO = None,
@@ -68,6 +92,11 @@ def download_asset(asset: stac_pb2.Asset,
                                   blob_name=asset.object_path,
                                   file_obj=file_obj,
                                   save_filename=save_filename)
+    elif b_from_bucket and asset.cloud_platform == stac_pb2.AWS:
+        return _download_aws_bucket_item(bucket=asset.bucket,
+                                         blob_name=asset.object_path,
+                                         file_obj=file_obj,
+                                         save_filename=save_filename)
     else:
         raise ValueError("only GCP bucket downloads supported")
 
