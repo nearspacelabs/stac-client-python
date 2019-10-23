@@ -1,5 +1,6 @@
 import os
 import re
+import json
 
 import grpc
 
@@ -9,7 +10,7 @@ from google.oauth2 import service_account
 
 CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-
+SERVICE_ACCOUNT_DETAILS = os.getenv("SERVICE_ACCOUNT_DETAILS")
 
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'localhost:10000')
 BYTES_IN_MB = 1024 * 1024
@@ -40,7 +41,12 @@ def url_to_channel(stac_service_url):
 
 
 def _get_storage_client():
-    if GOOGLE_APPLICATION_CREDENTIALS:
+    # TODO remove SERVICE_ACCOUNT_DETAILS
+    if SERVICE_ACCOUNT_DETAILS:
+        details = json.loads(SERVICE_ACCOUNT_DETAILS)
+        creds = service_account.Credentials.from_service_account_info(details)
+        client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
+    elif GOOGLE_APPLICATION_CREDENTIALS:
         creds = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
         client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
     else:
