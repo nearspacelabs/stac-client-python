@@ -4,3 +4,4 @@ ipykernel
 matplotlib
 scipy
 cartopy --no-binary cartopy
+epl.geometry

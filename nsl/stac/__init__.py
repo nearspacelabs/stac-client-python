@@ -4,6 +4,12 @@ import re
 import grpc
 
 from epl.protobuf import stac_service_pb2_grpc
+from google.cloud import storage as gcp_storage
+from google.oauth2 import service_account
+
+CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
 
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'localhost:10000')
 BYTES_IN_MB = 1024 * 1024
@@ -31,6 +37,16 @@ def url_to_channel(stac_service_url):
                                       options=GRPC_CHANNEL_OPTIONS)
 
     return channel
+
+
+def _get_storage_client():
+    if GOOGLE_APPLICATION_CREDENTIALS:
+        creds = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
+        client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
+    else:
+        client = gcp_storage.Client(project=CLOUD_PROJECT)
+
+    return client
 
 
 def _generate_grpc_channel(stac_service_url=None):
@@ -76,3 +92,4 @@ class __StacServiceStub(object):
 
 
 stac_service = __StacServiceStub()
+storage_client = _get_storage_client()
