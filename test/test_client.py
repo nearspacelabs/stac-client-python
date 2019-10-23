@@ -343,13 +343,37 @@ class TestHelpers(unittest.TestCase):
             garbage.object_path = asset.object_path
             self.assertTrue(utils.has_asset(stac_item, garbage))
 
-    def test_download(self):
+    def test_download_gcp(self):
         id = "LO81120152015061LGN00"
         stac_item = client.search_one(stac_request=StacRequest(id=id))
         asset = utils.get_asset(stac_item,
                                 asset_types=[TXT],
                                 cloud_platform=GCP,
                                 asset_basename='LO81120152015061LGN00_MTL.txt')
+        self.assertIsNotNone(asset)
+        with tempfile.TemporaryDirectory() as d:
+            print(d)
+            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_directory=d)
+            with open(file_path) as f:
+                data1 = f.read()
+
+            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_filename=file_path)
+            with open(file_path) as f:
+                data2 = f.read()
+
+            self.assertMultiLineEqual(data1, data2)
+
+            with tempfile.NamedTemporaryFile('w+b', delete=False) as f_obj:
+                utils.download_asset(asset=asset, b_from_bucket=True, file_obj=f_obj)
+                data3 = f_obj.read().decode('ascii')
+                self.assertMultiLineEqual(data1, data3)
+
+    def test_download_aws(self):
+        id = "LC80270392015025LGN00"
+        stac_item = client.search_one(stac_request=StacRequest(id=id))
+        asset = utils.get_asset(stac_item,
+                                asset_types=[TXT],
+                                cloud_platform=AWS)
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)

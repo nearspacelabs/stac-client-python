@@ -62,9 +62,14 @@ def _download_aws_bucket_item(bucket: str,
     try:
         bucket_obj = s3.Bucket(bucket)
         if file_obj is not None:
-            bucket_obj .download_fileobj('mykey', file_obj)
+            result = file_obj.name
+            bucket_obj .download_fileobj(blob_name, file_obj)
+            file_obj.seek(0)
+
+            return result
         elif len(save_filename) > 0:
             bucket_obj.download_file(blob_name, save_filename)
+            return save_filename
         else:
             raise ValueError("must provide filename or file_obj")
     except botocore.exceptions.ClientError as e:
