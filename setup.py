@@ -16,14 +16,16 @@ kwargs = {
     'author': 'David Raleigh',
     'author_email': 'david@swiftera.co',
     'license': 'Apache 2.0',
-    'version': '0.2.6',
+    'version': '0.2.7',
     'python_requires': '>3.6.0',
     'packages': ['nsl.stac'],
     'install_requires': [
         'grpcio-tools',
         'protobuf',
         'shapely',
-        'epl.protobuf'
+        'epl.protobuf',
+        'boto3',
+        'google-cloud-storage'
     ],
     'zip_safe': False
 }
