@@ -27,15 +27,16 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
 
-def _download_gcp_file(bucket: str,
-                       blob_name: str,
-                       file_obj: BinaryIO = None,
-                       save_filename: str = "") -> str:
+def download_gcs_object(bucket: str,
+                        blob_name: str,
+                        file_obj: BinaryIO = None,
+                        save_filename: str = "") -> str:
     """
     download a specific blob from Google Cloud Storage (GCS) to a file object handle
     :param bucket: bucket name
     :param blob_name: the full prefix to a specific asset in GCS. Does not include bucket name
     :param file_obj: file object (or BytesIO string_buffer) where data should be written
+    :param save_filename: the filename to save the file to
     :return: returns path to downloaded file if applicable
     """
     blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
@@ -53,17 +54,17 @@ def _download_gcp_file(bucket: str,
         raise ValueError("must provide filename or file_obj")
 
 
-def _download_aws_bucket_item(bucket: str,
-                              blob_name: str,
-                              file_obj: BinaryIO = None,
-                              save_filename: str = ""):
+def download_s3_object(bucket: str,
+                       blob_name: str,
+                       file_obj: BinaryIO = None,
+                       save_filename: str = ""):
     # TODO, can this be global?
     s3 = boto3.resource('s3')
     try:
         bucket_obj = s3.Bucket(bucket)
         if file_obj is not None:
             result = file_obj.name
-            bucket_obj .download_fileobj(blob_name, file_obj)
+            bucket_obj.download_fileobj(blob_name, file_obj)
             file_obj.seek(0)
 
             return result
@@ -93,15 +94,15 @@ def download_asset(asset: stac_pb2.Asset,
             raise ValueError("directory 'save_directory' doesn't exist")
 
     if b_from_bucket and asset.cloud_platform == stac_pb2.GCP:
-        return _download_gcp_file(bucket=asset.bucket,
+        return download_gcs_object(bucket=asset.bucket,
+                                   blob_name=asset.object_path,
+                                   file_obj=file_obj,
+                                   save_filename=save_filename)
+    elif b_from_bucket and asset.cloud_platform == stac_pb2.AWS:
+        return download_s3_object(bucket=asset.bucket,
                                   blob_name=asset.object_path,
                                   file_obj=file_obj,
                                   save_filename=save_filename)
-    elif b_from_bucket and asset.cloud_platform == stac_pb2.AWS:
-        return _download_aws_bucket_item(bucket=asset.bucket,
-                                         blob_name=asset.object_path,
-                                         file_obj=file_obj,
-                                         save_filename=save_filename)
     else:
         raise ValueError("only GCP bucket downloads supported")
 
