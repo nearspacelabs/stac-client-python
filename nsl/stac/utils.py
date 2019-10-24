@@ -48,7 +48,8 @@ def download_gcs_object(bucket: str,
 
         return result
     elif len(save_filename) > 0:
-        blob.download_to_filename(filename=save_filename, client=gcs_storage_client)
+        with open(save_filename, "w+b") as file_obj:
+            download_gcs_object(bucket, blob_name, file_obj=file_obj)
         return save_filename
     else:
         raise ValueError("must provide filename or file_obj")
