@@ -31,7 +31,7 @@ def download_gcs_object(bucket: str,
                         blob_name: str,
                         file_obj: BinaryIO = None,
                         save_filename: str = "",
-                        make_dir=False) -> str:
+                        make_dir=True) -> str:
     """
     download a specific blob from Google Cloud Storage (GCS) to a file object handle
     :param make_dir: if directory doesn't exist create
