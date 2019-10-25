@@ -30,15 +30,22 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
 def download_gcs_object(bucket: str,
                         blob_name: str,
                         file_obj: BinaryIO = None,
-                        save_filename: str = "") -> str:
+                        save_filename: str = "",
+                        make_dir=False) -> str:
     """
     download a specific blob from Google Cloud Storage (GCS) to a file object handle
+    :param make_dir: if directory doesn't exist create
     :param bucket: bucket name
     :param blob_name: the full prefix to a specific asset in GCS. Does not include bucket name
     :param file_obj: file object (or BytesIO string_buffer) where data should be written
     :param save_filename: the filename to save the file to
     :return: returns path to downloaded file if applicable
     """
+    if make_dir and save_filename != "":
+        path_to_create = os.path.split(save_filename)[0]
+        if not os.path.exists(path_to_create):
+            os.makedirs(path_to_create, exist_ok=True)
+
     blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
 
     if file_obj is not None:
