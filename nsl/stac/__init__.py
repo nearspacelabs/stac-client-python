@@ -50,7 +50,7 @@ def _get_storage_client():
         creds = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
         client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
     else:
-        client = gcp_storage.Client(project=CLOUD_PROJECT)
+        client = gcp_storage.Client()
 
     return client
 

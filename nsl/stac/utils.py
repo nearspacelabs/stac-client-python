@@ -23,6 +23,9 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     :param blob_name: complete blob name of item (doesn't include bucket name)
     :return: Blob interface item
     """
+    if gcs_storage_client is None:
+        raise ValueError("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
+
     bucket = gcs_storage_client.get_bucket(bucket)
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
