@@ -304,9 +304,13 @@ class TestDatetimeQueries(unittest.TestCase):
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
+        count = 0
         for stac_item in client.search(stac_request):
+            count += 1
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
-            self.assertTrue(utils.pb_timestamp(start).seconds > stac_item.datetime.seconds)
+            self.assertTrue(utils.pb_timestamp(end).seconds > stac_item.datetime.seconds or
+                            utils.pb_timestamp(start).seconds < stac_item.datetime.seconds)
+        self.assertEqual(count, 5)
 
     def test_datetime_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
@@ -316,9 +320,12 @@ class TestDatetimeQueries(unittest.TestCase):
                                                   rel_type=query_pb2.NOT_BETWEEN,
                                                   sort_direction=query_pb2.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
+        count = 0
         for stac_item in client.search(stac_request):
+            count += 1
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
             self.assertTrue(utils.pb_timestamp(end).seconds < stac_item.datetime.seconds)
+        self.assertEqual(count, 5)
 
 
 class TestHelpers(unittest.TestCase):
