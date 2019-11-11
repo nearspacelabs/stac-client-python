@@ -23,6 +23,9 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     :param blob_name: complete blob name of item (doesn't include bucket name)
     :return: Blob interface item
     """
+    if gcs_storage_client is None:
+        raise ValueError("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
+
     bucket = gcs_storage_client.get_bucket(bucket)
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
@@ -88,14 +91,26 @@ def download_s3_object(bucket: str,
             raise
 
 
+# TODO, change this to default to href download?
 def download_asset(asset: stac_pb2.Asset,
                    b_from_bucket: bool = True,
                    file_obj: BinaryIO = None,
                    save_filename: str = "",
                    save_directory: str = ""):
-    if file_obj is not None and (len(save_filename) > 0 or len(save_directory) > 0):
-        raise ValueError("either file_obj, save_filename or save_directory must be defined")
-    elif len(save_directory):
+    """
+    download an asset. Defaults to downloading from cloud storage. save the data to a BinaryIO file object, a filename
+    on your filesystem, or to a directory on your filesystem (the filename will be chosen from the basename of the
+    object).
+    :param asset: The asset to download
+    :param b_from_bucket: force the download to occur from cloud storage instead of href endpoint
+    :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory
+     are set, then only file_obj is used
+    :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
+    :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename
+    is derived from the basename of the object_path or the href
+    :return:
+    """
+    if len(save_directory) > 0 and file_obj is None and len(save_filename) == 0:
         if os.path.exists(save_directory):
             save_filename = os.path.join(save_directory, os.path.basename(asset.object_path))
         else:
@@ -112,12 +127,20 @@ def download_asset(asset: stac_pb2.Asset,
                                   file_obj=file_obj,
                                   save_filename=save_filename)
     else:
-        raise ValueError("only GCP bucket downloads supported")
+        # TODO implement href + API key download here!
+        raise ValueError("only GCP and AWS bucket downloads supported")
 
 
 def download_assets(stac_item: stac_pb2.StacItem,
-                    b_from_bucket: bool = True,
-                    save_directory: str = "") -> List[str]:
+                    save_directory: str,
+                    b_from_bucket: bool = True) -> List[str]:
+    """
+    Download all the assets for a StacItem into a directory
+    :param stac_item: StacItem containing assets to download
+    :param save_directory: the directory where the files should be downloaded
+    :param b_from_bucket: force download from bucket. if set to false downloads happen from href. defaults to True
+    :return:
+    """
     filenames = []
     for asset_key in stac_item.assets:
         asset = stac_item.assets[asset_key]
