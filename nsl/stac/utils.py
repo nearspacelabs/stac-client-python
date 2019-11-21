@@ -93,7 +93,7 @@ def download_s3_object(bucket: str,
 
 # TODO, change this to default to href download?
 def download_asset(asset: stac_pb2.Asset,
-                   b_from_bucket: bool = True,
+                   from_bucket: bool = True,
                    file_obj: BinaryIO = None,
                    save_filename: str = "",
                    save_directory: str = ""):
@@ -102,7 +102,7 @@ def download_asset(asset: stac_pb2.Asset,
     on your filesystem, or to a directory on your filesystem (the filename will be chosen from the basename of the
     object).
     :param asset: The asset to download
-    :param b_from_bucket: force the download to occur from cloud storage instead of href endpoint
+    :param from_bucket: force the download to occur from cloud storage instead of href endpoint
     :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory
      are set, then only file_obj is used
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
@@ -116,12 +116,12 @@ def download_asset(asset: stac_pb2.Asset,
         else:
             raise ValueError("directory 'save_directory' doesn't exist")
 
-    if b_from_bucket and asset.cloud_platform == stac_pb2.GCP:
+    if from_bucket and asset.cloud_platform == stac_pb2.GCP:
         return download_gcs_object(bucket=asset.bucket,
                                    blob_name=asset.object_path,
                                    file_obj=file_obj,
                                    save_filename=save_filename)
-    elif b_from_bucket and asset.cloud_platform == stac_pb2.AWS:
+    elif from_bucket and asset.cloud_platform == stac_pb2.AWS:
         return download_s3_object(bucket=asset.bucket,
                                   blob_name=asset.object_path,
                                   file_obj=file_obj,
@@ -292,7 +292,7 @@ def has_asset(stac_item: stac_pb2.StacItem,
 def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
     """
     construct the uri for the resource in the asset.
-    :param asset: 
+    :param asset:
     :param b_vsi_uri:
     :param prefix:
     :return:

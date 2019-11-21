@@ -12,7 +12,7 @@ CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 SERVICE_ACCOUNT_DETAILS = os.getenv("SERVICE_ACCOUNT_DETAILS")
 
-STAC_SERVICE = os.getenv('STAC_SERVICE', 'localhost:10000')
+STAC_SERVICE = os.getenv('STAC_SERVICE', 'eap.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
 # at this point only allowing 4 MB or smaller messages
 MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 4))
@@ -94,7 +94,7 @@ class __StacServiceStub(object):
 
     def update_service_url(self, stac_service_url):
         """allows you to update your stac service address"""
-        self._channel, self._stub = _generate_grpc_channel(stac_service_url=stac_service_url)
+        self._channel, self._stub = _generate_grpc_channel(stac_service_url)
 
 
 stac_service = __StacServiceStub()
