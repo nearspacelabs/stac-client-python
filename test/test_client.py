@@ -4,7 +4,7 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL, TXT
+from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, GEOTIFF, Eo, Asset, THUMBNAIL, TXT
 from epl.protobuf import query_pb2
 
 from nsl.stac.client import NSLClient
@@ -360,18 +360,18 @@ class TestHelpers(unittest.TestCase):
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_directory=d)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_directory=d)
             with open(file_path) as f:
                 data1 = f.read()
 
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_filename=file_path)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_filename=file_path)
             with open(file_path) as f:
                 data2 = f.read()
 
             self.assertMultiLineEqual(data1, data2)
 
             with tempfile.NamedTemporaryFile('w+b', delete=False) as f_obj:
-                utils.download_asset(asset=asset, b_from_bucket=True, file_obj=f_obj)
+                utils.download_asset(asset=asset, from_bucket=True, file_obj=f_obj)
                 data3 = f_obj.read().decode('ascii')
                 self.assertMultiLineEqual(data1, data3)
 
@@ -384,17 +384,40 @@ class TestHelpers(unittest.TestCase):
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_directory=d)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_directory=d)
             with open(file_path) as f:
                 data1 = f.read()
 
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_filename=file_path)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_filename=file_path)
             with open(file_path) as f:
                 data2 = f.read()
 
             self.assertMultiLineEqual(data1, data2)
 
             with tempfile.NamedTemporaryFile('w+b', delete=False) as f_obj:
-                utils.download_asset(asset=asset, b_from_bucket=True, file_obj=f_obj)
+                utils.download_asset(asset=asset, from_bucket=True, file_obj=f_obj)
+                data3 = f_obj.read().decode('ascii')
+                self.assertMultiLineEqual(data1, data3)
+
+    def test_download_href(self):
+        id = "20191121T192629Z_1594_ST2_POM1"
+        stac_item = client.search_one(stac_request=StacRequest(id=id))
+        asset = utils.get_asset(stac_item, asset_types=[GEOTIFF])
+
+        self.assertIsNotNone(asset)
+
+        with tempfile.TemporaryDirectory() as d:
+            file_path = utils.download_asset(asset=asset, save_directory=d)
+            with open(file_path) as f:
+                data1 = f.read()
+
+            file_path = utils.download_asset(asset=asset, save_filename=file_path)
+            with open(file_path) as f:
+                data2 = f.read()
+
+            self.assertMultiLineEqual(data1, data2)
+
+            with tempfile.NamedTemporaryFile('w+b', delete=False) as f_obj:
+                utils.download_asset(asset=asset, from_bucket=True, file_obj=f_obj)
                 data3 = f_obj.read().decode('ascii')
                 self.assertMultiLineEqual(data1, data3)
