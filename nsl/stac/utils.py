@@ -113,7 +113,9 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
 
     if res.status is not 200:
         raise ValueError("{path} does not exist".format(path=asset_url))
-    # data = res.read()
+
+    with open(save_filename, mode='wb') as f:
+        f.write(res.read())
 
     return save_filename
 

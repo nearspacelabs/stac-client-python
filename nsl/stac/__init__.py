@@ -2,6 +2,7 @@ import os
 import re
 import json
 import http.client
+import warnings
 
 import grpc
 
@@ -105,6 +106,8 @@ class __BearerAuth:
     token = None
 
     def __init__(self):
+        if not NSL_SECRET or not NSL_ID:
+            warnings.warn("NSL_SECRET and NSL_ID not set")
         self._token = {}
 
     def auth_header(self):
