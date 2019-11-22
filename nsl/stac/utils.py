@@ -95,8 +95,14 @@ def download_s3_object(bucket: str,
 
 
 def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_filename: str = ""):
-    # if file_obj is None:
-    #     raise ValueError("must provide filename or file_obj")
+    """
+    download the href of an asset
+    :param asset: The asset to download
+    :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory
+    are set, then only file_obj is used
+    :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
+    :return:
+    """
 
     print("saving to filename...:", save_filename)
     print("...the following asset:", asset)
@@ -114,10 +120,17 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
     if res.status is not 200:
         raise ValueError("{path} does not exist".format(path=asset_url))
 
-    with open(save_filename, mode='wb') as f:
-        f.write(res.read())
+    result = save_filename
+    if len(save_filename) > 0:
+        with open(save_filename, mode='wb') as f:
+            f.write(res.read())
+    elif file_obj is not None:
+        file_obj.write(res.read())
+        result = file_obj.name
+    else:
+        raise ValueError("must provide filename or file_obj")
 
-    return save_filename
+    return result
 
 
 def download_asset(asset: stac_pb2.Asset,
