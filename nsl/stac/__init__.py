@@ -12,6 +12,9 @@ CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 SERVICE_ACCOUNT_DETAILS = os.getenv("SERVICE_ACCOUNT_DETAILS")
 
+NSL_ID = os.getenv("NSL_ID", "")
+NSL_SECRET = os.getenv("NSL_SECRET", "")
+
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'eap.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
 # at this point only allowing 4 MB or smaller messages
@@ -97,5 +100,38 @@ class __StacServiceStub(object):
         self._channel, self._stub = _generate_grpc_channel(stac_service_url)
 
 
+class __BearerAuth:
+    token = None
+
+    def __init__(self):
+        self.token = ""
+
+    def __call__(self, r):
+        self._token = ""
+
+    def auth(self):
+        self.renew()
+
+        return {'authorization': "bearer {token}".format(token=self.token)}
+
+    def renew(self):
+        import http.client
+
+        conn = http.client.HTTPSConnection("swiftera-dev.auth0.com")
+
+        payload = '{' + '\"client_id\":\"{0}\",\"client_secret\":\"{1}\",\"audience\":\"http://localhost:8000\"," \
+                  "\"grant_type\":\"client_credentials\"'.format(NSL_ID, NSL_SECRET) + '}'
+
+        headers = {'content-type': "application/json"}
+
+        conn.request("POST", "/oauth/token", payload, headers)
+
+        res = conn.getresponse()
+        data = res.read()
+
+        self.token = data.decode("utf-8")
+
+
+bearer_auth = __BearerAuth()
 stac_service = __StacServiceStub()
 gcs_storage_client = _get_storage_client()

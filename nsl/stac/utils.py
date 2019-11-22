@@ -12,7 +12,7 @@ from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 from epl.protobuf import stac_pb2
 
-from nsl.stac import gcs_storage_client
+from nsl.stac import gcs_storage_client, bearer_auth
 
 DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
 RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
@@ -97,7 +97,6 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
     # if file_obj is None:
     #     raise ValueError("must provide filename or file_obj")
 
-
     print("saving to filename...:", save_filename)
     print("...the following asset:", asset)
 
@@ -106,7 +105,7 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
     conn = http.client.HTTPConnection(host.netloc)
     conn.request(method="GET",
                  url=asset_url,
-                 headers={'authorization': "bearer {token}".format(token="")})
+                 headers=bearer_auth.auth())
 
     res = conn.getresponse()
     print(res.status, res.reason)
