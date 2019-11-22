@@ -1,7 +1,8 @@
 import os
 import re
-import json
 import http.client
+import json
+import time
 import warnings
 
 import grpc
@@ -17,12 +18,17 @@ SERVICE_ACCOUNT_DETAILS = os.getenv("SERVICE_ACCOUNT_DETAILS")
 NSL_ID = os.getenv("NSL_ID")
 NSL_SECRET = os.getenv("NSL_SECRET")
 
+# TODO:
+API_AUDIENCE = "http://localhost:8000"
+AUTH0_DOMAIN = "swiftera-dev.auth0.com"
+TOKEN_REFRESH_THRESHOLD = 300  # 5 minutes
+
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'eap.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
 # at this point only allowing 4 MB or smaller messages
 MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 4))
 GRPC_CHANNEL_OPTIONS = [('grpc.max_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB),
-                        ('grpc.max_receive_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB)]
+                        ('grpc.max_receive_message_length', MESSAGE_SIZE_MB*BYTES_IN_MB)]
 
 # TODO prep for ip v6
 IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
@@ -103,36 +109,45 @@ class __StacServiceStub(object):
 
 
 class __BearerAuth:
-    token = None
+    _expiry = 0
+    _token = {}
 
     def __init__(self):
-        if not NSL_SECRET or not NSL_ID:
-            warnings.warn("NSL_SECRET and NSL_ID not set")
-        self._token = {}
+        if not NSL_ID or not NSL_SECRET:
+            warnings.warn("NSL_ID and NSL_SECRET should both be set")
+        self.authorize()
 
     def auth_header(self):
-        self.renew()
+        return "Bearer {token}".format(token=self._token)
 
-        return {'authorization': "Bearer {token}".format(token=self._token['access_token'])}
-
-    def renew(self):
-        conn = http.client.HTTPSConnection("swiftera-dev.auth0.com")
-
-        payload = {
+    def authorize(self):
+        conn = http.client.HTTPSConnection(AUTH0_DOMAIN)
+        headers = {'content-type': 'application/json'}
+        post_body = {
             'client_id': NSL_ID,
             'client_secret': NSL_SECRET,
-            'audience': 'http://localhost:8000',
+            'audience': API_AUDIENCE,
             'grant_type': 'client_credentials'
         }
 
-        headers = {'content-type': "application/json"}
-
-        conn.request("POST", "/oauth/token", json.dumps(payload), headers)
-
+        conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
         res = conn.getresponse()
-        data = res.read()
 
-        self._token = json.loads(data.decode("utf-8"))
+        # TODO: handle failure and retries
+        res_body = json.loads(res.read().decode("utf-8"))
+        self._expiry = res_body["expires_in"] + time.time()
+        self._token = res_body["access_token"]
+
+
+class AuthGuard:
+    def __init__(self, f):
+        self.f = f
+
+    def __call__(self, *args, **kwargs):
+        if (bearer_auth._expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+            bearer_auth.authorize()
+
+        return self.f(*args, **kwargs)
 
 
 bearer_auth = __BearerAuth()

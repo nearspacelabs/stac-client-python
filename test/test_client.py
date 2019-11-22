@@ -408,16 +408,16 @@ class TestHelpers(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as d:
             file_path = utils.download_asset(asset=asset, save_directory=d)
-            with open(file_path) as f:
+            with open(file_path, 'rb') as f:
                 data1 = f.read()
 
             file_path = utils.download_asset(asset=asset, save_filename=file_path)
-            with open(file_path) as f:
+            with open(file_path, 'rb') as f:
                 data2 = f.read()
 
-            self.assertMultiLineEqual(data1, data2)
+            self.assertEqual(data1, data2)
 
-            with tempfile.NamedTemporaryFile('w+b', delete=False) as f_obj:
-                utils.download_asset(asset=asset, from_bucket=True, file_obj=f_obj)
-                data3 = f_obj.read().decode('ascii')
-                self.assertMultiLineEqual(data1, data3)
+            with tempfile.NamedTemporaryFile('w+b', delete=False) as file_obj:
+                utils.download_asset(asset=asset, file_obj=file_obj)
+                data3 = file_obj.read()
+                self.assertEqual(data1, data3)
