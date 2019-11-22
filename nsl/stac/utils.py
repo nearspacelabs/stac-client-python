@@ -1,6 +1,7 @@
 import os
 import datetime
-import http
+import http.client
+
 from urllib.parse import urlparse
 
 import boto3
@@ -105,13 +106,15 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
     conn = http.client.HTTPConnection(host.netloc)
     conn.request(method="GET",
                  url=asset_url,
-                 headers=bearer_auth.auth())
+                 headers=bearer_auth.auth_header())
 
     res = conn.getresponse()
     print(res.status, res.reason)
 
     if res.status is not 200:
         raise ValueError("{path} does not exist".format(path=asset_url))
+    # data = res.read()
+
     return save_filename
 
 

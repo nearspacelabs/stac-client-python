@@ -105,12 +105,12 @@ class __BearerAuth:
     token = None
 
     def __init__(self):
-        self._token = ""
+        self._token = {}
 
-    def auth(self):
+    def auth_header(self):
         self.renew()
 
-        return {'authorization': "bearer {token}".format(token=self.token)}
+        return {'authorization': "Bearer {token}".format(token=self._token['access_token'])}
 
     def renew(self):
         conn = http.client.HTTPSConnection("swiftera-dev.auth0.com")
@@ -129,7 +129,7 @@ class __BearerAuth:
         res = conn.getresponse()
         data = res.read()
 
-        self.token = data.decode("utf-8")
+        self._token = json.loads(data.decode("utf-8"))
 
 
 bearer_auth = __BearerAuth()
