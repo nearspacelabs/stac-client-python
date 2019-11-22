@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import http.client
 
 import grpc
 
@@ -12,8 +13,8 @@ CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 SERVICE_ACCOUNT_DETAILS = os.getenv("SERVICE_ACCOUNT_DETAILS")
 
-NSL_ID = os.getenv("NSL_ID", "")
-NSL_SECRET = os.getenv("NSL_SECRET", "")
+NSL_ID = os.getenv("NSL_ID")
+NSL_SECRET = os.getenv("NSL_SECRET")
 
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'eap.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
@@ -104,9 +105,6 @@ class __BearerAuth:
     token = None
 
     def __init__(self):
-        self.token = ""
-
-    def __call__(self, r):
         self._token = ""
 
     def auth(self):
@@ -115,16 +113,18 @@ class __BearerAuth:
         return {'authorization': "bearer {token}".format(token=self.token)}
 
     def renew(self):
-        import http.client
-
         conn = http.client.HTTPSConnection("swiftera-dev.auth0.com")
 
-        payload = '{' + '\"client_id\":\"{0}\",\"client_secret\":\"{1}\",\"audience\":\"http://localhost:8000\"," \
-                  "\"grant_type\":\"client_credentials\"'.format(NSL_ID, NSL_SECRET) + '}'
+        payload = {
+            'client_id': NSL_ID,
+            'client_secret': NSL_SECRET,
+            'audience': 'http://localhost:8000',
+            'grant_type': 'client_credentials'
+        }
 
         headers = {'content-type': "application/json"}
 
-        conn.request("POST", "/oauth/token", payload, headers)
+        conn.request("POST", "/oauth/token", json.dumps(payload), headers)
 
         res = conn.getresponse()
         data = res.read()
