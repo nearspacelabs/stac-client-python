@@ -132,7 +132,7 @@ There easiest query to construct is a `StacRequest` constructor with no variable
 from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
 
-stac_request = StacRequest(id='20191122T130410Z_640_ST2_POM1')
+stac_request = StacRequest(id='20191121T192629Z_1594_ST2_POM1')
 
 # get a client interface to the gRPC channel
 client = NSLClient()
@@ -151,31 +151,31 @@ print(stac_item)
 
 
 ```text
-    id: "20191122T130410Z_640_ST2_POM1"
+    id: "20191121T192629Z_1594_ST2_POM1"
     geometry {
-      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000C\266Yx+\372\353?1P\326\r\325\326D@\346\336&\0277\370\354?8[E\270\347\326D@\221\273\010.j\363\354?\330`\274T7\331D@\346\244&fL\365\353?3\037J\247$\331D@C\266Yx+\372\353?1P\326\r\325\326D@"
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\316\252\210\342\367nX\300\265K\302O\323?>@\246\336\241u\325mX\300\211\271\345\000\310?>@:\337\320\324\322mX\300\251;N.\360B>@\343@\000K\365nX\300+\205\227~\373B>@\316\252\210\342\367nX\300\265K\302O\323?>@"
       sr {
         wkid: 4326
       }
       simple: STRONG_SIMPLE
     }
     bbox {
-      xmin: 0.8736936564575017
-      ymin: 41.67837689365877
-      xmax: 0.9052997066673611
-      ymax: 41.69700106809768
+      xmin: -97.73387969347388
+      ymin: 30.24914556129946
+      xmax: -97.71599312207846
+      ymax: 30.261650001518472
       sr {
         wkid: 4326
       }
     }
     properties {
       type_url: "type.googleapis.com/st.protobuf.SwiftMetadata"
-      value: "\n\02720190412T110321Z_LLEIDA\022 4720b2613dc9377a70e74076acb739cf\032\03120191122T125836Z_SWIFTERA \01022\032+POINT(0.8811652660369873 41.69331741333008):\003\010\346!:\005\r|\320ZFB\003 \200\005R\03520190720T055416Z_640_POM2_ST1Z\0012Z\0010Z\0011Z\0019Z\0010Z\0014Z\0011Z\0012Z\001TZ\0011Z\0012Z\0011Z\0016Z\0010Z\0012Z\001ZZ\001_Z\0016Z\0011Z\0017Z\0013Z\001_Z\001PZ\001OZ\001MZ\0011Z\001_Z\001SZ\001TZ\0012Z\0012Z\0010Z\0011Z\0019Z\0010Z\0017Z\0012Z\0010Z\001TZ\0010Z\0015Z\0015Z\0012Z\0014Z\0012Z\001ZZ\001_Z\0016Z\0014Z\0010Z\001_Z\001PZ\001OZ\001MZ\0012Z\001_Z\001SZ\001TZ\0011Z\03520190720T055416Z_640_POM2_ST1b\03620190412T121602Z_6173_POM1_ST2h\001p\001\200\001\215\010\210\001\271\316\t"
+      value: "\n\03420190829T153004Z_HAYS_COUNTY\022 4720b2613dc9377a70e74076acb739cf\032\02620191121T192621Z_DAVID \01022\032+POINT(-97.71175384521484 30.19917869567871):\003\010\346!:\005\rf\001\242FB\003 \272\014R\03620190904T154946Z_1594_POM2_ST1Z\03620190829T172857Z_1594_POM1_ST2Z\03620190904T154533Z_1594_POM2_ST1Z\03620190904T154946Z_1594_POM2_ST1b\03620190829T172857Z_1594_POM1_ST2h\001p\001\200\001\354\010\210\001\270\252\023"
     }
     assets {
       key: "GEOTIFF_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20191122T125836Z_SWIFTERA/Publish_0/20191122T130410Z_640_ST2_POM1.tif"
+        href: "https://eap.nearspacelabs.net/download/20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1.tif"
         type: "image/vnd.stac.geotiff"
         eo_bands: RGB
         asset_type: GEOTIFF
@@ -183,13 +183,13 @@ print(stac_item)
         bucket_manager: "Swiftera"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20191122T125836Z_SWIFTERA/Publish_0/20191122T130410Z_640_ST2_POM1.tif"
+        object_path: "20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1.tif"
       }
     }
     assets {
       key: "THUMBNAIL_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20191122T125836Z_SWIFTERA/Publish_0/20191122T130410Z_640_ST2_POM1_thumb.jpg"
+        href: "https://eap.nearspacelabs.net/download/20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1_thumb.jpg"
         type: "image/jpeg"
         eo_bands: RGB
         asset_type: THUMBNAIL
@@ -197,37 +197,40 @@ print(stac_item)
         bucket_manager: "Swiftera"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20191122T125836Z_SWIFTERA/Publish_0/20191122T130410Z_640_ST2_POM1_thumb.jpg"
+        object_path: "20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1_thumb.jpg"
       }
     }
     datetime {
-      seconds: 1555071362
-      nanos: 539381000
+      seconds: 1567099737
+      nanos: 259586000
     }
     observed {
-      seconds: 1555071362
-      nanos: 539381000
+      seconds: 1567099737
+      nanos: 259586000
     }
     processed {
-      seconds: 1574427850
-      nanos: 111098000
+      seconds: 1574364389
+      nanos: 584799000
     }
     updated {
-      seconds: 1574427850
-      nanos: 859065942
+      seconds: 1574364390
+      nanos: 282194298
     }
     eo {
       platform: SWIFT_2
       instrument: POM_1
       constellation: SWIFT
       sun_azimuth {
-        value: 188.4600067138672
+        value: 141.74072265625
       }
       sun_elevation {
-        value: 56.741512298583984
+        value: 64.46234130859375
+      }
+      off_nadir {
+        value: 19.908658981323242
       }
       azimuth {
-        value: -100.5069351196289
+        value: 102.08956146240234
       }
     }
     
@@ -290,16 +293,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20191110T003517Z_1594_ST2_POM1
-    STAC item id: 20191121T182921Z_1594_ST2_POM1
-    STAC item id: 20191121T201211Z_1594_ST2_POM1
+    STAC item id: 20191110T004641Z_1594_ST2_POM1
     STAC item id: 20191121T192629Z_1594_ST2_POM1
     STAC item id: 20191111T193822Z_1594_ST2_POM1
-    STAC item id: 20191121T174541Z_1594_ST2_POM1
+    STAC item id: 20191110T005206Z_1594_ST2_POM1
+    STAC item id: 20191121T201211Z_1594_ST2_POM1
+    STAC item id: 20191110T004842Z_1594_ST2_POM1
     STAC item id: 20191122T130151Z_1594_ST2_POM1
     STAC item id: 20191110T002000Z_1594_ST2_POM1
-    STAC item id: 20191110T004641Z_1594_ST2_POM1
-    STAC item id: 20191110T005417Z_1594_ST2_POM1
+    STAC item id: 20191121T182921Z_1594_ST2_POM1
+    STAC item id: 20191121T174541Z_1594_ST2_POM1
 ```
 
 
@@ -633,11 +636,13 @@ To download an asset use the `bucket` + `object_path` or the `href` fields from 
 
 ```python
 import tempfile
+from IPython.display import Image, display
+
 from nsl.stac.client import NSLClient
 from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 
-stac_request = StacRequest(id='20191122T130410Z_640_ST2_POM1')
+stac_request = StacRequest(id='20191121T192629Z_1594_ST2_POM1')
 
 # get a client interface to the gRPC channel
 client = NSLClient()
@@ -645,8 +650,9 @@ client = NSLClient()
 stac_item = client.search_one(stac_request)
 
 asset = stac_item.assets['THUMBNAIL_RGB']
-with tempfile.NamedTemporaryFile() as file_obj:
+with tempfile.NamedTemporaryFile(suffix=".jpg") as file_obj:
     utils.download_asset(asset=asset, save_filename=file_obj.name)
+    display(Image(filename=file_obj.name))
 ```
 
 
@@ -655,27 +661,7 @@ with tempfile.NamedTemporaryFile() as file_obj:
 
 
 
-<details><summary>Python Print-out</summary>
-
-
-```text
-    saving to filename...: /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpzyid0iq_
-    ...the following asset: href: "https://eap.nearspacelabs.net/download/20191122T125836Z_SWIFTERA/Publish_0/20191122T130410Z_640_ST2_POM1_thumb.jpg"
-    type: "image/jpeg"
-    eo_bands: RGB
-    asset_type: THUMBNAIL
-    cloud_platform: GCP
-    bucket_manager: "Swiftera"
-    bucket_region: "us-central1"
-    bucket: "swiftera-processed-data"
-    object_path: "20191122T125836Z_SWIFTERA/Publish_0/20191122T130410Z_640_ST2_POM1_thumb.jpg"
-    
-    200 OK
-```
-
-
-</details>
-
+![jpeg](README_files/README_20_0.jpeg)
 
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC
