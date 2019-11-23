@@ -28,7 +28,7 @@ BYTES_IN_MB = 1024 * 1024
 # at this point only allowing 4 MB or smaller messages
 MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 4))
 GRPC_CHANNEL_OPTIONS = [('grpc.max_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB),
-                        ('grpc.max_receive_message_length', MESSAGE_SIZE_MB*BYTES_IN_MB)]
+                        ('grpc.max_receive_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB)]
 
 # TODO prep for ip v6
 IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
@@ -138,13 +138,17 @@ class __BearerAuth:
         self._expiry = res_body["expires_in"] + time.time()
         self._token = res_body["access_token"]
 
+    @property
+    def expiry(self):
+        return self._expiry
+
 
 class AuthGuard:
     def __init__(self, f):
         self.f = f
 
     def __call__(self, *args, **kwargs):
-        if (bearer_auth._expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+        if (bearer_auth.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
             bearer_auth.authorize()
 
         return self.f(*args, **kwargs)

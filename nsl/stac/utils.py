@@ -32,7 +32,6 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
 
-@AuthGuard
 def download_gcs_object(bucket: str,
                         blob_name: str,
                         file_obj: BinaryIO = None,
@@ -68,7 +67,6 @@ def download_gcs_object(bucket: str,
         raise ValueError("must provide filename or file_obj")
 
 
-@AuthGuard
 def download_s3_object(bucket: str,
                        blob_name: str,
                        file_obj: BinaryIO = None,
@@ -106,12 +104,14 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
     :return:
     """
 
+    headers = {"authorization": bearer_auth.auth_header()}
+    if len(asset.type) > 0:
+        headers["content-type"] = asset.type
+
     host = urlparse(asset.href)
     asset_url = "/download/{object}".format(object=asset.object_path)
     conn = http.client.HTTPConnection(host.netloc)
-    conn.request(method="GET",
-                 url=asset_url,
-                 headers={'authorization': bearer_auth.auth_header()})
+    conn.request(method="GET", url=asset_url, headers=headers)
 
     res = conn.getresponse()
     if res.status is not 200:
@@ -123,13 +123,13 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
     elif file_obj is not None:
         file_obj.write(res.read())
         save_filename = file_obj.name
+        file_obj.seek(0)
     else:
         raise ValueError("must provide filename or file_obj")
 
     return save_filename
 
 
-@AuthGuard
 def download_asset(asset: stac_pb2.Asset,
                    from_bucket: bool = False,
                    file_obj: BinaryIO = None,
@@ -188,7 +188,6 @@ def download_assets(stac_item: stac_pb2.StacItem,
     return filenames
 
 
-@AuthGuard
 def get_asset(stac_item: stac_pb2.StacItem,
               band: stac_pb2.Eo.Band = stac_pb2.Eo.UNKNOWN_BAND,
               asset_types: List = None,
@@ -212,7 +211,6 @@ def get_asset(stac_item: stac_pb2.StacItem,
     return data[0]
 
 
-@AuthGuard
 def get_assets(stac_item: stac_pb2.StacItem,
                band: stac_pb2.Eo.Band = stac_pb2.Eo.UNKNOWN_BAND,
                asset_types: List = None,
@@ -248,7 +246,6 @@ def get_assets(stac_item: stac_pb2.StacItem,
     return
 
 
-@AuthGuard
 def get_eo_assets(stac_item: stac_pb2.StacItem,
                   cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
                   bands: List = DEFAULT_RGB,
