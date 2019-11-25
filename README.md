@@ -32,11 +32,12 @@ python setup.py install
 #### Environment Variables
 There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
 
-- STAC_SERVICE, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
-- NSL_ID and NSL_SECRET, if you're downloading Near Space Labs data you'll need credentials
-- GOOGLE_APPLICATION_CREDENTIALS, if you're downloading open data hosted on Google Cloud
+- `STAC_SERVICE`, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
+- `NSL_ID` and `NSL_SECRET`, if you're downloading Near Space Labs data you'll need credentials
+- `GOOGLE_APPLICATION_CREDENTIALS`, if you're downloading open data hosted on Google Cloud
 
 #### Running Included Jupyter Notebooks
+If you are using a virtual environment, but the jupyter you use is outside that virtual env, then you'll have to add your virtual environment to jupyter using something like `python -m ipykernel install --user --name=myenv` (more [here](https://janakiev.com/blog/jupyter-virtual-envs/)). Your best python life is no packages installed globally and always living virtual environment to virtual environment.
 
 Install the requirements for the demo:
 

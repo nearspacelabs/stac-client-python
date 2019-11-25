@@ -1,4 +1,9 @@
 
+# Complex Queries
+Below are a few complex queries, downloading and filtering of StacItem results.
+
+- [Sort Order](#sort-order)
+
 ### Sort Order
 We can also apply a sort direction to our results so that they are ascending or decending. In the below sample we search all data before 2017 starting with the oldest results first by specifiying the `ASC`, ascending parameter. This is a complex query and can take a while.
 
@@ -48,6 +53,22 @@ for stac_item in client.search(stac_request):
     
     Stac item id 20191122T130410Z_640_ST2_POM1, date, 2019-04-12T12:16:02+00:00, is before 2019-08-20T00:00:00+00:00:True
     Stac item id 20191122T130408Z_641_ST2_POM1, date, 2019-04-12T12:16:15+00:00, is before 2019-08-20T00:00:00+00:00:True
+```
+
+
+</details>
+
+
+
+
+
+
+
+<details><summary>Python Code Sample</summary>
+
+
+```python
+
 ```
 
 

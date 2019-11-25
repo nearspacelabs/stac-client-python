@@ -141,9 +141,11 @@ def download_asset(asset: stac_pb2.Asset,
     object).
     :param asset: The asset to download
     :param from_bucket: force the download to occur from cloud storage instead of href endpoint
-    :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory are set, then only file_obj is used
+    :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory are
+     set, then only file_obj is used
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
-    :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename is derived from the basename of the object_path or the href
+    :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename
+    is derived from the basename of the object_path or the href
     :return:
     """
     if len(save_directory) > 0 and file_obj is None and len(save_filename) == 0:
@@ -219,7 +221,8 @@ def get_assets(stac_item: stac_pb2.StacItem,
     """
     get a generator of protobuf object(pb) assets from a stac item pb.
     :param stac_item: stac item whose assets we want to search by parameters
-    :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is not electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
+    :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is not
+     electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
     :param asset_types: a list of asset_types to seach. if not defined then it is assumed to search all asset types
     :param cloud_platform: only return assets that are hosted on the cloud platform described in the cloud_platform
     field of the item. default grabs the first asset that meets all the other parameters.
