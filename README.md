@@ -8,11 +8,12 @@ Use this library to access download information and other details for aerial ima
 - [Setup](#setup)
 - [First Code Example](#first-code-example)
 - [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
+  - [Stac Item In Depth](./StacItem.md)
 - [Queries](#queries)
   - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
   - [Spatial](#spatial-queries)
   - [Temporal](#temporal-queries)
-  - [More Complex Examples](./Examples.md)
+  - [Complex Examples](./Examples.md)
 - [Downloading](#downloading)
 - [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
