@@ -5,12 +5,13 @@ from urllib.parse import urlparse
 
 import boto3
 import botocore
+import botocore.exceptions
 
 from typing import List, Iterator, BinaryIO
 
 from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
-from epl.protobuf import stac_pb2
+from epl.protobuf import stac_pb2, query_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth, AuthGuard
 
@@ -356,6 +357,29 @@ def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
                              "'cloud_platform' field defined")
 
     return "{0}/{1}/{2}".format(prefix, asset.bucket, asset.object_path)
+
+
+def pb_timestampfield(rel_type: query_pb2.FieldRelationship,
+                      value: datetime.date or datetime.datetime = None,
+                      start: datetime.date or datetime.datetime = None,
+                      end: datetime.date or datetime.datetime = None,
+                      sort_direction: query_pb2.SortDirection = query_pb2.NOT_SORTED) -> query_pb2.TimestampField:
+    """
+    Create a protobuf query for a timestamp or a range of timestamps.
+    :param rel_type: the relationship type to query more
+    [here](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship)
+    :param value: time to search by using >, >=, <, <=, etc.
+    :param start: start time for between/not between query
+    :param end: end time for between/not between query
+    :param sort_direction: sort direction for results
+    :return: TimestampField
+    """
+    if value is not None:
+        return query_pb2.TimestampField(value=pb_timestamp(value), rel_type=rel_type, sort_direction=sort_direction)
+    return query_pb2.TimestampField(start=pb_timestamp(start),
+                                    stop=pb_timestamp(end),
+                                    rel_type=rel_type,
+                                    sort_direction=sort_direction)
 
 
 def pb_timestamp(d_utc: datetime.datetime or datetime.date) -> timestamp_pb2.Timestamp:
