@@ -48,10 +48,10 @@ print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 
 
 ```text
-    nsl client connecting to stac service at: localhost:10000
+    nsl client connecting to stac service at: eap.nearspacelabs.net:9090
     
-    STAC item id 20190917T201159Z_3_POM2_ST1
-    Date observed 09/17/2019, 20:11:16
+    STAC item id 20191110T005417Z_1594_ST2_POM1
+    Date observed 08/29/2019, 17:28:57
 ```
 
 
@@ -79,6 +79,7 @@ In other words:
 - STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
 
 ### Setup
+You'll need to have Python3 installed (does not work with Python2). If you've got multiple versions of Python and pip, you may need to use `python3` and `pip3` in the below installation commands.
 Grab it from [pip](https://pypi.org/project/nsl.stac/):
 ```bash
 pip install nsl.stac
@@ -93,7 +94,27 @@ python setup.py install
 ### Environment Variables
 There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
 
-- STAC_SERVICE, the address of the STAC service you connect to (defaults to "localhost:10000")
+- STAC_SERVICE, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
+- NSL_ID and NSL_SECRET, if you're downloading Near Space Labs data you'll need credentials
+- GOOGLE_APPLICATION_CREDENTIALS, if you're downloading open data hosted on Google Cloud
+
+### How to Use the Jupyter Notebook
+
+Install the requirements for the demo:
+
+```bash
+
+pip install -r requirements-demo.txt
+
+```
+
+Run Jupyter notebook with your environment variables set for `NSL_ID` and `NSL_SECRET`:
+
+```bash
+
+NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
+
+```
 
 ### Queries
 
@@ -111,7 +132,7 @@ There easiest query to construct is a `StacRequest` constructor with no variable
 from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
 
-stac_request = StacRequest(id='LE70380352019169EDC00')
+stac_request = StacRequest(id='20191121T192629Z_1594_ST2_POM1')
 
 # get a client interface to the gRPC channel
 client = NSLClient()
@@ -130,203 +151,87 @@ print(stac_item)
 
 
 ```text
-    id: "LE70380352019169EDC00"
+    id: "20191121T192629Z_1594_ST2_POM1"
     geometry {
-      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\013\000\000\000&\271i\3470\237\\\300\014]J\037b\301A@\215\227n\022\203\240\\\300V\237\253\255\330\267A@\215\227n\022\203 \\\300\264\310v\276\237\222A@)\314\366\0230 \\\300\"A\357;\304\224A@\360*%j\324\004\\\300\356;\241\373\221IB@\010\254\034Zd\003\\\300P\215\227n\022SB@Rf6\004\277\205\\\300\310\021wH\373xB@\366(\\\217\302\205\\\300\360\026HP\374xB@\013\312\004\350J\206\\\300\016\241\001\362#uB@\032x\271\\\025\207\\\300\230\340\226JnoB@&\271i\3470\237\\\300\014]J\037b\301A@"
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\316\252\210\342\367nX\300\265K\302O\323?>@\246\336\241u\325mX\300\211\271\345\000\310?>@:\337\320\324\322mX\300\251;N.\360B>@\343@\000K\365nX\300+\205\227~\373B>@\316\252\210\342\367nX\300\265K\302O\323?>@"
       sr {
         wkid: 4326
       }
       simple: STRONG_SIMPLE
     }
     bbox {
-      xmin: -114.508
-      ymin: 35.1455
-      xmax: -112.053
-      ymax: 36.9452
+      xmin: -97.73387969347388
+      ymin: 30.24914556129946
+      xmax: -97.71599312207846
+      ymax: 30.261650001518472
       sr {
         wkid: 4326
       }
     }
+    properties {
+      type_url: "type.googleapis.com/st.protobuf.SwiftMetadata"
+      value: "\n\03420190829T153004Z_HAYS_COUNTY\022 4720b2613dc9377a70e74076acb739cf\032\02620191121T192621Z_DAVID \01022\032+POINT(-97.71175384521484 30.19917869567871):\003\010\346!:\005\rf\001\242FB\003 \272\014R\03620190904T154946Z_1594_POM2_ST1Z\03620190829T172857Z_1594_POM1_ST2Z\03620190904T154533Z_1594_POM2_ST1Z\03620190904T154946Z_1594_POM2_ST1b\03620190829T172857Z_1594_POM1_ST2h\001p\001\200\001\354\010\210\001\270\252\023"
+    }
     assets {
-      key: "GEOTIFF_GCP_BLUE"
+      key: "GEOTIFF_RGB"
       value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
+        href: "https://eap.nearspacelabs.net/download/20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1.tif"
         type: "image/vnd.stac.geotiff"
-        eo_bands: BLUE
+        eo_bands: RGB
         asset_type: GEOTIFF
         cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
+        bucket_manager: "Swiftera"
+        bucket_region: "us-central1"
+        bucket: "swiftera-processed-data"
+        object_path: "20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1.tif"
       }
     }
     assets {
-      key: "GEOTIFF_GCP_BQA"
+      key: "THUMBNAIL_RGB"
       value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
-        type: "image/vnd.stac.geotiff"
-        asset_type: GEOTIFF
+        href: "https://eap.nearspacelabs.net/download/20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1_thumb.jpg"
+        type: "image/jpeg"
+        eo_bands: RGB
+        asset_type: THUMBNAIL
         cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
-      }
-    }
-    assets {
-      key: "GEOTIFF_GCP_GREEN"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
-        type: "image/vnd.stac.geotiff"
-        eo_bands: GREEN
-        asset_type: GEOTIFF
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
-      }
-    }
-    assets {
-      key: "GEOTIFF_GCP_LWIR_1"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
-        type: "image/vnd.stac.geotiff"
-        eo_bands: LWIR_1
-        asset_type: GEOTIFF
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B6.TIF"
-      }
-    }
-    assets {
-      key: "GEOTIFF_GCP_NIR"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
-        type: "image/vnd.stac.geotiff"
-        eo_bands: NIR
-        asset_type: GEOTIFF
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
-      }
-    }
-    assets {
-      key: "GEOTIFF_GCP_PAN"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
-        type: "image/vnd.stac.geotiff"
-        eo_bands: PAN
-        asset_type: GEOTIFF
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
-      }
-    }
-    assets {
-      key: "GEOTIFF_GCP_RED"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
-        type: "image/vnd.stac.geotiff"
-        eo_bands: RED
-        asset_type: GEOTIFF
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
-      }
-    }
-    assets {
-      key: "GEOTIFF_GCP_SWIR_1"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
-        type: "image/vnd.stac.geotiff"
-        eo_bands: SWIR_1
-        asset_type: GEOTIFF
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
-      }
-    }
-    assets {
-      key: "GEOTIFF_GCP_SWIR_2"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
-        type: "image/vnd.stac.geotiff"
-        eo_bands: SWIR_2
-        asset_type: GEOTIFF
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
-      }
-    }
-    assets {
-      key: "TXT_GCP_ANG"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
-        type: "text/plain"
-        asset_type: TXT
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
-      }
-    }
-    assets {
-      key: "TXT_GCP_MTL"
-      value {
-        href: "https://gcp-public-data-landsat.storage.googleapis.com/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
-        type: "text/plain"
-        asset_type: TXT
-        cloud_platform: GCP
-        bucket_manager: "Google"
-        bucket_region: "us-multi-region"
-        bucket: "gcp-public-data-landsat"
-        object_path: "/LE07/01/038/035/LE07_L1TP_038035_20190618_20190618_01_RT/LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
+        bucket_manager: "Swiftera"
+        bucket_region: "us-central1"
+        bucket: "swiftera-processed-data"
+        object_path: "20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1_thumb.jpg"
       }
     }
     datetime {
-      seconds: 1560880732
-      nanos: 695231000
+      seconds: 1567099737
+      nanos: 259586000
     }
     observed {
-      seconds: 1560880732
-      nanos: 695231000
+      seconds: 1567099737
+      nanos: 259586000
+    }
+    processed {
+      seconds: 1574364389
+      nanos: 584799000
     }
     updated {
-      seconds: 1566935318
-      nanos: 354185000
+      seconds: 1574364390
+      nanos: 282194298
     }
     eo {
-      platform: LANDSAT_7
-      instrument: ETM
-      constellation: LANDSAT
-      gsd {
-        value: 30.0
+      platform: SWIFT_2
+      instrument: POM_1
+      constellation: SWIFT
+      sun_azimuth {
+        value: 141.74072265625
       }
-      cloud_cover {
-        value: 10.0
+      sun_elevation {
+        value: 64.46234130859375
       }
-    }
-    landsat {
-      scene_id: "LE70380352019169EDC00"
-      product_id: "LE07_L1TP_038035_20190618_20190618_01_RT"
-      processing_level: L1TP
-      wrs_path: 38
-      wrs_row: 35
+      off_nadir {
+        value: 19.908658981323242
+      }
+      azimuth {
+        value: 102.08956146240234
+      }
     }
     
 ```
@@ -362,12 +267,12 @@ from epl.protobuf.geometry_pb2 import EnvelopeData, SpatialReferenceData
 from nsl.stac.client import NSLClient
 
 # define our area of interest bounds
-utah_box = (-112.66342163085938, 37.738141282210385, -111.79824829101562, 38.44821130413263)
+neighborhood_box = (-97.73294577459876, 30.251945643016235, -97.71732458929603, 30.264548996109724)
 # here we define our envelope_data protobuf with bounds and a WGS-84 (`wkid=4326`) spatial reference
-envelope_data = EnvelopeData(xmin=utah_box[0], 
-                             ymin=utah_box[1], 
-                             xmax=utah_box[2], 
-                             ymax=utah_box[3],
+envelope_data = EnvelopeData(xmin=neighborhood_box[0], 
+                             ymin=neighborhood_box[1], 
+                             xmax=neighborhood_box[2], 
+                             ymax=neighborhood_box[3],
                              sr=SpatialReferenceData(wkid=4326))
 # Search for data that intersects the bounding box
 stac_request = StacRequest(bbox=envelope_data)
@@ -388,16 +293,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: LC80370342019170LGN00
-    STAC item id: LC80370332019170LGN00
-    STAC item id: LE70380342019169EDC00
-    STAC item id: LE70380332019169EDC00
-    STAC item id: LE70370342019162EDC00
-    STAC item id: LE70370332019162EDC00
-    STAC item id: LC80380342019161LGN00
-    STAC item id: LC80380332019161LGN00
-    STAC item id: LC80370342019154LGN00
-    STAC item id: LC80370332019154LGN00
+    STAC item id: 20191110T004641Z_1594_ST2_POM1
+    STAC item id: 20191121T192629Z_1594_ST2_POM1
+    STAC item id: 20191111T193822Z_1594_ST2_POM1
+    STAC item id: 20191110T005206Z_1594_ST2_POM1
+    STAC item id: 20191121T201211Z_1594_ST2_POM1
+    STAC item id: 20191110T004842Z_1594_ST2_POM1
+    STAC item id: 20191122T130151Z_1594_ST2_POM1
+    STAC item id: 20191110T002000Z_1594_ST2_POM1
+    STAC item id: 20191121T182921Z_1594_ST2_POM1
+    STAC item id: 20191121T174541Z_1594_ST2_POM1
 ```
 
 
@@ -423,12 +328,11 @@ from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
 
-# request the geojson foot print of Lincoln County Nevada
-r = requests.get("https://raw.githubusercontent.com/johan/world.geo.json/master/countries"
-                 "/USA/NV/Lincoln.geo.json")
-lincoln_geojson = json.dumps(r.json()['features'][0]['geometry'])
+# request the geojson foot print of Travis County, Texas
+r = requests.get("https://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json")
+travis_geojson = json.dumps(r.json()['features'][0]['geometry'])
 # create our GeometryData protobuf from geojson string and WGS-84 SpatialReferenceData protobuf
-geometry_data = GeometryData(geojson=lincoln_geojson, 
+geometry_data = GeometryData(geojson=travis_geojson, 
                              sr=SpatialReferenceData(wkid=4326))
 # Search for data that intersects the geojson geometry and limit results to 2 (instead of default of 10)
 stac_request = StacRequest(geometry=geometry_data, limit=2)
@@ -452,8 +356,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: LE70380352019169EDC00
-    STAC item id: LE70380342019169EDC00
+    STAC item id: 20191110T003517Z_1594_ST2_POM1
+    STAC item id: 20191110T002000Z_1594_ST2_POM1
 ```
 
 
@@ -472,10 +376,8 @@ Same geometry as above, but a wkt geometry instead of a geojson:
 
 ```python
 # Same geometry as above, but a wkt geometry instead of a geojson
-lincoln_wkt = "MULTIPOLYGON (((-114.7057 38.6762,-114.0484 38.6762,-114.0484 38.5721,-114.0484 38.1504,"\
-    "-114.0539 37.6027,-114.0484 37.0003,-114.0484 36.8414,-114.0813 36.8414,-115.8942 36.8414,"\
-    "-115.8942 38.0518,-115.0014 38.0518,-115.0014 38.6762)))" 
-geometry_data = GeometryData(wkt=lincoln_wkt, 
+travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
+geometry_data = GeometryData(wkt=travis_wkt, 
                              sr=SpatialReferenceData(wkid=4326))
 stac_request = StacRequest(geometry=geometry_data, limit=2)
 for stac_item in client.search(stac_request):
@@ -493,8 +395,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: LE70380352019169EDC00 from wkt filter intersects result from geojson filter: True
-    STAC item id: LE70380342019169EDC00 from wkt filter intersects result from geojson filter: True
+    STAC item id: 20191110T003517Z_1594_ST2_POM1 from wkt filter intersects result from geojson filter: True
+    STAC item id: 20191110T002000Z_1594_ST2_POM1 from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -549,8 +451,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2019-09-17T20:11:16+00:00, is after 2017-01-01T00:00:00+00:00: True
-    STAC item date, 2019-09-17T17:43:15+00:00, is after 2017-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:28:57+00:00, is after 2017-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:28:57+00:00, is after 2017-01-01T00:00:00+00:00: True
 ```
 
 
@@ -575,10 +477,10 @@ from nsl.stac.client import NSLClient
 from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.query_pb2 import TimestampField, BETWEEN
-# Query data from January 1st, 2017 ...
-start_timestamp = utils.pb_timestamp(datetime(2017, 1, 1, 0, 0, 0, tzinfo=timezone.utc))
-# ... up until January 1st, 2018
-stop_timestamp = utils.pb_timestamp(datetime(2018, 1, 1, 0, 0, 0, tzinfo=timezone.utc))
+# Query data from August 1, 2019
+start_timestamp = utils.pb_timestamp(datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc))
+# ... up until August 10, 2019
+stop_timestamp = utils.pb_timestamp(datetime(2019, 8, 10, 0, 0, 0, tzinfo=timezone.utc))
 time_query = TimestampField(start=start_timestamp,
                             stop=stop_timestamp,
                             rel_type=BETWEEN)
@@ -603,8 +505,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2017-12-31T23:32:57+00:00, is before 2018-01-01T00:00:00+00:00: True
-    STAC item date, 2017-12-31T23:31:22+00:00, is before 2018-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-08T19:23:02+00:00, is before 2019-08-10T00:00:00+00:00: True
+    STAC item date, 2019-08-08T19:23:02+00:00, is before 2019-08-10T00:00:00+00:00: True
 ```
 
 
@@ -643,9 +545,9 @@ from epl.protobuf.stac_pb2 import EoRequest, Eo
 gsd_query = FloatField(value=1.0, rel_type=LT_OR_EQ)
 # create an eo_request container
 eo_request = EoRequest(gsd=gsd_query)
-# define ourselves a point in Fresno California
-fresno_wkt = "POINT(-119.7871 36.7378)"
-geometry_data = GeometryData(wkt=fresno_wkt, sr=SpatialReferenceData(wkid=4326))
+# define ourselves a point in Austin, Texas
+austin_capital_wkt = "POINT(-97.733333 30.266667)"
+geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 # create a StacRequest with geometry, eo_request and a limit of 20
 stac_request = StacRequest(geometry=geometry_data, eo=eo_request, limit=20)
 
@@ -667,29 +569,11 @@ for stac_item in client.search(stac_request):
 
 
 
-
-<details><summary>Python Print-out</summary>
-
-
-```text
-    NAIP STAC item 'm_3611918_ne_11_h_20160629_20161004' from 2016-06-29T00:00:00+00:00
-    has a gsd 0.6000000238418579, which should be less than or equal to requested gsd 1.0: confirmed True
-    NAIP STAC item 'm_3611918_ne_11_1_20140619_20141113' from 2014-06-19T00:00:00+00:00
-    has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
-    NAIP STAC item 'm_3611918_ne_11_1_20120630_20120904' from 2012-06-30T00:00:00+00:00
-    has a gsd 1.0, which should be less than or equal to requested gsd 1.0: confirmed True
-```
-
-
-</details>
-
-
-
 Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_20160629_20161004`. This is because the FloatValue is a float32, but numpy want's all number to be as large and precise as possible. So there's some scrambled mess at the end of the precision of gsd.
 
 Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
 
-We can also apply a sort direction to our results so that they are ascending or decending. In the below sample we search all data before 2017 starting with the oldest results first by specifiying the `ASC`, ascending parameter.
+We can also apply a sort direction to our results so that they are ascending or decending. In the below sample we search all data before 2017 starting with the oldest results first by specifiying the `ASC`, ascending parameter. This is a complex query and can take a while.
 
 
 
@@ -708,13 +592,14 @@ from epl.protobuf.query_pb2 import TimestampField, LT, ASC
 
 # the utils package has a helper for converting `date` or 
 # `datetime` objects to google.protobuf.Timestamp protobufs
-start_timestamp = utils.pb_timestamp(date(2017,1,1))
+start_timestamp = utils.pb_timestamp(date(2019, 8, 20))
 # make a filter that selects all data on or after January 1st, 2017
 time_query = TimestampField(value=start_timestamp, rel_type=LT, sort_direction=ASC)
 stac_request = StacRequest(datetime=time_query, limit=2)
 client = NSLClient()
 for stac_item in client.search(stac_request):
-    print("Stac item date, {0}, is before {1}: {2}".format(
+    print("Stac item id {0}, date, {1}, is before {2}:{3}".format(
+        stac_item.id,
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
         datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds < start_timestamp.seconds))
@@ -730,8 +615,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    Stac item date, 1972-07-25T04:00:01+00:00, is before 2017-01-01T00:00:00+00:00: True
-    Stac item date, 1972-07-25T04:00:26+00:00, is before 2017-01-01T00:00:00+00:00: True
+    Stac item id 20191122T130410Z_640_ST2_POM1, date, 2019-04-12T12:16:02+00:00, is before 2019-08-20T00:00:00+00:00:True
+    Stac item id 20191122T130408Z_641_ST2_POM1, date, 2019-04-12T12:16:15+00:00, is before 2019-08-20T00:00:00+00:00:True
 ```
 
 
@@ -751,22 +636,23 @@ To download an asset use the `bucket` + `object_path` or the `href` fields from 
 
 ```python
 import tempfile
+from IPython.display import Image, display
+
 from nsl.stac.client import NSLClient
 from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 
-stac_request = StacRequest(id='LE70380352019169EDC00')
+stac_request = StacRequest(id='20191121T192629Z_1594_ST2_POM1')
 
 # get a client interface to the gRPC channel
 client = NSLClient()
 # for this request we might as well use the search one, as STAC ids ought to be unique
 stac_item = client.search_one(stac_request)
 
-asset = stac_item.assets['TXT_GCP_MTL']
-with tempfile.TemporaryFile() as file_obj:
-    utils.download_asset(asset=asset, file_obj=file_obj)
-    text_d = file_obj.read().decode('ascii')
-    print(text_d)
+asset = stac_item.assets['THUMBNAIL_RGB']
+with tempfile.NamedTemporaryFile(suffix=".jpg") as file_obj:
+    utils.download_asset(asset=asset, save_filename=file_obj.name)
+    display(Image(filename=file_obj.name))
 ```
 
 
@@ -775,257 +661,7 @@ with tempfile.TemporaryFile() as file_obj:
 
 
 
-<details><summary>Python Print-out</summary>
-
-
-```text
-    GROUP = L1_METADATA_FILE
-      GROUP = METADATA_FILE_INFO
-        ORIGIN = "Image courtesy of the U.S. Geological Survey"
-        REQUEST_ID = "0501906188198_00004"
-        LANDSAT_SCENE_ID = "LE70380352019169EDC00"
-        LANDSAT_PRODUCT_ID = "LE07_L1TP_038035_20190618_20190618_01_RT"
-        COLLECTION_NUMBER = 01
-        FILE_DATE = 2019-06-18T19:06:33Z
-        STATION_ID = "EDC"
-        PROCESSING_SOFTWARE_VERSION = "LPGS_13.1.0"
-        DATA_CATEGORY = "NOMINAL"
-      END_GROUP = METADATA_FILE_INFO
-      GROUP = PRODUCT_METADATA
-        DATA_TYPE = "L1TP"
-        COLLECTION_CATEGORY = "RT"
-        ELEVATION_SOURCE = "GLS2000"
-        OUTPUT_FORMAT = "GEOTIFF"
-        EPHEMERIS_TYPE = "PREDICTIVE"
-        SPACECRAFT_ID = "LANDSAT_7"
-        SENSOR_ID = "ETM"
-        SENSOR_MODE = "BUMPER"
-        WRS_PATH = 038
-        WRS_ROW = 035
-        DATE_ACQUIRED = 2019-06-18
-        SCENE_CENTER_TIME = "17:58:52.6952310Z"
-        CORNER_UL_LAT_PRODUCT = 37.00640
-        CORNER_UL_LON_PRODUCT = -114.76125
-        CORNER_UR_LAT_PRODUCT = 37.06211
-        CORNER_UR_LON_PRODUCT = -111.96733
-        CORNER_LL_LAT_PRODUCT = 35.03877
-        CORNER_LL_LON_PRODUCT = -114.66875
-        CORNER_LR_LAT_PRODUCT = 35.09062
-        CORNER_LR_LON_PRODUCT = -111.94348
-        CORNER_UL_PROJECTION_X_PRODUCT = 165300.000
-        CORNER_UL_PROJECTION_Y_PRODUCT = 4102200.000
-        CORNER_UR_PROJECTION_X_PRODUCT = 414000.000
-        CORNER_UR_PROJECTION_Y_PRODUCT = 4102200.000
-        CORNER_LL_PROJECTION_X_PRODUCT = 165300.000
-        CORNER_LL_PROJECTION_Y_PRODUCT = 3883500.000
-        CORNER_LR_PROJECTION_X_PRODUCT = 414000.000
-        CORNER_LR_PROJECTION_Y_PRODUCT = 3883500.000
-        PANCHROMATIC_LINES = 14581
-        PANCHROMATIC_SAMPLES = 16581
-        REFLECTIVE_LINES = 7291
-        REFLECTIVE_SAMPLES = 8291
-        THERMAL_LINES = 7291
-        THERMAL_SAMPLES = 8291
-        FILE_NAME_BAND_1 = "LE07_L1TP_038035_20190618_20190618_01_RT_B1.TIF"
-        FILE_NAME_BAND_2 = "LE07_L1TP_038035_20190618_20190618_01_RT_B2.TIF"
-        FILE_NAME_BAND_3 = "LE07_L1TP_038035_20190618_20190618_01_RT_B3.TIF"
-        FILE_NAME_BAND_4 = "LE07_L1TP_038035_20190618_20190618_01_RT_B4.TIF"
-        FILE_NAME_BAND_5 = "LE07_L1TP_038035_20190618_20190618_01_RT_B5.TIF"
-        FILE_NAME_BAND_6_VCID_1 = "LE07_L1TP_038035_20190618_20190618_01_RT_B6_VCID_1.TIF"
-        FILE_NAME_BAND_6_VCID_2 = "LE07_L1TP_038035_20190618_20190618_01_RT_B6_VCID_2.TIF"
-        FILE_NAME_BAND_7 = "LE07_L1TP_038035_20190618_20190618_01_RT_B7.TIF"
-        FILE_NAME_BAND_8 = "LE07_L1TP_038035_20190618_20190618_01_RT_B8.TIF"
-        FILE_NAME_BAND_QUALITY = "LE07_L1TP_038035_20190618_20190618_01_RT_BQA.TIF"
-        GROUND_CONTROL_POINT_FILE_NAME = "LE07_L1TP_038035_20190618_20190618_01_RT_GCP.txt"
-        ANGLE_COEFFICIENT_FILE_NAME = "LE07_L1TP_038035_20190618_20190618_01_RT_ANG.txt"
-        METADATA_FILE_NAME = "LE07_L1TP_038035_20190618_20190618_01_RT_MTL.txt"
-        CPF_NAME = "LE07CPF_20190401_20190630_01.06"
-      END_GROUP = PRODUCT_METADATA
-      GROUP = IMAGE_ATTRIBUTES
-        CLOUD_COVER = 10.00
-        CLOUD_COVER_LAND = 10.00
-        IMAGE_QUALITY = 9
-        SUN_AZIMUTH = 114.88805154
-        SUN_ELEVATION = 65.79784674
-        EARTH_SUN_DISTANCE = 1.0160252
-        SATURATION_BAND_1 = "Y"
-        SATURATION_BAND_2 = "Y"
-        SATURATION_BAND_3 = "Y"
-        SATURATION_BAND_4 = "Y"
-        SATURATION_BAND_5 = "Y"
-        SATURATION_BAND_6_VCID_1 = "N"
-        SATURATION_BAND_6_VCID_2 = "Y"
-        SATURATION_BAND_7 = "N"
-        SATURATION_BAND_8 = "N"
-        GROUND_CONTROL_POINTS_VERSION = 4
-        GROUND_CONTROL_POINTS_MODEL = 126
-        GEOMETRIC_RMSE_MODEL = 4.600
-        GEOMETRIC_RMSE_MODEL_Y = 3.958
-        GEOMETRIC_RMSE_MODEL_X = 2.344
-      END_GROUP = IMAGE_ATTRIBUTES
-      GROUP = MIN_MAX_RADIANCE
-        RADIANCE_MAXIMUM_BAND_1 = 293.700
-        RADIANCE_MINIMUM_BAND_1 = -6.200
-        RADIANCE_MAXIMUM_BAND_2 = 300.900
-        RADIANCE_MINIMUM_BAND_2 = -6.400
-        RADIANCE_MAXIMUM_BAND_3 = 234.400
-        RADIANCE_MINIMUM_BAND_3 = -5.000
-        RADIANCE_MAXIMUM_BAND_4 = 241.100
-        RADIANCE_MINIMUM_BAND_4 = -5.100
-        RADIANCE_MAXIMUM_BAND_5 = 47.570
-        RADIANCE_MINIMUM_BAND_5 = -1.000
-        RADIANCE_MAXIMUM_BAND_6_VCID_1 = 17.040
-        RADIANCE_MINIMUM_BAND_6_VCID_1 = 0.000
-        RADIANCE_MAXIMUM_BAND_6_VCID_2 = 12.650
-        RADIANCE_MINIMUM_BAND_6_VCID_2 = 3.200
-        RADIANCE_MAXIMUM_BAND_7 = 16.540
-        RADIANCE_MINIMUM_BAND_7 = -0.350
-        RADIANCE_MAXIMUM_BAND_8 = 243.100
-        RADIANCE_MINIMUM_BAND_8 = -4.700
-      END_GROUP = MIN_MAX_RADIANCE
-      GROUP = MIN_MAX_REFLECTANCE
-        REFLECTANCE_MAXIMUM_BAND_1 = 0.467827
-        REFLECTANCE_MINIMUM_BAND_1 = -0.009876
-        REFLECTANCE_MAXIMUM_BAND_2 = 0.525779
-        REFLECTANCE_MINIMUM_BAND_2 = -0.011183
-        REFLECTANCE_MAXIMUM_BAND_3 = 0.498479
-        REFLECTANCE_MINIMUM_BAND_3 = -0.010633
-        REFLECTANCE_MAXIMUM_BAND_4 = 0.730073
-        REFLECTANCE_MINIMUM_BAND_4 = -0.015443
-        REFLECTANCE_MAXIMUM_BAND_5 = 0.696181
-        REFLECTANCE_MINIMUM_BAND_5 = -0.014635
-        REFLECTANCE_MAXIMUM_BAND_7 = 0.659301
-        REFLECTANCE_MINIMUM_BAND_7 = -0.013951
-        REFLECTANCE_MAXIMUM_BAND_8 = 0.597722
-        REFLECTANCE_MINIMUM_BAND_8 = -0.011556
-      END_GROUP = MIN_MAX_REFLECTANCE
-      GROUP = MIN_MAX_PIXEL_VALUE
-        QUANTIZE_CAL_MAX_BAND_1 = 255
-        QUANTIZE_CAL_MIN_BAND_1 = 1
-        QUANTIZE_CAL_MAX_BAND_2 = 255
-        QUANTIZE_CAL_MIN_BAND_2 = 1
-        QUANTIZE_CAL_MAX_BAND_3 = 255
-        QUANTIZE_CAL_MIN_BAND_3 = 1
-        QUANTIZE_CAL_MAX_BAND_4 = 255
-        QUANTIZE_CAL_MIN_BAND_4 = 1
-        QUANTIZE_CAL_MAX_BAND_5 = 255
-        QUANTIZE_CAL_MIN_BAND_5 = 1
-        QUANTIZE_CAL_MAX_BAND_6_VCID_1 = 255
-        QUANTIZE_CAL_MIN_BAND_6_VCID_1 = 1
-        QUANTIZE_CAL_MAX_BAND_6_VCID_2 = 255
-        QUANTIZE_CAL_MIN_BAND_6_VCID_2 = 1
-        QUANTIZE_CAL_MAX_BAND_7 = 255
-        QUANTIZE_CAL_MIN_BAND_7 = 1
-        QUANTIZE_CAL_MAX_BAND_8 = 255
-        QUANTIZE_CAL_MIN_BAND_8 = 1
-      END_GROUP = MIN_MAX_PIXEL_VALUE
-      GROUP = PRODUCT_PARAMETERS
-        CORRECTION_GAIN_BAND_1 = "CPF"
-        CORRECTION_GAIN_BAND_2 = "CPF"
-        CORRECTION_GAIN_BAND_3 = "CPF"
-        CORRECTION_GAIN_BAND_4 = "CPF"
-        CORRECTION_GAIN_BAND_5 = "CPF"
-        CORRECTION_GAIN_BAND_6_VCID_1 = "CPF"
-        CORRECTION_GAIN_BAND_6_VCID_2 = "CPF"
-        CORRECTION_GAIN_BAND_7 = "CPF"
-        CORRECTION_GAIN_BAND_8 = "CPF"
-        CORRECTION_BIAS_BAND_1 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_2 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_3 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_4 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_5 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_6_VCID_1 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_6_VCID_2 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_7 = "INTERNAL_CALIBRATION"
-        CORRECTION_BIAS_BAND_8 = "INTERNAL_CALIBRATION"
-        GAIN_BAND_1 = "L"
-        GAIN_BAND_2 = "L"
-        GAIN_BAND_3 = "L"
-        GAIN_BAND_4 = "L"
-        GAIN_BAND_5 = "L"
-        GAIN_BAND_6_VCID_1 = "L"
-        GAIN_BAND_6_VCID_2 = "H"
-        GAIN_BAND_7 = "L"
-        GAIN_BAND_8 = "L"
-        GAIN_CHANGE_BAND_1 = "LL"
-        GAIN_CHANGE_BAND_2 = "LL"
-        GAIN_CHANGE_BAND_3 = "LL"
-        GAIN_CHANGE_BAND_4 = "LL"
-        GAIN_CHANGE_BAND_5 = "LL"
-        GAIN_CHANGE_BAND_6_VCID_1 = "LL"
-        GAIN_CHANGE_BAND_6_VCID_2 = "HH"
-        GAIN_CHANGE_BAND_7 = "LL"
-        GAIN_CHANGE_BAND_8 = "LL"
-        GAIN_CHANGE_SCAN_BAND_1 = 0
-        GAIN_CHANGE_SCAN_BAND_2 = 0
-        GAIN_CHANGE_SCAN_BAND_3 = 0
-        GAIN_CHANGE_SCAN_BAND_4 = 0
-        GAIN_CHANGE_SCAN_BAND_5 = 0
-        GAIN_CHANGE_SCAN_BAND_6_VCID_1 = 0
-        GAIN_CHANGE_SCAN_BAND_6_VCID_2 = 0
-        GAIN_CHANGE_SCAN_BAND_7 = 0
-        GAIN_CHANGE_SCAN_BAND_8 = 0
-      END_GROUP = PRODUCT_PARAMETERS
-      GROUP = RADIOMETRIC_RESCALING
-        RADIANCE_MULT_BAND_1 = 1.1807E+00
-        RADIANCE_MULT_BAND_2 = 1.2098E+00
-        RADIANCE_MULT_BAND_3 = 9.4252E-01
-        RADIANCE_MULT_BAND_4 = 9.6929E-01
-        RADIANCE_MULT_BAND_5 = 1.9122E-01
-        RADIANCE_MULT_BAND_6_VCID_1 = 6.7087E-02
-        RADIANCE_MULT_BAND_6_VCID_2 = 3.7205E-02
-        RADIANCE_MULT_BAND_7 = 6.6496E-02
-        RADIANCE_MULT_BAND_8 = 9.7559E-01
-        RADIANCE_ADD_BAND_1 = -7.38071
-        RADIANCE_ADD_BAND_2 = -7.60984
-        RADIANCE_ADD_BAND_3 = -5.94252
-        RADIANCE_ADD_BAND_4 = -6.06929
-        RADIANCE_ADD_BAND_5 = -1.19122
-        RADIANCE_ADD_BAND_6_VCID_1 = -0.06709
-        RADIANCE_ADD_BAND_6_VCID_2 = 3.16280
-        RADIANCE_ADD_BAND_7 = -0.41650
-        RADIANCE_ADD_BAND_8 = -5.67559
-        REFLECTANCE_MULT_BAND_1 = 1.8807E-03
-        REFLECTANCE_MULT_BAND_2 = 2.1140E-03
-        REFLECTANCE_MULT_BAND_3 = 2.0044E-03
-        REFLECTANCE_MULT_BAND_4 = 2.9351E-03
-        REFLECTANCE_MULT_BAND_5 = 2.7985E-03
-        REFLECTANCE_MULT_BAND_7 = 2.6506E-03
-        REFLECTANCE_MULT_BAND_8 = 2.3987E-03
-        REFLECTANCE_ADD_BAND_1 = -0.011757
-        REFLECTANCE_ADD_BAND_2 = -0.013297
-        REFLECTANCE_ADD_BAND_3 = -0.012637
-        REFLECTANCE_ADD_BAND_4 = -0.018378
-        REFLECTANCE_ADD_BAND_5 = -0.017433
-        REFLECTANCE_ADD_BAND_7 = -0.016602
-        REFLECTANCE_ADD_BAND_8 = -0.013955
-      END_GROUP = RADIOMETRIC_RESCALING
-      GROUP = THERMAL_CONSTANTS
-        K1_CONSTANT_BAND_6_VCID_1 = 666.09
-        K2_CONSTANT_BAND_6_VCID_1 = 1282.71
-        K1_CONSTANT_BAND_6_VCID_2 = 666.09
-        K2_CONSTANT_BAND_6_VCID_2 = 1282.71
-      END_GROUP = THERMAL_CONSTANTS
-      GROUP = PROJECTION_PARAMETERS
-        MAP_PROJECTION = "UTM"
-        DATUM = "WGS84"
-        ELLIPSOID = "WGS84"
-        UTM_ZONE = 12
-        GRID_CELL_SIZE_PANCHROMATIC = 15.00
-        GRID_CELL_SIZE_REFLECTIVE = 30.00
-        GRID_CELL_SIZE_THERMAL = 30.00
-        ORIENTATION = "NORTH_UP"
-        RESAMPLING_OPTION = "CUBIC_CONVOLUTION"
-        SCAN_GAP_INTERPOLATION = 2.0
-      END_GROUP = PROJECTION_PARAMETERS
-    END_GROUP = L1_METADATA_FILE
-    END
-    
-```
-
-
-</details>
-
+![jpeg](README_files/README_20_0.jpeg)
 
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC

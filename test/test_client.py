@@ -84,8 +84,8 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
 
     def test_OLI(self):
-        id = "LO81120152015061LGN00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LO81120152015061LGN00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         asset = utils.get_asset(stac_item, band=Eo.BLUE, cloud_platform=GCP)
         self.assertIsNotNone(asset)
@@ -115,23 +115,23 @@ class TestLandsat(unittest.TestCase):
 
     def test_basename(self):
         asset_name = 'LO81120152015061LGN00_B2.TIF'
-        id = "LO81120152015061LGN00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LO81120152015061LGN00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         asset = utils.get_asset(stac_item, asset_basename=asset_name)
         self.assertIsNotNone(asset)
 
     def test_thumbnail(self):
-        id = 'LO81120152015061LGN00'
-        stac_request = StacRequest(id=id)
+        stac_id = 'LO81120152015061LGN00'
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         asset_type = THUMBNAIL
         asset = utils.get_asset(stac_item, asset_types=[asset_type], cloud_platform=AWS)
         self.assertIsNotNone(asset)
 
     def test_aws(self):
-        id = "LC80270392015025LGN00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LC80270392015025LGN00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         count = 0
@@ -142,8 +142,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(29, count)
 
     def test_L1TP(self):
-        id = "LT51560171989121KIS00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LT51560171989121KIS00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -157,8 +157,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1G(self):
-        id = "LT51560202010035IKR02"
-        stac_request = StacRequest(id=id)
+        stac_id = "LT51560202010035IKR02"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -172,8 +172,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1t(self):
-        id = "LT50590132011238PAC00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LT50590132011238PAC00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -187,8 +187,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(20, gcp_count)
 
     def test_L1GT(self):
-        id = "LE70080622016239EDC00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LE70080622016239EDC00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -202,8 +202,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(22, gcp_count)
 
     def test_L8_processed_id(self):
-        id = "LC81262052018263LGN00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LC81262052018263LGN00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -217,8 +217,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(14, gcp_count)
 
     def test_L8_processed_id_2(self):
-        id = "LC81262052018263LGN00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LC81262052018263LGN00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
@@ -232,8 +232,8 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(14, gcp_count)
 
     def test_count(self):
-        id = "LC81262052018263LGN00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LC81262052018263LGN00"
+        stac_request = StacRequest(id=stac_id)
         number = client.count(stac_request)
         self.assertEquals(1, number)
 
@@ -330,8 +330,8 @@ class TestDatetimeQueries(unittest.TestCase):
 
 class TestHelpers(unittest.TestCase):
     def test_has_asset(self):
-        id = "LO81120152015061LGN00"
-        stac_request = StacRequest(id=id)
+        stac_id = "LO81120152015061LGN00"
+        stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request=stac_request)
         for key in stac_item.assets:
             asset = stac_item.assets[key]
@@ -351,8 +351,8 @@ class TestHelpers(unittest.TestCase):
             self.assertTrue(utils.has_asset(stac_item, garbage))
 
     def test_download_gcp(self):
-        id = "LO81120152015061LGN00"
-        stac_item = client.search_one(stac_request=StacRequest(id=id))
+        stac_id = "LO81120152015061LGN00"
+        stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
         asset = utils.get_asset(stac_item,
                                 asset_types=[TXT],
                                 cloud_platform=GCP,
@@ -360,41 +360,64 @@ class TestHelpers(unittest.TestCase):
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_directory=d)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_directory=d)
             with open(file_path) as f:
                 data1 = f.read()
 
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_filename=file_path)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_filename=file_path)
             with open(file_path) as f:
                 data2 = f.read()
 
             self.assertMultiLineEqual(data1, data2)
 
             with tempfile.NamedTemporaryFile('w+b', delete=False) as f_obj:
-                utils.download_asset(asset=asset, b_from_bucket=True, file_obj=f_obj)
+                utils.download_asset(asset=asset, from_bucket=True, file_obj=f_obj)
                 data3 = f_obj.read().decode('ascii')
                 self.assertMultiLineEqual(data1, data3)
 
     def test_download_aws(self):
-        id = "LC80270392015025LGN00"
-        stac_item = client.search_one(stac_request=StacRequest(id=id))
+        stac_id = "LC80270392015025LGN00"
+        stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
         asset = utils.get_asset(stac_item,
                                 asset_types=[TXT],
                                 cloud_platform=AWS)
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_directory=d)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_directory=d)
             with open(file_path) as f:
                 data1 = f.read()
 
-            file_path = utils.download_asset(asset=asset, b_from_bucket=True, save_filename=file_path)
+            file_path = utils.download_asset(asset=asset, from_bucket=True, save_filename=file_path)
             with open(file_path) as f:
                 data2 = f.read()
 
             self.assertMultiLineEqual(data1, data2)
 
             with tempfile.NamedTemporaryFile('w+b', delete=False) as f_obj:
-                utils.download_asset(asset=asset, b_from_bucket=True, file_obj=f_obj)
+                utils.download_asset(asset=asset, from_bucket=True, file_obj=f_obj)
                 data3 = f_obj.read().decode('ascii')
                 self.assertMultiLineEqual(data1, data3)
+
+    def test_download_href(self):
+        stac_id = "20191121T192629Z_1594_ST2_POM1"
+        stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
+        asset = utils.get_asset(stac_item, asset_types=[THUMBNAIL])
+
+        self.assertIsNotNone(asset)
+
+        with tempfile.TemporaryDirectory() as d:
+            file_path = utils.download_asset(asset=asset, save_directory=d)
+            with open(file_path, 'rb') as f:
+                data1 = f.read()
+
+            file_path = utils.download_asset(asset=asset, save_filename=file_path)
+            with open(file_path, 'rb') as f:
+                data2 = f.read()
+
+            self.assertEqual(data1, data2)
+
+            with tempfile.NamedTemporaryFile('w+b', delete=False) as file_obj:
+                utils.download_asset(asset=asset, file_obj=file_obj)
+                data3 = file_obj.read()
+                self.assertEqual(data1, data3)
