@@ -6,6 +6,7 @@ Use this library to access download information and other details for aerial ima
 
 ### Sections
 - [Setup](#setup)
+- [First Code Example](#first-code-example)
 - [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
 - [Queries](#queries)
   - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
@@ -53,8 +54,8 @@ NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
 
 ```
 
-### Quick Code Example
-Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) query the service for one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the client.search_one method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
+### First Code Example
+Using [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) to construct a spatial and temporal query to return one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the `client.search_one` method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
 
 
 
@@ -64,16 +65,33 @@ Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) 
 
 
 ```python
-from datetime import datetime
-# the StacRequest is a protobuf message for making filter queries for data, you can think of it as 
-# the query string in a url
+import os
+import tempfile
+from datetime import datetime, date
+# the StacRequest is a protobuf message for making filter queries for data
 from epl.protobuf.stac_pb2 import StacRequest
+# GeometryData is a protobuf container for GIS geometry information
+from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
+# TimestampField is a query field that allows for making sql-like queries for information
+# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
+from epl.protobuf.query_pb2 import TimestampField, GT_OR_EQ
+
 # the client package stubs out a little bit of the gRPC connection code 
 from nsl.stac.client import NSLClient
+# utils has some helpers for working with data.
+from nsl.stac import utils
 
-# This search looks for any type of imagery hosted in the STAC service; anywhere in the world, at any 
-# moment in time and of any data type
-stac_request = StacRequest()
+# our area of interest will be the coordinates of the Austin, Texas capital building
+austin_capital_wkt = "POINT(-97.733333 30.266667)"
+geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
+
+# Query data from August 1, 2019
+start_timestamp = utils.pb_timestamp(date(2019, 8, 1))
+time_query = TimestampField(value=start_timestamp, rel_type=GT_OR_EQ)
+
+# This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
+# area of interest and was observed on or after the 1st of August
+stac_request = StacRequest(datetime=time_query, geometry=geometry_data)
 
 # get a client interface to the gRPC channel
 client = NSLClient()
@@ -86,6 +104,12 @@ print("STAC item id {}".format(stac_item.id))
 # display the observed date of the scene. The observed 
 dt_observed = datetime.utcfromtimestamp(stac_item.observed.seconds)
 print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
+
+asset = stac_item.assets['GEOTIFF_RGB']
+
+with tempfile.TemporaryDirectory() as d:
+    file_path = utils.download_asset(asset=asset, save_directory=d)
+    print("{0} has {1} bytes".format(os.path.basename(file_path), os.path.getsize(file_path)))
 ```
 
 
@@ -100,8 +124,9 @@ print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 ```text
     nsl client connecting to stac service at: eap.nearspacelabs.net:9090
     
-    STAC item id 20191110T005417Z_1594_ST2_POM1
-    Date observed 08/29/2019, 17:28:57
+    STAC item id 20191122T133132Z_1495_ST2_POM1
+    Date observed 08/08/2019, 19:00:03
+    20191122T133132Z_1495_ST2_POM1.tif has 5912460 bytes
 ```
 
 
