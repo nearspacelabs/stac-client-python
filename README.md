@@ -1,7 +1,57 @@
 
 # gRPC stac-client-python
+
 ### What is this Good for
 Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search.  
+
+### Sections
+- [Setup](https://github.com/nearspacelabs/stac-client-python#setup)
+- [STAC metadata structure](https://github.com/nearspacelabs/stac-client-python#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
+- [Queries](https://github.com/nearspacelabs/stac-client-python#queries)
+  - [Simple](https://github.com/nearspacelabs/stac-client-python#simple-query-and-the-makeup-of-a-stacitem)
+  - [Spatial](https://github.com/nearspacelabs/stac-client-python#spatial-queries)
+  - [Temporal](https://github.com/nearspacelabs/stac-client-python#temporal-queries)
+  - [More Complex Examples](./Examples.md)
+- [Downloading](https://github.com/nearspacelabs/stac-client-python#downloading)
+- [gRPC STAC vs REST STAC](https://github.com/nearspacelabs/stac-client-python#differences-between-grpcprotobuf-stac-and-openapijson-stac)
+
+### Setup
+You'll need to have Python3 installed (does not work with Python2). If you've got multiple versions of Python and pip, you may need to use `python3` and `pip3` in the below installation commands.
+Grab it from [pip](https://pypi.org/project/nsl.stac/):
+```bash
+pip install nsl.stac
+```
+
+Install it from source:
+```bash
+pip install -r requirements.txt
+python setup.py install
+```
+
+#### Environment Variables
+There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
+
+- STAC_SERVICE, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
+- NSL_ID and NSL_SECRET, if you're downloading Near Space Labs data you'll need credentials
+- GOOGLE_APPLICATION_CREDENTIALS, if you're downloading open data hosted on Google Cloud
+
+#### Running Included Jupyter Notebooks
+
+Install the requirements for the demo:
+
+```bash
+
+pip install -r requirements-demo.txt
+
+```
+
+Run Jupyter notebook with your environment variables set for `NSL_ID` and `NSL_SECRET`:
+
+```bash
+
+NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
+
+```
 
 ### Quick Code Example
 Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) query the service for one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the client.search_one method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
@@ -78,43 +128,6 @@ In other words:
 - gRPC is similar to REST + OpenAPI, except gRPC is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) framework that supports bi-directional streaming
 - STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
 
-### Setup
-You'll need to have Python3 installed (does not work with Python2). If you've got multiple versions of Python and pip, you may need to use `python3` and `pip3` in the below installation commands.
-Grab it from [pip](https://pypi.org/project/nsl.stac/):
-```bash
-pip install nsl.stac
-```
-
-Install it from source:
-```bash
-pip install -r requirements.txt
-python setup.py install
-```
-
-### Environment Variables
-There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
-
-- STAC_SERVICE, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
-- NSL_ID and NSL_SECRET, if you're downloading Near Space Labs data you'll need credentials
-- GOOGLE_APPLICATION_CREDENTIALS, if you're downloading open data hosted on Google Cloud
-
-### How to Use the Jupyter Notebook
-
-Install the requirements for the demo:
-
-```bash
-
-pip install -r requirements-demo.txt
-
-```
-
-Run Jupyter notebook with your environment variables set for `NSL_ID` and `NSL_SECRET`:
-
-```bash
-
-NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
-
-```
 
 ### Queries
 
@@ -404,7 +417,7 @@ for stac_item in client.search(stac_request):
 
 
 
-### Temporal Queries
+#### Temporal Queries
 When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with a `int64` for seconds and a `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
 
 So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
@@ -573,56 +586,6 @@ Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_2016
 
 Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
 
-We can also apply a sort direction to our results so that they are ascending or decending. In the below sample we search all data before 2017 starting with the oldest results first by specifiying the `ASC`, ascending parameter. This is a complex query and can take a while.
-
-
-
-
-
-<details><summary>Python Code Sample</summary>
-
-
-```python
-# SORT Direction
-from datetime import date, datetime, timezone
-from nsl.stac import utils
-from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.query_pb2 import TimestampField, LT, ASC
-
-# the utils package has a helper for converting `date` or 
-# `datetime` objects to google.protobuf.Timestamp protobufs
-start_timestamp = utils.pb_timestamp(date(2019, 8, 20))
-# make a filter that selects all data on or after January 1st, 2017
-time_query = TimestampField(value=start_timestamp, rel_type=LT, sort_direction=ASC)
-stac_request = StacRequest(datetime=time_query, limit=2)
-client = NSLClient()
-for stac_item in client.search(stac_request):
-    print("Stac item id {0}, date, {1}, is before {2}:{3}".format(
-        stac_item.id,
-        datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-        datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
-        stac_item.observed.seconds < start_timestamp.seconds))
-```
-
-
-</details>
-
-
-
-
-<details><summary>Python Print-out</summary>
-
-
-```text
-    Stac item id 20191122T130410Z_640_ST2_POM1, date, 2019-04-12T12:16:02+00:00, is before 2019-08-20T00:00:00+00:00:True
-    Stac item id 20191122T130408Z_641_ST2_POM1, date, 2019-04-12T12:16:15+00:00, is before 2019-08-20T00:00:00+00:00:True
-```
-
-
-</details>
-
-
 
 ### Downloading
 To download an asset use the `bucket` + `object_path` or the `href` fields from the asset, and download the data using the library of your choice. There is also a download utility in the `nsl.stac.utils` module. Downloading from Google Cloud Storage buckets requires having defined your `GOOGLE_APPLICATION_CREDENTIALS` [environment variable](https://cloud.google.com/docs/authentication/getting-started#setting_the_environment_variable). Downloading from AWS/S3 requires having your configuration file or environment variables defined as you would for [boto3](https://boto3.amazonaws.com/v1/documentation/api/1.9.42/guide/quickstart.html#configuration). To downlad an asset follow the pattern in the below example:
@@ -661,7 +624,7 @@ with tempfile.NamedTemporaryFile(suffix=".jpg") as file_obj:
 
 
 
-![jpeg](README_files/README_20_0.jpeg)
+![jpeg](README_files/README_19_0.jpeg)
 
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC
