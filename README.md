@@ -5,15 +5,15 @@
 Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search.  
 
 ### Sections
-- [Setup](https://github.com/nearspacelabs/stac-client-python#setup)
-- [STAC metadata structure](https://github.com/nearspacelabs/stac-client-python#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
-- [Queries](https://github.com/nearspacelabs/stac-client-python#queries)
-  - [Simple](https://github.com/nearspacelabs/stac-client-python#simple-query-and-the-makeup-of-a-stacitem)
-  - [Spatial](https://github.com/nearspacelabs/stac-client-python#spatial-queries)
-  - [Temporal](https://github.com/nearspacelabs/stac-client-python#temporal-queries)
+- [Setup](#setup)
+- [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
+- [Queries](#queries)
+  - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
+  - [Spatial](#spatial-queries)
+  - [Temporal](#temporal-queries)
   - [More Complex Examples](./Examples.md)
-- [Downloading](https://github.com/nearspacelabs/stac-client-python#downloading)
-- [gRPC STAC vs REST STAC](https://github.com/nearspacelabs/stac-client-python#differences-between-grpcprotobuf-stac-and-openapijson-stac)
+- [Downloading](#downloading)
+- [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
 ### Setup
 You'll need to have Python3 installed (does not work with Python2). If you've got multiple versions of Python and pip, you may need to use `python3` and `pip3` in the below installation commands.
