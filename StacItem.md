@@ -341,15 +341,15 @@ for asset_key in stac_item.assets:
 
 
 ```text
-    GEOTIFF_RGB asset key
-    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1.tif
-    type: image/vnd.stac.geotiff
-    protobuf enum number and name: 2, GEOTIFF
-    
     THUMBNAIL_RGB asset key
     href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1_thumb.jpg
     type: image/jpeg
     protobuf enum number and name: 9, THUMBNAIL
+    
+    GEOTIFF_RGB asset key
+    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1.tif
+    type: image/vnd.stac.geotiff
+    protobuf enum number and name: 2, GEOTIFF
     
 ```
 
