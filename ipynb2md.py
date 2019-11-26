@@ -12,6 +12,7 @@ py_regex = r"```python\n((^(?!```).+\n)|([\n ]+)){1,}```"
 
 replace_pairs = []
 
+
 class FileExists(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         file_path = values
@@ -58,8 +59,6 @@ def markdowner(input_filename, markdown_filename, test=False):
             temp = "\n\n\n<details><summary>Python Code Sample</summary>\n\n\n{}\n\n\n</details>\n\n".format(
                 match.group(0))
             all_text = all_text.replace(match.group(0), temp)
-
-
 
         f.seek(0)
         f.write(all_text)
