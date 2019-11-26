@@ -1,10 +1,63 @@
 
 # gRPC stac-client-python
+
 ### What is this Good for
 Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search.  
 
-### Quick Code Example
-Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) query the service for one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the client.search_one method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
+### Sections
+- [Setup](#setup)
+- [First Code Example](#first-code-example)
+- [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
+  - [Stac Item In Depth](./StacItem.md)
+- [Queries](#queries)
+  - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
+  - [Spatial](#spatial-queries)
+  - [Temporal](#temporal-queries)
+  - [Complex Examples](./Examples.md)
+- [Downloading](#downloading)
+- [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
+
+### Setup
+You'll need to have Python3 installed (does not work with Python2). If you've got multiple versions of Python and pip, you may need to use `python3` and `pip3` in the below installation commands.
+Grab it from [pip](https://pypi.org/project/nsl.stac/):
+```bash
+pip install nsl.stac
+```
+
+Install it from source:
+```bash
+pip install -r requirements.txt
+python setup.py install
+```
+
+#### Environment Variables
+There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
+
+- `STAC_SERVICE`, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
+- `NSL_ID` and `NSL_SECRET`, if you're downloading Near Space Labs data you'll need credentials
+- `GOOGLE_APPLICATION_CREDENTIALS`, if you're downloading open data hosted on Google Cloud
+
+#### Running Included Jupyter Notebooks
+If you are using a virtual environment, but the jupyter you use is outside that virtual env, then you'll have to add your virtual environment to jupyter using something like `python -m ipykernel install --user --name=myenv` (more [here](https://janakiev.com/blog/jupyter-virtual-envs/)). Your best python life is no packages installed globally and always living virtual environment to virtual environment.
+
+Install the requirements for the demo:
+
+```bash
+
+pip install -r requirements-demo.txt
+
+```
+
+Run Jupyter notebook with your environment variables set for `NSL_ID` and `NSL_SECRET`:
+
+```bash
+
+NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
+
+```
+
+### First Code Example
+Using [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) to construct a spatial and temporal query to return one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the `client.search_one` method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
 
 
 
@@ -14,18 +67,33 @@ Using a [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) 
 
 
 ```python
-from datetime import datetime
-# the StacRequest is a protobuf message for making filter queries for data, you can think of it as 
-# the query string in a url
+import os
+import tempfile
+from datetime import datetime, date
+# the StacRequest is a protobuf message for making filter queries for data
 from epl.protobuf.stac_pb2 import StacRequest
+# GeometryData is a protobuf container for GIS geometry information
+from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
+# TimestampField is a query field that allows for making sql-like queries for information
+# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
+from epl.protobuf.query_pb2 import TimestampField, GT_OR_EQ
+from nsl.stac.utils import pb_timestampfield, download_asset
+
 # the client package stubs out a little bit of the gRPC connection code 
 from nsl.stac.client import NSLClient
 
-# This search looks for any type of imagery hosted in the STAC service; anywhere in the world, at any 
-# moment in time and of any data type
-stac_request = StacRequest()
+# our area of interest will be the coordinates of the Austin, Texas capital building
+austin_capital_wkt = "POINT(-97.733333 30.266667)"
+geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
-# get a client interface to the gRPC channel
+# Query data from August 1, 2019
+time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=GT_OR_EQ)
+
+# This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
+# area of interest and was observed on or after the 1st of August
+stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
+
+# get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
 # the item returned is a StacItem protobuf message
@@ -36,6 +104,12 @@ print("STAC item id {}".format(stac_item.id))
 # display the observed date of the scene. The observed 
 dt_observed = datetime.utcfromtimestamp(stac_item.observed.seconds)
 print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
+
+asset = stac_item.assets['GEOTIFF_RGB']
+
+with tempfile.TemporaryDirectory() as d:
+    file_path = download_asset(asset=asset, save_directory=d)
+    print("{0} has {1} bytes".format(os.path.basename(file_path), os.path.getsize(file_path)))
 ```
 
 
@@ -50,8 +124,9 @@ print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 ```text
     nsl client connecting to stac service at: eap.nearspacelabs.net:9090
     
-    STAC item id 20191110T005417Z_1594_ST2_POM1
-    Date observed 08/29/2019, 17:28:57
+    STAC item id 20191122T133132Z_1495_ST2_POM1
+    Date observed 08/08/2019, 19:00:03
+    20191122T133132Z_1495_ST2_POM1.tif has 5912460 bytes
 ```
 
 
@@ -78,43 +153,6 @@ In other words:
 - gRPC is similar to REST + OpenAPI, except gRPC is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) framework that supports bi-directional streaming
 - STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
 
-### Setup
-You'll need to have Python3 installed (does not work with Python2). If you've got multiple versions of Python and pip, you may need to use `python3` and `pip3` in the below installation commands.
-Grab it from [pip](https://pypi.org/project/nsl.stac/):
-```bash
-pip install nsl.stac
-```
-
-Install it from source:
-```bash
-pip install -r requirements.txt
-python setup.py install
-```
-
-### Environment Variables
-There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
-
-- STAC_SERVICE, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
-- NSL_ID and NSL_SECRET, if you're downloading Near Space Labs data you'll need credentials
-- GOOGLE_APPLICATION_CREDENTIALS, if you're downloading open data hosted on Google Cloud
-
-### How to Use the Jupyter Notebook
-
-Install the requirements for the demo:
-
-```bash
-
-pip install -r requirements-demo.txt
-
-```
-
-Run Jupyter notebook with your environment variables set for `NSL_ID` and `NSL_SECRET`:
-
-```bash
-
-NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
-
-```
 
 ### Queries
 
@@ -404,7 +442,7 @@ for stac_item in client.search(stac_request):
 
 
 
-### Temporal Queries
+#### Temporal Queries
 When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with a `int64` for seconds and a `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
 
 So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
@@ -423,22 +461,19 @@ from datetime import date, datetime, timezone
 from nsl.stac.client import NSLClient
 from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.query_pb2 import TimestampField, GT_OR_EQ
+from epl.protobuf.query_pb2 import GT_OR_EQ
 
-# the utils package has a helper for converting `date` or 
-# `datetime` objects to google.protobuf.Timestamp protobufs
-start_timestamp = utils.pb_timestamp(date(2017,1,1))
 # make a filter that selects all data on or after January 1st, 2017
-time_query = TimestampField(value=start_timestamp, rel_type=GT_OR_EQ)
-stac_request = StacRequest(datetime=time_query, limit=2)
+time_filter = utils.pb_timestampfield(value=date(2017,1,1), rel_type=GT_OR_EQ)
+stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
 client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item date, {0}, is after {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-        datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
-        stac_item.observed.seconds > start_timestamp.seconds))
+        datetime.fromtimestamp(time_filter.start.seconds, tz=timezone.utc).isoformat(),
+        stac_item.observed.seconds > time_filter.start.seconds))
 ```
 
 
@@ -451,8 +486,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2019-08-29T17:28:57+00:00, is after 2017-01-01T00:00:00+00:00: True
-    STAC item date, 2019-08-29T17:28:57+00:00, is after 2017-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:28:57+00:00, is after 1970-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:28:57+00:00, is after 1970-01-01T00:00:00+00:00: True
 ```
 
 
@@ -478,21 +513,20 @@ from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.query_pb2 import TimestampField, BETWEEN
 # Query data from August 1, 2019
-start_timestamp = utils.pb_timestamp(datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc))
+start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
-stop_timestamp = utils.pb_timestamp(datetime(2019, 8, 10, 0, 0, 0, tzinfo=timezone.utc))
-time_query = TimestampField(start=start_timestamp,
-                            stop=stop_timestamp,
-                            rel_type=BETWEEN)
-stac_request = StacRequest(datetime=time_query, limit=2)
+stop = datetime(2019, 8, 10, 0, 0, 0, tzinfo=timezone.utc)
+time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=BETWEEN)
+
+stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
 client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item date, {0}, is before {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-        datetime.fromtimestamp(stop_timestamp.seconds, tz=timezone.utc).isoformat(),
-        stac_item.observed.seconds < stop_timestamp.seconds))
+        datetime.fromtimestamp(time_filter.stop.seconds, tz=timezone.utc).isoformat(),
+        stac_item.observed.seconds < time_filter.stop.seconds))
 ```
 
 
@@ -515,114 +549,6 @@ for stac_item in client.search(stac_request):
 
 
 In the above print out we are returned STAC items that are between the dates of Jan 1 2017 and Jan 1 2018. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
-
-### Queries on Parameters Besides the Spatio-Temporal
-Proto3, the version of proto definition used for gRPC STAC, creates messages that are similar to structs in C. One of the drawbacks to structs is that for floats, integers, enums and booleans all fields that are not set are initialized to a value of zero. In geospatial sciences, defaulting to zero can cause problems in that an algorithm or user might interpret that as a true value. 
-
-To get around this, Google uses wrappers for floats and ints and some of those are used in gRPC STAC. For example, some of the fields like `off_nadir`, `azimuth` and others in the Electro Optical protobuf message, [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo) use the `google.protobuf.FloatValue` wrapper. As a consequence, accessing those values requires calling `field_name.value` instead of `field_name` to access the data.
-
-For our ground sampling distance query we're using another query filter; this time it's the [FloatField](https://geo-grpc.github.io/api/#epl.protobuf.FloatField). It behaves just as the TimestampField, but with floats for `value` or for `start`&`stop`.
-
-In order to make our ground sampling query we need to insert it inside of an [EoRequest](https://geo-grpc.github.io/api/#epl.protobuf.EoRequest) container and set that to the `eo` field of the `StacRequest`.
-
-
-
-
-
-
-<details><summary>Python Code Sample</summary>
-
-
-```python
-from datetime import datetime, timezone
-from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
-from epl.protobuf.query_pb2 import FloatField, LT_OR_EQ
-from epl.protobuf.stac_pb2 import EoRequest, Eo
-
-# create our ground sampling distance query to only return data less than or equal to 1 meter
-gsd_query = FloatField(value=1.0, rel_type=LT_OR_EQ)
-# create an eo_request container
-eo_request = EoRequest(gsd=gsd_query)
-# define ourselves a point in Austin, Texas
-austin_capital_wkt = "POINT(-97.733333 30.266667)"
-geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
-# create a StacRequest with geometry, eo_request and a limit of 20
-stac_request = StacRequest(geometry=geometry_data, eo=eo_request, limit=20)
-
-# get a client interface to the gRPC channel
-client = NSLClient()
-for stac_item in client.search(stac_request):
-    print("{0} STAC item '{1}' from {2}\nhas a gsd {3}, which should be less than or "
-          "equal to requested gsd {4}: confirmed {5}".format(
-        Eo.Constellation.Name(stac_item.eo.constellation),
-        stac_item.id,
-        datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-        stac_item.eo.gsd.value,
-        gsd_query.value,
-        True))
-```
-
-
-</details>
-
-
-
-Notice that gsd has some extra float errors for the item `m_3611918_ne_11_h_20160629_20161004`. This is because the FloatValue is a float32, but numpy want's all number to be as large and precise as possible. So there's some scrambled mess at the end of the precision of gsd.
-
-Also, even though we set the `limit` to 20, the print out only returns 3 values. That's because the STAC service we're using only holds NAIP and Landsat data for Fresno California. And for NAIP there are only 3 different surveys with 1 meter or higher resolution for that location.
-
-We can also apply a sort direction to our results so that they are ascending or decending. In the below sample we search all data before 2017 starting with the oldest results first by specifiying the `ASC`, ascending parameter. This is a complex query and can take a while.
-
-
-
-
-
-<details><summary>Python Code Sample</summary>
-
-
-```python
-# SORT Direction
-from datetime import date, datetime, timezone
-from nsl.stac import utils
-from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.query_pb2 import TimestampField, LT, ASC
-
-# the utils package has a helper for converting `date` or 
-# `datetime` objects to google.protobuf.Timestamp protobufs
-start_timestamp = utils.pb_timestamp(date(2019, 8, 20))
-# make a filter that selects all data on or after January 1st, 2017
-time_query = TimestampField(value=start_timestamp, rel_type=LT, sort_direction=ASC)
-stac_request = StacRequest(datetime=time_query, limit=2)
-client = NSLClient()
-for stac_item in client.search(stac_request):
-    print("Stac item id {0}, date, {1}, is before {2}:{3}".format(
-        stac_item.id,
-        datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-        datetime.fromtimestamp(start_timestamp.seconds, tz=timezone.utc).isoformat(),
-        stac_item.observed.seconds < start_timestamp.seconds))
-```
-
-
-</details>
-
-
-
-
-<details><summary>Python Print-out</summary>
-
-
-```text
-    Stac item id 20191122T130410Z_640_ST2_POM1, date, 2019-04-12T12:16:02+00:00, is before 2019-08-20T00:00:00+00:00:True
-    Stac item id 20191122T130408Z_641_ST2_POM1, date, 2019-04-12T12:16:15+00:00, is before 2019-08-20T00:00:00+00:00:True
-```
-
-
-</details>
-
-
 
 ### Downloading
 To download an asset use the `bucket` + `object_path` or the `href` fields from the asset, and download the data using the library of your choice. There is also a download utility in the `nsl.stac.utils` module. Downloading from Google Cloud Storage buckets requires having defined your `GOOGLE_APPLICATION_CREDENTIALS` [environment variable](https://cloud.google.com/docs/authentication/getting-started#setting_the_environment_variable). Downloading from AWS/S3 requires having your configuration file or environment variables defined as you would for [boto3](https://boto3.amazonaws.com/v1/documentation/api/1.9.42/guide/quickstart.html#configuration). To downlad an asset follow the pattern in the below example:
@@ -661,7 +587,7 @@ with tempfile.NamedTemporaryFile(suffix=".jpg") as file_obj:
 
 
 
-![jpeg](README_files/README_20_0.jpeg)
+![jpeg](README_files/README_16_0.jpeg)
 
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC

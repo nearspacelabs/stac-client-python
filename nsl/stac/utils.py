@@ -5,12 +5,13 @@ from urllib.parse import urlparse
 
 import boto3
 import botocore
+import botocore.exceptions
 
 from typing import List, Iterator, BinaryIO
 
 from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
-from epl.protobuf import stac_pb2
+from epl.protobuf import stac_pb2, query_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth, AuthGuard
 
@@ -141,9 +142,11 @@ def download_asset(asset: stac_pb2.Asset,
     object).
     :param asset: The asset to download
     :param from_bucket: force the download to occur from cloud storage instead of href endpoint
-    :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory are set, then only file_obj is used
+    :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory are
+     set, then only file_obj is used
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
-    :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename is derived from the basename of the object_path or the href
+    :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename
+    is derived from the basename of the object_path or the href
     :return:
     """
     if len(save_directory) > 0 and file_obj is None and len(save_filename) == 0:
@@ -219,7 +222,8 @@ def get_assets(stac_item: stac_pb2.StacItem,
     """
     get a generator of protobuf object(pb) assets from a stac item pb.
     :param stac_item: stac item whose assets we want to search by parameters
-    :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is not electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
+    :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is not
+     electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
     :param asset_types: a list of asset_types to seach. if not defined then it is assumed to search all asset types
     :param cloud_platform: only return assets that are hosted on the cloud platform described in the cloud_platform
     field of the item. default grabs the first asset that meets all the other parameters.
@@ -353,6 +357,29 @@ def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
                              "'cloud_platform' field defined")
 
     return "{0}/{1}/{2}".format(prefix, asset.bucket, asset.object_path)
+
+
+def pb_timestampfield(rel_type: query_pb2.FieldRelationship,
+                      value: datetime.date or datetime.datetime = None,
+                      start: datetime.date or datetime.datetime = None,
+                      end: datetime.date or datetime.datetime = None,
+                      sort_direction: query_pb2.SortDirection = query_pb2.NOT_SORTED) -> query_pb2.TimestampField:
+    """
+    Create a protobuf query for a timestamp or a range of timestamps.
+    :param rel_type: the relationship type to query more
+    [here](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship)
+    :param value: time to search by using >, >=, <, <=, etc.
+    :param start: start time for between/not between query
+    :param end: end time for between/not between query
+    :param sort_direction: sort direction for results
+    :return: TimestampField
+    """
+    if value is not None:
+        return query_pb2.TimestampField(value=pb_timestamp(value), rel_type=rel_type, sort_direction=sort_direction)
+    return query_pb2.TimestampField(start=pb_timestamp(start),
+                                    stop=pb_timestamp(end),
+                                    rel_type=rel_type,
+                                    sort_direction=sort_direction)
 
 
 def pb_timestamp(d_utc: datetime.datetime or datetime.date) -> timestamp_pb2.Timestamp:

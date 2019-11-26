@@ -81,7 +81,7 @@ class TestLandsat(unittest.TestCase):
 
         stac_request = StacRequest(landsat=LandsatRequest(wrs_path=wrs_path, wrs_row=wrs_row))
         stac_item = client.search_one(stac_request)
-        self.assertIsNotNone(stac_item)
+        self.assertNotEqual(len(stac_item.id), 0)
 
     def test_OLI(self):
         stac_id = "LO81120152015061LGN00"
