@@ -34,15 +34,17 @@ def prepare_parser():
 
 
 def markdowner(input_filename, markdown_filename, test=False):
+    # read original markdown file
     compare_all_text = ""
     if test:
         with open(markdown_filename, 'rt') as file_obj:
             compare_all_text = file_obj.read()
 
     # requires nbconvert
-    os.system('jupyter nbconvert --to MARKDOWN --execute {0} --output {1} --ExecutePreprocessor.kernel_name=python3'
+    os.system('jupyter nbconvert --to MARKDOWN --execute {0} --output {1} --ExecutePreprocessor.kernel_name=python3 --ExecutePreprocessor.timeout=600'
               .format(input_filename, markdown_filename))
 
+    # read updated markdown file
     with open(markdown_filename, 'r+') as f:
         print("code collapse section re-write for file {}".format(markdown_filename))
 
@@ -82,16 +84,16 @@ if __name__ == "__main__":
         for path_obj in Path(m_args.all).glob("./*.ipynb"):
             m_input_filename = str(path_obj.relative_to(m_args.all))
             m_markdown_filename = '{}.md'.format(os.path.splitext(m_input_filename)[0])
-            test = False
+            m_test = False
             if m_args.test and os.path.exists(m_markdown_filename):
-                test = True
-            markdowner(input_filename=m_input_filename, markdown_filename=m_markdown_filename, test=test)
+                m_test = True
+            markdowner(input_filename=m_input_filename, markdown_filename=m_markdown_filename, test=m_test)
     else:
         m_markdown_filename = '{}.md'.format(os.path.splitext(m_args.ipynb)[0])
-        test = False
+        m_test = False
         if m_args.test and os.path.exists(m_markdown_filename):
-            test = True
-        markdowner(input_filename=m_args.ipynb, markdown_filename=m_args.name, test=test)
+            m_test = True
+        markdowner(input_filename=m_args.ipynb, markdown_filename=m_markdown_filename, test=m_test)
 
 
 

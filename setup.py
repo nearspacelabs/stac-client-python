@@ -22,7 +22,6 @@ kwargs = {
     'install_requires': [
         'grpcio-tools',
         'protobuf',
-        'shapely',
         'epl.protobuf',
         'boto3',
         'google-cloud-storage'

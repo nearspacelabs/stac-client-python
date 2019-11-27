@@ -1,7 +1,5 @@
 requests
 jupyter
 ipykernel
+shapely
 matplotlib
-scipy
-cartopy --no-binary cartopy
-epl.geometry
