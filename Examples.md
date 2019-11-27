@@ -1,4 +1,3 @@
-
 # Complex Queries
 Below are a few complex queries, downloading and filtering of StacItem results. You can also look through the [test directory](./test) for more examples of how to use queries.
 
@@ -65,9 +64,9 @@ for stac_item in client.search(stac_request):
 ```text
     nsl client connecting to stac service at: eap.nearspacelabs.net:9090
     
-    SWIFT STAC item '20191122T130519Z_578_ST2_POM1' from 2019-08-22T18:29:40+00:00
-    has a off_nadir 13.967, which should be less than or equal to requested off_nadir 15.0: confirmed True
     SWIFT STAC item '20191122T130514Z_578_ST2_POM1' from 2019-08-22T18:29:40+00:00
+    has a off_nadir 13.967, which should be less than or equal to requested off_nadir 15.0: confirmed True
+    SWIFT STAC item '20191122T130519Z_578_ST2_POM1' from 2019-08-22T18:29:40+00:00
     has a off_nadir 13.967, which should be less than or equal to requested off_nadir 15.0: confirmed True
 ```
 

@@ -1,4 +1,3 @@
-
 ## STAC Item Properties
 A STAC item is a metadata container for spatially and temporally bounded earth observation data. The data can be aerial imagery, radar data or other types of earth observation data. A STAC item has metadata properties describing the dataset and `Assets` that contain information for downloading the data being described. Almost all properties of a STAC item are aspects you can query by using a `StacRequest` with different types of filters.
 
@@ -341,15 +340,15 @@ for asset_key in stac_item.assets:
 
 
 ```text
-    GEOTIFF_RGB asset key
-    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1.tif
-    type: image/vnd.stac.geotiff
-    protobuf enum number and name: 2, GEOTIFF
-    
     THUMBNAIL_RGB asset key
     href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1_thumb.jpg
     type: image/jpeg
     protobuf enum number and name: 9, THUMBNAIL
+    
+    GEOTIFF_RGB asset key
+    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1.tif
+    type: image/vnd.stac.geotiff
+    protobuf enum number and name: 2, GEOTIFF
     
 ```
 
