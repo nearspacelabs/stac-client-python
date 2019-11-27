@@ -1,7 +1,7 @@
 # gRPC stac-client-python
 
 ### What is this Good for
-Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search.  
+Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search. The best way to get familiar with the Near Space Labs client is to pip install the `nsl.stac` package and use the [Jupyter Notebooks provided](#running-included-jupyter-notebooks).
 
 ### Sections
 - [Setup](#setup)
@@ -17,8 +17,9 @@ Use this library to access download information and other details for aerial ima
 - [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
 ### Setup
-You'll need to have Python3 installed (does not work with Python2). If you've got multiple versions of Python and pip, you may need to use `python3` and `pip3` in the below installation commands.
-Grab it from [pip](https://pypi.org/project/nsl.stac/):
+**WARNING** You'll need to have Python3 installed (nsl.stac **does not** work with Python2). If you've got multiple versions of Python and pip on your operating system, you may need to use `python3` and `pip3` in the below installation commands.
+
+Grab `nsl.stac` from [pip](https://pypi.org/project/nsl.stac/):
 ```bash
 pip install nsl.stac
 ```
@@ -32,9 +33,8 @@ python setup.py install
 #### Environment Variables
 There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
 
-- `STAC_SERVICE`, the address of the STAC service you connect to (defaults to "eap.nearspacelabs.net:9090")
-- `NSL_ID` and `NSL_SECRET`, if you're downloading Near Space Labs data you'll need credentials
-- `GOOGLE_APPLICATION_CREDENTIALS`, if you're downloading open data hosted on Google Cloud
+- `NSL_ID` and `NSL_SECRET`, if you're downloading Near Space Labs data you'll need credentials.
+- `STAC_SERVICE`, (not required) If left unset it defaults to defaults to "eap.nearspacelabs.net:9090". This is the address of the STAC metadata service.
 
 #### Running Included Jupyter Notebooks
 If you are using a virtual environment, but the jupyter you use is outside that virtual env, then you'll have to add your virtual environment to jupyter using something like `python -m ipykernel install --user --name=myenv` (more [here](https://janakiev.com/blog/jupyter-virtual-envs/)). Your best python life is no packages installed globally and always living virtual environment to virtual environment.
@@ -47,13 +47,15 @@ pip install -r requirements-demo.txt
 
 ```
 
-Run Jupyter notebook with your environment variables set for `NSL_ID` and `NSL_SECRET`:
+On Mac or Linux you can run Jupyter notebook with your environment variables set for `NSL_ID` and `NSL_SECRET`:
 
 ```bash
 
 NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
 
 ```
+
+If you're on windows you'll need to set your environment variables using the `SET` command or in the [system environment variables gui](https://www.hows.tech/2019/03/how-to-set-environment-variables-in-windows-10.html). Then call `jupyter notebook`.
 
 ### First Code Example
 Using [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) to construct a spatial and temporal query to return one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the `client.search_one` method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
@@ -75,7 +77,7 @@ from epl.protobuf.stac_pb2 import StacRequest
 from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
 # TimestampField is a query field that allows for making sql-like queries for information
 # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
-from epl.protobuf.query_pb2 import TimestampField, GT_OR_EQ
+from epl.protobuf.query_pb2 import GT_OR_EQ
 from nsl.stac.utils import pb_timestampfield, download_asset
 
 # the client package stubs out a little bit of the gRPC connection code 
@@ -640,5 +642,5 @@ For Comparison, here is the [JSON STAC Electro Optical field summary](https://gi
 
 
 ### Updating the samples in this README
-Use this Jupyter Notebook to update the README.md. Do not directly edit the README.md. It will be overwritten by output from `ipynb2md.py`. First edit this README.ipynb, in kernel Restart & Run All to confirm your changes worked, Save and Checkpoint, then run the python script `python ipynb2md.py`.
+Use this Jupyter Notebook to update the README.md. Do not directly edit the README.md. It will be overwritten by output from `ipynb2md.py`. First edit this README.ipynb, in kernel Restart & Run All to confirm your changes worked, Save and Checkpoint, then run the python script `python ipynb2md.py -i README.ipynb`.
 

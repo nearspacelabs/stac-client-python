@@ -41,7 +41,8 @@ def markdowner(input_filename, markdown_filename, test=False):
             compare_all_text = file_obj.read()
 
     # requires nbconvert
-    os.system('jupyter nbconvert --to MARKDOWN --execute {0} --output {1} --ExecutePreprocessor.kernel_name=python3 --ExecutePreprocessor.timeout=600'
+    os.system('jupyter nbconvert --to MARKDOWN --execute {0} --output {1} --ExecutePreprocessor.kernel_name=python3 '
+              '--ExecutePreprocessor.timeout=600'
               .format(input_filename, markdown_filename))
 
     # read updated markdown file
