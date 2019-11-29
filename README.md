@@ -7,6 +7,7 @@ Use this library to query for Near Space Labs aerial imagery by area of interest
 - [Setup](#setup)
 - [First Code Example](#first-code-example)
 - [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
+  - [Assets](#assets-images-to-download)
   - [Stac Item In Depth](./StacItem.md)
 - [Queries](#queries)
   - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
@@ -159,8 +160,9 @@ In other words:
 
 #### Assets (Images to Download)
 In STAC, Assets can be any file type. For our Near Space Labs Swift dataset an asset can be an RGB Geotiff (selected using the `GEOTIFF_RGB` asset key) or an RGB thumbnail (selected using the `THUMBNAIL_RGB` asset key).
-    * [Example of Downloading a Geotiff](#first-code-example)
-    * [Example of Downloading a Thumbnail](#downloading)
+
+* [Example of Downloading a Geotiff](#first-code-example)
+* [Example of Downloading a Thumbnail](#downloading)
 
 ### Queries
 
