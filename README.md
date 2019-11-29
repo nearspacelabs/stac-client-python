@@ -1,13 +1,13 @@
 # gRPC stac-client-python
 
 ### What is this Good for
-Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search. The best way to get familiar with the Near Space Labs client is to pip install the `nsl.stac` package and use the [Jupyter Notebooks provided](#running-included-jupyter-notebooks).
+Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search. The best way to get familiar with the Near Space Labs client is to pip install the `nsl.stac` package and use the [Jupyter Notebooks provided](#running-included-jupyter-notebooks) (README.ipynb, Examples.ipynb, StacItem.ipynb).
 
 ### Sections
 - [Setup](#setup)
+- [First Code Example](#first-code-example)
 - [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
   - [Stac Item In Depth](./StacItem.md)
-- [First Code Example](#first-code-example)
 - [Queries](#queries)
   - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
   - [Spatial](#spatial-queries)
@@ -24,7 +24,7 @@ Grab `nsl.stac` from [pip](https://pypi.org/project/nsl.stac/):
 pip install nsl.stac
 ```
 
-Install it from source:
+**OR** Install it from source:
 ```bash
 pip install -r requirements.txt
 python setup.py install
@@ -57,28 +57,8 @@ NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
 
 If you're on windows you'll need to set your environment variables using the `SET` command or in the [system environment variables gui](https://www.hows.tech/2019/03/how-to-set-environment-variables-in-windows-10.html). Then call `jupyter notebook`.
 
-### What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
-This python client library is used for connecting to a gRPC enabled STAC service. STAC items and STAC requests are Protocol Buffers (protobuf) instead of traditional JSON.
-
-Never hear of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about this open source projects.
-
-Definition of STAC from https://stacspec.org/:
-> The SpatioTemporal Asset Catalog (STAC) specification provides a common language to describe a range of geospatial information, so it can more easily be indexed and discovered.  A 'spatiotemporal asset' is any file that represents information about the earth captured in a certain space and time.
-
-Definition of gRPC from https://grpc.io
-> gRPC is a modern open source high performance RPC framework that can run in any environment. It can efficiently connect services in and across data centers with pluggable support for load balancing, tracing, health checking and authentication. It is also applicable in last mile of distributed computing to connect devices, mobile applications and browsers to backend services.
-
-Definitions of Protocol Buffers (protobuf) from https://developers.google.com/protocol-buffers/
-> Protocol buffers are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data – think XML, but smaller, faster, and simpler. You define how you want your data to be structured once, then you can use special generated source code to easily write and read your structured data to and from a variety of data streams and using a variety of languages.
-
-In other words:
-- You can think of Protobuf as strict a data format like xml or JSON + linting, except Protobuf is a compact binary message with strongly typed fields
-- gRPC is similar to REST + OpenAPI, except gRPC is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) framework that supports bi-directional streaming
-- STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
-
 ### First Code Example
-Using [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) to construct a spatial and temporal query to return one [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Under the hood the `client.search_one` method uses the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method
-
+Want to jump quickly into a code sample? Expand the below sections to examine a code block using our STAC client and the printout from it's execution. If you need to read more about STAC first, then jump to the summary [here](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs).
 
 
 
@@ -155,11 +135,32 @@ with tempfile.TemporaryDirectory() as d:
 
 
 
+In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) holds spatial and temporal query parameters for searching for [StacItems](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). The `client.search_one` method makes requests to the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method. In this case you can see that we've connected to the `eap.nearspacelabs.net` STAC service. In the next section we go into more detail about Protobufs, gRPC, and STAC.
+
+### What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
+This python client library is used for connecting to a gRPC enabled STAC service. STAC items and STAC requests are Protocol Buffers (protobuf) instead of traditional JSON.
+
+Never hear of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about these open source projects.
+
+Definition of STAC from https://stacspec.org/:
+> The SpatioTemporal Asset Catalog (STAC) specification provides a common language to describe a range of geospatial information, so it can more easily be indexed and discovered.  A 'spatiotemporal asset' is any file that represents information about the earth captured in a certain space and time.
+
+Definition of gRPC from https://grpc.io
+> gRPC is a modern open source high performance RPC framework that can run in any environment. It can efficiently connect services in and across data centers with pluggable support for load balancing, tracing, health checking and authentication. It is also applicable in last mile of distributed computing to connect devices, mobile applications and browsers to backend services.
+
+Definitions of Protocol Buffers (protobuf) from https://developers.google.com/protocol-buffers/
+> Protocol buffers are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data – think XML, but smaller, faster, and simpler. You define how you want your data to be structured once, then you can use special generated source code to easily write and read your structured data to and from a variety of data streams and using a variety of languages.
+
+In other words:
+- You can think of Protobuf as strict a data format like xml or JSON + linting, except Protobuf is a compact binary message with strongly typed fields
+- gRPC is similar to REST + OpenAPI, except gRPC is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) framework that supports bi-directional streaming
+- STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
+
+
 ### Queries
 
 #### Simple Query and the Makeup of a StacItem
-There easiest query to construct is a `StacRequest` constructor with no variables, and the next simplest, is the case where we know the STAC item `id` that we want to search. If we already know the STAC `id` of an item, we can construct the `StacRequest` as follows:
-
+The easiest query to construct is a `StacRequest` constructor with no variables, and the next simplest, is the case where we know the STAC item `id` that we want to search. If we already know the STAC `id` of an item, we can construct the `StacRequest` as follows:
 
 
 
@@ -579,7 +580,7 @@ stac_item = client.search_one(stac_request)
 
 asset = stac_item.assets['THUMBNAIL_RGB']
 with tempfile.NamedTemporaryFile(suffix=".jpg") as file_obj:
-    utils.download_asset(asset=asset, save_filename=file_obj.name)
+    utils.download_asset(asset=asset, file_obj=file_obj)
     display(Image(filename=file_obj.name))
 ```
 
