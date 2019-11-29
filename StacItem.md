@@ -7,7 +7,7 @@ Return to [README.md](./README.md)
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -28,7 +28,7 @@ stac_item = client.search_one(stac_request)
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -53,7 +53,7 @@ Printing out all the data demonstrates what is typically in a StacItem:
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -66,7 +66,7 @@ print(stac_item)
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -167,7 +167,7 @@ Every STAC Item has a unique id, a datetime/observation, and a geometry/bbox (bo
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -184,7 +184,7 @@ print("STAC Item geometry: {}".format(stac_item.geometry))
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -231,7 +231,7 @@ Below we demonstrate how you can create python `datetime` objects:
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -247,7 +247,7 @@ print("Updated Metadata: {}".format(datetime.fromtimestamp(stac_item.updated.sec
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -269,7 +269,7 @@ Below is a demo of using shapely to get at the geometry data.
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -290,7 +290,7 @@ print("bounds:\n{}\n".format(Polygon.from_bounds(stac_item.bbox.xmin,
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -317,7 +317,7 @@ Each STAC item should have at least one asset. An asset should be all the inform
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -336,19 +336,19 @@ for asset_key in stac_item.assets:
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
-    THUMBNAIL_RGB asset key
-    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1_thumb.jpg
-    type: image/jpeg
-    protobuf enum number and name: 9, THUMBNAIL
-    
     GEOTIFF_RGB asset key
     href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1.tif
     type: image/vnd.stac.geotiff
     protobuf enum number and name: 2, GEOTIFF
+    
+    THUMBNAIL_RGB asset key
+    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1_thumb.jpg
+    type: image/jpeg
+    protobuf enum number and name: 9, THUMBNAIL
     
 ```
 
@@ -368,7 +368,7 @@ Some imagery analysis tools require knowing certain types of electro optical inf
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -381,7 +381,7 @@ print(stac_item.eo)
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -420,7 +420,7 @@ These `sun_azimuth`, `sun_elevation`, `off_nadir` and `azimuth` are all boxed in
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -436,7 +436,7 @@ print("azimuth: {:.5f}".format(stac_item.eo.azimuth.value))
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text

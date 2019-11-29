@@ -64,7 +64,7 @@ Want to jump quickly into a code sample? Expand the below sections to examine a 
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -119,7 +119,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -166,7 +166,7 @@ The easiest query to construct is a `StacRequest` constructor with no variables,
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -188,7 +188,7 @@ print(stac_item)
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -299,7 +299,7 @@ The STAC specification has a bounding box `bbox` specification for STAC items. H
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -330,7 +330,7 @@ for stac_item in client.search(stac_request):
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -359,7 +359,7 @@ Next we want to try searching by geometry instead of bounding box. We'll use a g
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -393,7 +393,7 @@ for stac_item in client.search(stac_request):
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -412,7 +412,7 @@ Same geometry as above, but a wkt geometry instead of a geojson:
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -432,7 +432,7 @@ for stac_item in client.search(stac_request):
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -456,7 +456,7 @@ When creating a time query filter, we want to use the >, >=, <, <=, ==, != opera
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -485,7 +485,7 @@ for stac_item in client.search(stac_request):
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -506,7 +506,7 @@ Now we're going to do a range request and select data between two dates:
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
@@ -538,7 +538,7 @@ for stac_item in client.search(stac_request):
 
 
 
-<details><summary>Python Print-out</summary>
+<details><summary>Expand Python Print-out</summary>
 
 
 ```text
@@ -560,7 +560,7 @@ To download an asset use the `bucket` + `object_path` or the `href` fields from 
 
 
 
-<details><summary>Python Code Sample</summary>
+<details><summary>Expand Python Code Sample</summary>
 
 
 ```python
