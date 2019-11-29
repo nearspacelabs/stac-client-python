@@ -1,7 +1,7 @@
 # gRPC stac-client-python
 
 ### What is this Good for
-Use this library to access download information and other details for aerial imagery and for other geospatial datasets. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service). Landsat, NAIP and the Near Space Labs's Swift datasets are available for search. The best way to get familiar with the Near Space Labs client is to pip install the `nsl.stac` package and use the [Jupyter Notebooks provided](#running-included-jupyter-notebooks) (README.ipynb, Examples.ipynb, StacItem.ipynb).
+Use this library to query for Near Space Labs aerial imagery by area of interest, date observed and other details. You can also use this library and your credentials to download Near Space Labs Geotiffs and Thumbnails for every scene we've collected. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service) for metadata queries. The best way to get familiar with the Near Space Labs client is to pip install the `nsl.stac` package and use the [Jupyter Notebooks provided](#running-included-jupyter-notebooks) (README.ipynb, Examples.ipynb, StacItem.ipynb).
 
 ### Sections
 - [Setup](#setup)
@@ -58,7 +58,7 @@ NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
 If you're on windows you'll need to set your environment variables using the `SET` command or in the [system environment variables gui](https://www.hows.tech/2019/03/how-to-set-environment-variables-in-windows-10.html). Then call `jupyter notebook`.
 
 ### First Code Example
-Want to jump quickly into a code sample? Expand the below sections to examine a code block using our STAC client and the printout from it's execution. If you need to read more about STAC first, then jump to the summary [here](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs).
+Want to jump quickly into a code sample for searching by area of interest and date range, and then downloading a Geotiff? Expand the below sections to examine a code block using our STAC client and the printout from it's execution. If you need to read more about STAC first, then jump to the summary [here](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs).
 
 
 
@@ -106,6 +106,7 @@ print("STAC item id {}".format(stac_item.id))
 dt_observed = datetime.utcfromtimestamp(stac_item.observed.seconds)
 print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 
+# get the Geotiff asset from the assets map
 asset = stac_item.assets['GEOTIFF_RGB']
 
 with tempfile.TemporaryDirectory() as d:
@@ -156,6 +157,10 @@ In other words:
 - gRPC is similar to REST + OpenAPI, except gRPC is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) framework that supports bi-directional streaming
 - STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
 
+#### Assets (Images to Download)
+In STAC, Assets can be any file type. For our Near Space Labs Swift dataset an asset can be an RGB Geotiff (selected using the `GEOTIFF_RGB` asset key) or an RGB thumbnail (selected using the `THUMBNAIL_RGB` asset key).
+    * [Example of Downloading a Geotiff](#first-code-example)
+    * [Example of Downloading a Thumbnail](#downloading)
 
 ### Queries
 
@@ -578,6 +583,7 @@ client = NSLClient()
 # for this request we might as well use the search one, as STAC ids ought to be unique
 stac_item = client.search_one(stac_request)
 
+# get the thumbnail asset from the assets map
 asset = stac_item.assets['THUMBNAIL_RGB']
 with tempfile.NamedTemporaryFile(suffix=".jpg") as file_obj:
     utils.download_asset(asset=asset, file_obj=file_obj)
