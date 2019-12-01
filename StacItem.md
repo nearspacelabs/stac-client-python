@@ -236,9 +236,9 @@ Below we demonstrate how you can create python `datetime` objects:
 
 ```python
 from datetime import datetime
-print("Observed Scene: {}".format(datetime.fromtimestamp(stac_item.observed.seconds)))
-print("Processed Data: {}".format(datetime.fromtimestamp(stac_item.processed.seconds)))
-print("Updated Metadata: {}".format(datetime.fromtimestamp(stac_item.updated.seconds)))
+print("UTC Observed Scene: {}".format(datetime.utcfromtimestamp(stac_item.observed.seconds)))
+print("UTC Processed Data: {}".format(datetime.utcfromtimestamp(stac_item.processed.seconds)))
+print("UTC Updated Metadata: {}".format(datetime.utcfromtimestamp(stac_item.updated.seconds)))
 ```
 
 
@@ -251,9 +251,9 @@ print("Updated Metadata: {}".format(datetime.fromtimestamp(stac_item.updated.sec
 
 
 ```text
-    Observed Scene: 2019-08-29 13:28:57
-    Processed Data: 2019-11-09 19:54:17
-    Updated Metadata: 2019-11-09 19:54:26
+    UTC Observed Scene: 2019-08-29 17:28:57
+    UTC Processed Data: 2019-11-10 00:54:17
+    UTC Updated Metadata: 2019-11-10 00:54:26
 ```
 
 
@@ -340,15 +340,15 @@ for asset_key in stac_item.assets:
 
 
 ```text
-    GEOTIFF_RGB asset key
-    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1.tif
-    type: image/vnd.stac.geotiff
-    protobuf enum number and name: 2, GEOTIFF
-    
     THUMBNAIL_RGB asset key
     href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1_thumb.jpg
     type: image/jpeg
     protobuf enum number and name: 9, THUMBNAIL
+    
+    GEOTIFF_RGB asset key
+    href: https://swiftera-processed-data.storage.googleapis.com/20191110T005320Z_DAVID/Publish_0/20191110T005417Z_1594_ST2_POM1.tif
+    type: image/vnd.stac.geotiff
+    protobuf enum number and name: 2, GEOTIFF
     
 ```
 
