@@ -115,7 +115,8 @@ class __BearerAuth:
     def __init__(self):
         if not NSL_ID or not NSL_SECRET:
             warnings.warn("NSL_ID and NSL_SECRET should both be set")
-        self.authorize()
+        else:
+            self.authorize()
 
     def auth_header(self):
         return "Bearer {token}".format(token=self._token)
