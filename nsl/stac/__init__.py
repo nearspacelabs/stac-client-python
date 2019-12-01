@@ -119,6 +119,8 @@ class __BearerAuth:
             self.authorize()
 
     def auth_header(self):
+        if (bearer_auth.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+            self.authorize()
         return "Bearer {token}".format(token=self._token)
 
     def authorize(self):
@@ -142,17 +144,6 @@ class __BearerAuth:
     @property
     def expiry(self):
         return self._expiry
-
-
-class AuthGuard:
-    def __init__(self, f):
-        self.f = f
-
-    def __call__(self, *args, **kwargs):
-        if (bearer_auth.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
-            bearer_auth.authorize()
-
-        return self.f(*args, **kwargs)
 
 
 bearer_auth = __BearerAuth()

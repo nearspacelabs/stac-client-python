@@ -13,7 +13,7 @@ from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 from epl.protobuf import stac_pb2, query_pb2
 
-from nsl.stac import gcs_storage_client, bearer_auth, AuthGuard
+from nsl.stac import gcs_storage_client, bearer_auth
 
 DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
 RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
@@ -94,7 +94,6 @@ def download_s3_object(bucket: str,
             raise
 
 
-@AuthGuard
 def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_filename: str = ""):
     """
     download the href of an asset
@@ -171,7 +170,6 @@ def download_asset(asset: stac_pb2.Asset,
                                     save_filename=save_filename)
 
 
-@AuthGuard
 def download_assets(stac_item: stac_pb2.StacItem,
                     save_directory: str,
                     from_bucket: bool = False) -> List[str]:
