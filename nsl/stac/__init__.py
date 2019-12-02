@@ -64,9 +64,10 @@ def _get_storage_client():
         client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
     else:
         try:
+            # https://github.com/googleapis/google-auth-library-python/issues/271#issuecomment-400186626
+            warnings.filterwarnings("ignore", "Your application has authenticated using end user credentials")
             client = gcp_storage.Client(project="")
-        except DefaultCredentialsError as e:
-            warnings.warn(e)
+        except DefaultCredentialsError:
             client = None
 
     return client
