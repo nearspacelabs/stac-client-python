@@ -7,6 +7,8 @@ import warnings
 
 import grpc
 
+from google.auth.exceptions import DefaultCredentialsError
+
 from epl.protobuf import stac_service_pb2_grpc
 from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
@@ -61,7 +63,11 @@ def _get_storage_client():
         creds = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
         client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
     else:
-        client = None
+        try:
+            client = gcp_storage.Client(project="")
+        except DefaultCredentialsError as e:
+            warnings.warn(e)
+            client = None
 
     return client
 

@@ -27,7 +27,7 @@ class NSLClient:
         :param stac_item: item to insert
         :return: StacDbResponse, the response of the success of the insert
         """
-        return self._stac_service.stub.InsertOne(stac_item, metadata=(
+        return self._stac_service.stub.InsertOne(stac_item, timeout=15, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
@@ -38,7 +38,7 @@ class NSLClient:
         :param stac_request: StacRequest of query parameters to filter by
         :return: StacItem
         """
-        return self._stac_service.stub.SearchOne(stac_request, metadata=(
+        return self._stac_service.stub.SearchOne(stac_request, timeout=15, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
@@ -49,7 +49,7 @@ class NSLClient:
         :param stac_request: StacRequest query parameters to apply to count method (limit ignored)
         :return: int
         """
-        db_result = self._stac_service.stub.Count(stac_request, metadata=(
+        db_result = self._stac_service.stub.Count(stac_request, timeout=15, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
@@ -61,7 +61,7 @@ class NSLClient:
         :param stac_request: StacRequest of query parameters to filter by
         :return: stream of StacItems
         """
-        results_generator = self._stac_service.stub.Search(stac_request, metadata=(
+        results_generator = self._stac_service.stub.Search(stac_request, timeout=15, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
