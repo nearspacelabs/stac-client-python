@@ -2,7 +2,7 @@
 Below are a few complex queries, downloading and filtering of StacItem results. You can also look through the [test directory](./test) for more examples of how to use queries.
 
 - [Electro Optical](#electro-optical)
-- [Sort Order](#sort-order)
+- [Limits and Offsets](#limits-and-offsets)
 
 ## Electro Optical
 Proto3, the version of proto definition used for gRPC STAC, creates messages that are similar to structs in C. One of the drawbacks to structs is that for floats, integers, enums and booleans all fields that are not set are initialized to a value of zero. In geospatial sciences, defaulting to zero can cause problems in that an algorithm or user might interpret that as a true value. 
