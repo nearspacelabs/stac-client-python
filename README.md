@@ -1,9 +1,9 @@
 # gRPC stac-client-python
 
-### What is this Good for
+## What is this Good for
 Use this library to query for Near Space Labs aerial imagery by area of interest, date observed and other details. You can also use this library and your credentials to download Near Space Labs Geotiffs and Thumbnails for every scene we've collected. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service) for metadata queries. The best way to get familiar with the Near Space Labs client is to pip install the `nsl.stac` package and use the [Jupyter Notebooks provided](#running-included-jupyter-notebooks) (README.ipynb, Examples.ipynb, StacItem.ipynb).
 
-### Sections
+## Sections
 - [Setup](#setup)
 - [First Code Example](#first-code-example)
 - [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
@@ -17,7 +17,7 @@ Use this library to query for Near Space Labs aerial imagery by area of interest
 - [Downloading](#downloading)
 - [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
-### Setup
+## Setup
 **WARNING** You'll need to have Python3 installed (nsl.stac **does not** work with Python2). If you've got multiple versions of Python and pip on your operating system, you may need to use `python3` and `pip3` in the below installation commands.
 
 Grab `nsl.stac` from [pip](https://pypi.org/project/nsl.stac/):
@@ -31,13 +31,13 @@ pip install -r requirements.txt
 python setup.py install
 ```
 
-#### Environment Variables
+### Environment Variables
 There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
 
 - `NSL_ID` and `NSL_SECRET`, if you're downloading Near Space Labs data you'll need credentials.
 - `STAC_SERVICE`, (not required) If left unset it defaults to defaults to "eap.nearspacelabs.net:9090". This is the address of the STAC metadata service.
 
-#### Running Included Jupyter Notebooks
+### Running Included Jupyter Notebooks
 If you are using a virtual environment, but the jupyter you use is outside that virtual env, then you'll have to add your virtual environment to jupyter using something like `python -m ipykernel install --user --name=myenv` (more [here](https://janakiev.com/blog/jupyter-virtual-envs/)). Your best python life is no packages installed globally and always living virtual environment to virtual environment.
 
 Install the requirements for the demo:
@@ -58,7 +58,15 @@ NSL_ID="YOUR_ID" NSL_SECRET="YOUR_SECRET" jupyter notebook
 
 If you're on windows you'll need to set your environment variables using the `SET` command or in the [system environment variables gui](https://www.hows.tech/2019/03/how-to-set-environment-variables-in-windows-10.html). Then call `jupyter notebook`.
 
-### First Code Example
+### Rate Limiting and Timeouts
+To keep our services available to may simulataneous customers, we've implemented rate limiting for API requests and timeouts for long-standing requests. 
+
+At this release our timeouts are default 15 seconds. For streaming requests this means you may want to use a limit and offset in your request structure. For more details about `limit` and `offset` visit the [Examples.md](./Examples.md) doc.
+
+For our download API we've implemented a 4 requests per second limit. You may need implement a retry mechanism with an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) if you are overruning the rate limit.
+
+
+## First Code Example
 Want to jump quickly into a code sample for searching by area of interest and date range, and then downloading a Geotiff? Expand the below sections to examine a code block using our STAC client and the printout from it's execution. If you need to read more about STAC first, then jump to the summary [here](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs).
 
 
@@ -139,7 +147,7 @@ with tempfile.TemporaryDirectory() as d:
 
 In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) holds spatial and temporal query parameters for searching for [StacItems](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). The `client.search_one` method makes requests to the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method. In this case you can see that we've connected to the `eap.nearspacelabs.net` STAC service. In the next section we go into more detail about Protobufs, gRPC, and STAC.
 
-### What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
+## What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
 This python client library is used for connecting to a gRPC enabled STAC service. STAC items and STAC requests are Protocol Buffers (protobuf) instead of traditional JSON.
 
 Never hear of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about these open source projects.
@@ -158,15 +166,15 @@ In other words:
 - gRPC is similar to REST + OpenAPI, except gRPC is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) framework that supports bi-directional streaming
 - STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
 
-#### Assets (Images to Download)
+### Assets (Images to Download)
 In STAC, Assets can be any file type. For our Near Space Labs Swift dataset an asset can be an RGB Geotiff (selected using the `GEOTIFF_RGB` asset key) or an RGB thumbnail (selected using the `THUMBNAIL_RGB` asset key).
 
 * [Example of Downloading a Geotiff](#first-code-example)
 * [Example of Downloading a Thumbnail](#downloading)
 
-### Queries
+## Queries
 
-#### Simple Query and the Makeup of a StacItem
+### Simple Query and the Makeup of a StacItem
 The easiest query to construct is a `StacRequest` constructor with no variables, and the next simplest, is the case where we know the STAC item `id` that we want to search. If we already know the STAC `id` of an item, we can construct the `StacRequest` as follows:
 
 
@@ -299,7 +307,7 @@ The above print out for the stac item is quite lengthy. Although `stac_item` is 
 
 You may have notice that the [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) in the above python print out has a number of additional parameters not included in the JSON STAC specification. 
 
-#### Spatial Queries
+### Spatial Queries
 The STAC specification has a bounding box `bbox` specification for STAC items. Here we make a STAC request using a bounding box. One slight difference from JSON STAC, is that we define an [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.EnvelopeData) protobuf object. This allows us to use other projections besides WGS84
 
 
@@ -341,16 +349,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20191121T192629Z_1594_ST2_POM1
-    STAC item id: 20191110T005417Z_1594_ST2_POM1
-    STAC item id: 20191121T174541Z_1594_ST2_POM1
-    STAC item id: 20191110T003517Z_1594_ST2_POM1
-    STAC item id: 20191121T182921Z_1594_ST2_POM1
-    STAC item id: 20191111T193822Z_1594_ST2_POM1
-    STAC item id: 20191121T201211Z_1594_ST2_POM1
-    STAC item id: 20191110T002000Z_1594_ST2_POM1
     STAC item id: 20191110T004641Z_1594_ST2_POM1
-    STAC item id: 20191122T130151Z_1594_ST2_POM1
+    STAC item id: 20191121T192629Z_1594_ST2_POM1
+    STAC item id: 20191121T182921Z_1594_ST2_POM1
+    STAC item id: 20191121T174541Z_1594_ST2_POM1
+    STAC item id: 20191111T193822Z_1594_ST2_POM1
+    STAC item id: 20191110T005417Z_1594_ST2_POM1
+    STAC item id: 20191110T003517Z_1594_ST2_POM1
+    STAC item id: 20191121T201211Z_1594_ST2_POM1
+    STAC item id: 20191110T005206Z_1594_ST2_POM1
+    STAC item id: 20191110T004842Z_1594_ST2_POM1
 ```
 
 
@@ -359,6 +367,8 @@ for stac_item in client.search(stac_request):
 
 
 Above should be printed the STAC ids of 10 items (10 is the default limit for the service we connected to).
+
+#### Query By GeoJSON
 
 Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esrishape:
 
@@ -413,6 +423,8 @@ for stac_item in client.search(stac_request):
 
 
 
+#### Query By WKT
+
 Same geometry as above, but a wkt geometry instead of a geojson:
 
 
@@ -423,6 +435,7 @@ Same geometry as above, but a wkt geometry instead of a geojson:
 
 
 ```python
+from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
 # Same geometry as above, but a wkt geometry instead of a geojson
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
 geometry_data = GeometryData(wkt=travis_wkt, 
@@ -452,12 +465,14 @@ for stac_item in client.search(stac_request):
 
 
 
-#### Temporal Queries
+### Temporal Queries
 When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with a `int64` for seconds and a `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
 
 So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
 
 When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampField](https://geo-grpc.github.io/api/#epl.protobuf.TimestampField), where we define the value using the `value` field or the `start`&`stop` fields. And then we define a relationship type using the `rel_type` field and the [FieldRelationship](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship) enum values of `EQ`, `LT_OR_EQ`, `GT_OR_EQ`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NOT_EQ`.
+
+#### Everything After A Secific Date
 
 
 
@@ -506,6 +521,8 @@ for stac_item in client.search(stac_request):
 
 
 The above result shows the datetime of the STAC item, the datetime of the query and a confirmation that they satisfy the query filter. Notice the warning, this is because our date doesn't have a timezone associated with it. By default we assume UTC.
+
+#### Everything Between Two Dates
 
 Now we're going to do a range request and select data between two dates:
 
@@ -560,7 +577,7 @@ for stac_item in client.search(stac_request):
 
 In the above print out we are returned STAC items that are between the dates of Jan 1 2017 and Jan 1 2018. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
 
-### Downloading
+## Downloading
 To download an asset use the `bucket` + `object_path` or the `href` fields from the asset, and download the data using the library of your choice. There is also a download utility in the `nsl.stac.utils` module. Downloading from Google Cloud Storage buckets requires having defined your `GOOGLE_APPLICATION_CREDENTIALS` [environment variable](https://cloud.google.com/docs/authentication/getting-started#setting_the_environment_variable). Downloading from AWS/S3 requires having your configuration file or environment variables defined as you would for [boto3](https://boto3.amazonaws.com/v1/documentation/api/1.9.42/guide/quickstart.html#configuration). To downlad an asset follow the pattern in the below example:
 
 
