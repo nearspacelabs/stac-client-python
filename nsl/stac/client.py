@@ -21,47 +21,51 @@ class NSLClient:
         """
         self._stac_service.update_service_url(stac_service_url=stac_service_url)
 
-    def insert_one(self, stac_item: stac_pb2.StacItem) -> stac_pb2.StacDbResponse:
+    def insert_one(self, stac_item: stac_pb2.StacItem, timeout=15) -> stac_pb2.StacDbResponse:
         """
         Insert on item into the stac service
+        :param timeout: timeout for request
         :param stac_item: item to insert
         :return: StacDbResponse, the response of the success of the insert
         """
-        return self._stac_service.stub.InsertOne(stac_item, metadata=(
+        return self._stac_service.stub.InsertOne(stac_item, timeout=timeout, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
 
-    def search_one(self, stac_request: stac_pb2.StacRequest) -> stac_pb2.StacItem:
+    def search_one(self, stac_request: stac_pb2.StacRequest, timeout=15) -> stac_pb2.StacItem:
         """
         search for one item from the db that matches the stac request
+        :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
         :return: StacItem
         """
-        return self._stac_service.stub.SearchOne(stac_request, metadata=(
+        return self._stac_service.stub.SearchOne(stac_request, timeout=timeout, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
 
-    def count(self, stac_request: stac_pb2.StacRequest) -> int:
+    def count(self, stac_request: stac_pb2.StacRequest, timeout=15) -> int:
         """
         count all the items in the database that match the stac request
+        :param timeout: timeout for request
         :param stac_request: StacRequest query parameters to apply to count method (limit ignored)
         :return: int
         """
-        db_result = self._stac_service.stub.Count(stac_request, metadata=(
+        db_result = self._stac_service.stub.Count(stac_request, timeout=timeout, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
         return db_result.count
 
-    def search(self, stac_request: stac_pb2.StacRequest) -> Iterator[stac_pb2.StacItem]:
+    def search(self, stac_request: stac_pb2.StacRequest, timeout=15) -> Iterator[stac_pb2.StacItem]:
         """
         search for stac items by using StacRequest. return a stream of StacItems
+        :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
         :return: stream of StacItems
         """
-        results_generator = self._stac_service.stub.Search(stac_request, metadata=(
+        results_generator = self._stac_service.stub.Search(stac_request, timeout=timeout, metadata=(
             ('authorization', self._auth),
             ('bearer', self._bearer),
         ))
