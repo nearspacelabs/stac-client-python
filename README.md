@@ -69,7 +69,9 @@ For our download API we've implemented a 4 requests per second limit. You may ne
 
 
 ## First Code Example
-Want to jump quickly into a code sample for searching by area of interest and date range, and then downloading a Geotiff? Expand the below sections to examine a code block using our STAC client and the printout from it's execution. If you need to read more about STAC first, then jump to the summary [here](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs).
+Want to jump quickly into a code sample for searching by area of interest and date range, and then downloading a Geotiff? Expand the below sections to examine a code block using our STAC client and the printout from it's execution. If you need to read more about STAC first, then jump to the summary [here](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs). 
+
+This call will take a little bit to execute as it downloads an image.
 
 
 
@@ -609,7 +611,9 @@ stac_item = client.search_one(stac_request)
 
 # get the thumbnail asset from the assets map
 asset = stac_item.assets['THUMBNAIL_RGB']
-with tempfile.NamedTemporaryFile(suffix=".jpg") as file_obj:
+
+# (side-note delete=False in NamedTemporaryFile is only required for windows.)
+with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
     utils.download_asset(asset=asset, file_obj=file_obj)
     display(Image(filename=file_obj.name))
 ```
