@@ -3,6 +3,8 @@
 ## What is this Good for
 Use this library to query for Near Space Labs aerial imagery by area of interest, date observed and other details. You can also use this library and your credentials to download Near Space Labs Geotiffs and Thumbnails for every scene we've collected. This client accesses [Near Space Labs](https://nearspacelabs.com)' gRPC STAC service (or any gRPC STAC service) for metadata queries. The best way to get familiar with the Near Space Labs client is to pip install the `nsl.stac` package and use the [Jupyter Notebooks provided](#running-included-jupyter-notebooks) (README.ipynb, Examples.ipynb, StacItem.ipynb).
 
+To get access to our high resolution Austin, Texas imagery, get a client id and secret [here](https://www.nearspacelabs.com/#nearspacelabs).
+
 ## Sections
 - [Setup](#setup)
 - [First Code Example](#first-code-example)
@@ -135,9 +137,9 @@ with tempfile.TemporaryDirectory() as d:
 ```text
     nsl client connecting to stac service at: eap.nearspacelabs.net:9090
     
-    STAC item id 20191122T133132Z_1495_ST2_POM1
-    Date observed 08/08/2019, 19:00:03
-    20191122T133132Z_1495_ST2_POM1.tif has 5912460 bytes
+    STAC item id 20190826T185828Z_715_POM1_ST2_P
+    Date observed 08/26/2019, 18:58:28
+    20190826T185828Z_715_POM1_ST2_P.tif has 141352740 bytes
 ```
 
 
@@ -188,7 +190,7 @@ The easiest query to construct is a `StacRequest` constructor with no variables,
 from nsl.stac.client import NSLClient
 from epl.protobuf.stac_pb2 import StacRequest
 
-stac_request = StacRequest(id='20191121T192629Z_1594_ST2_POM1')
+stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
 
 # get a client interface to the gRPC channel
 client = NSLClient()
@@ -207,31 +209,31 @@ print(stac_item)
 
 
 ```text
-    id: "20191121T192629Z_1594_ST2_POM1"
+    id: "20190826T185828Z_715_POM1_ST2_P"
     geometry {
-      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\316\252\210\342\367nX\300\265K\302O\323?>@\246\336\241u\325mX\300\211\271\345\000\310?>@:\337\320\324\322mX\300\251;N.\360B>@\343@\000K\365nX\300+\205\227~\373B>@\316\252\210\342\367nX\300\265K\302O\323?>@"
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\367\330\320\314\025nX\300\031\2774\223vC>@3\312/\034-nX\300a\326Z\371*F>@\265\023\016i@oX\300\355\303\030N\350E>@\315\272\247\322.oX\300u\036\372\212)C>@\367\330\320\314\025nX\300\031\2774\223vC>@"
       sr {
         wkid: 4326
       }
       simple: STRONG_SIMPLE
     }
     bbox {
-      xmin: -97.73387969347388
-      ymin: 30.24914556129946
-      xmax: -97.71599312207846
-      ymax: 30.261650001518472
+      xmin: -97.73830629706102
+      ymin: 30.262352644027903
+      xmax: -97.7200805701758
+      ymax: 30.27409323184691
       sr {
         wkid: 4326
       }
     }
     properties {
       type_url: "type.googleapis.com/st.protobuf.SwiftMetadata"
-      value: "\n\03420190829T153004Z_HAYS_COUNTY\022 4720b2613dc9377a70e74076acb739cf\032\02620191121T192621Z_DAVID \01022\032+POINT(-97.71175384521484 30.19917869567871):\003\010\346!:\005\rf\001\242FB\003 \272\014R\03620190904T154946Z_1594_POM2_ST1Z\03620190829T172857Z_1594_POM1_ST2Z\03620190904T154533Z_1594_POM2_ST1Z\03620190904T154946Z_1594_POM2_ST1b\03620190829T172857Z_1594_POM1_ST2h\001p\001\200\001\354\010\210\001\270\252\023"
+      value: "\n\03620190826T163847Z_TRAVIS_COUNTY\022 0495ead38e491e637414d508f2d230d6\032\03120191203T045008Z_SWIFTERA \0102.\032\'POINT(-97.75460815429688 30.3447265625):\003\010\346!:\005\r\232\266\244FB\003 \313\005R\03520191202T145554Z_715_ST2_POM1Z\03520190826T185828Z_715_POM1_ST2Z\03520191122T061353Z_715_ST2_POM1Z\03520191122T061722Z_715_ST2_POM1Z\03520191202T145554Z_715_ST2_POM1b\03520190826T185828Z_715_POM1_ST2h\001p\001x\326\001\200\001\262*\210\001\276\203\022"
     }
     assets {
       key: "GEOTIFF_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1.tif"
+        href: "https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif"
         type: "image/vnd.stac.geotiff"
         eo_bands: RGB
         asset_type: GEOTIFF
@@ -239,13 +241,13 @@ print(stac_item)
         bucket_manager: "Swiftera"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1.tif"
+        object_path: "20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif"
       }
     }
     assets {
       key: "THUMBNAIL_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1_thumb.jpg"
+        href: "https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg"
         type: "image/jpeg"
         eo_bands: RGB
         asset_type: THUMBNAIL
@@ -253,40 +255,43 @@ print(stac_item)
         bucket_manager: "Swiftera"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20191121T192621Z_DAVID/Publish_0/20191121T192629Z_1594_ST2_POM1_thumb.jpg"
+        object_path: "20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg"
       }
     }
     datetime {
-      seconds: 1567099737
-      nanos: 259586000
+      seconds: 1566845908
+      nanos: 632167000
     }
     observed {
-      seconds: 1567099737
-      nanos: 259586000
+      seconds: 1566845908
+      nanos: 632167000
     }
     processed {
-      seconds: 1574364389
-      nanos: 584799000
+      seconds: 1575352682
+      nanos: 861234000
     }
     updated {
-      seconds: 1574364390
-      nanos: 282194298
+      seconds: 1575352687
+      nanos: 268198954
     }
     eo {
       platform: SWIFT_2
       instrument: POM_1
       constellation: SWIFT
       sun_azimuth {
-        value: 141.74072265625
+        value: 197.96905517578125
       }
       sun_elevation {
-        value: 64.46234130859375
+        value: 69.09848022460938
+      }
+      gsd {
+        value: 0.30000001192092896
       }
       off_nadir {
-        value: 19.908658981323242
+        value: 22.70497703552246
       }
       azimuth {
-        value: 102.08956146240234
+        value: 163.9722137451172
       }
     }
     
@@ -349,16 +354,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20191110T004641Z_1594_ST2_POM1
-    STAC item id: 20191121T192629Z_1594_ST2_POM1
-    STAC item id: 20191121T182921Z_1594_ST2_POM1
-    STAC item id: 20191121T174541Z_1594_ST2_POM1
-    STAC item id: 20191111T193822Z_1594_ST2_POM1
-    STAC item id: 20191110T005417Z_1594_ST2_POM1
-    STAC item id: 20191110T003517Z_1594_ST2_POM1
-    STAC item id: 20191121T201211Z_1594_ST2_POM1
-    STAC item id: 20191110T005206Z_1594_ST2_POM1
-    STAC item id: 20191110T004842Z_1594_ST2_POM1
+    STAC item id: 20190829T172947Z_1619_POM1_ST2_P
+    STAC item id: 20190829T172941Z_1616_POM1_ST2_P
+    STAC item id: 20190829T172925Z_1608_POM1_ST2_P
+    STAC item id: 20190829T172919Z_1605_POM1_ST2_P
+    STAC item id: 20190829T172857Z_1594_POM1_ST2_P
+    STAC item id: 20190829T172853Z_1592_POM1_ST2_P
+    STAC item id: 20190829T172851Z_1591_POM1_ST2_P
+    STAC item id: 20190829T172847Z_1589_POM1_ST2_P
+    STAC item id: 20190829T172831Z_1581_POM1_ST2_P
+    STAC item id: 20190826T185828Z_715_POM1_ST2_P
 ```
 
 
@@ -414,8 +419,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20191110T003517Z_1594_ST2_POM1
-    STAC item id: 20191110T002000Z_1594_ST2_POM1
+    STAC item id: 20190829T173549Z_1799_POM1_ST2_P
+    STAC item id: 20190829T173547Z_1798_POM1_ST2_P
 ```
 
 
@@ -456,8 +461,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20191110T003517Z_1594_ST2_POM1 from wkt filter intersects result from geojson filter: True
-    STAC item id: 20191110T002000Z_1594_ST2_POM1 from wkt filter intersects result from geojson filter: True
+    STAC item id: 20190829T173549Z_1799_POM1_ST2_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20190829T173547Z_1798_POM1_ST2_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -511,8 +516,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2019-08-29T17:28:57+00:00, is after 1970-01-01T00:00:00+00:00: True
-    STAC item date, 2019-08-29T17:28:57+00:00, is after 1970-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:35:49+00:00, is after 1970-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:35:47+00:00, is after 1970-01-01T00:00:00+00:00: True
 ```
 
 
@@ -566,8 +571,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2019-08-08T19:23:02+00:00, is before 2019-08-10T00:00:00+00:00: True
-    STAC item date, 2019-08-08T19:23:02+00:00, is before 2019-08-10T00:00:00+00:00: True
+    STAC item date, 2019-08-08T19:12:09+00:00, is before 2019-08-10T00:00:00+00:00: True
+    STAC item date, 2019-08-08T19:12:05+00:00, is before 2019-08-10T00:00:00+00:00: True
 ```
 
 
@@ -595,7 +600,7 @@ from nsl.stac.client import NSLClient
 from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 
-stac_request = StacRequest(id='20191121T192629Z_1594_ST2_POM1')
+stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
 
 # get a client interface to the gRPC channel
 client = NSLClient()

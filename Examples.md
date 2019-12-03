@@ -64,10 +64,14 @@ for stac_item in client.search(stac_request):
 ```text
     nsl client connecting to stac service at: eap.nearspacelabs.net:9090
     
-    SWIFT STAC item '20191122T130514Z_578_ST2_POM1' from 2019-08-22T18:29:40+00:00
-    has a off_nadir 13.967, which should be less than or equal to requested off_nadir 15.0: confirmed True
-    SWIFT STAC item '20191122T130519Z_578_ST2_POM1' from 2019-08-22T18:29:40+00:00
-    has a off_nadir 13.967, which should be less than or equal to requested off_nadir 15.0: confirmed True
+    SWIFT STAC item '20190822T183313Z_684_POM1_ST2_P' from 2019-08-22T18:33:13+00:00
+    has a off_nadir 12.588, which should be less than or equal to requested off_nadir 15.0: confirmed True
+    SWIFT STAC item '20190822T183307Z_681_POM1_ST2_P' from 2019-08-22T18:33:07+00:00
+    has a off_nadir 13.354, which should be less than or equal to requested off_nadir 15.0: confirmed True
+    SWIFT STAC item '20190822T183217Z_656_POM1_ST2_P' from 2019-08-22T18:32:17+00:00
+    has a off_nadir 12.556, which should be less than or equal to requested off_nadir 15.0: confirmed True
+    SWIFT STAC item '20190821T180032Z_563_POM1_ST2_P' from 2019-08-21T18:00:32+00:00
+    has a off_nadir 14.421, which should be less than or equal to requested off_nadir 15.0: confirmed True
 ```
 
 
@@ -128,11 +132,11 @@ while total < 1000:
 
 
 ```text
-    stac item id: 20191122T130542Z_1701_ST2_POM1 at 200 index in request
-    stac item id: 20191122T125916Z_1120_ST2_POM1 at 400 index in request
-    stac item id: 20191122T130746Z_504_ST2_POM1 at 600 index in request
-    stac item id: 20191122T130858Z_2071_ST2_POM1 at 800 index in request
-    stac item id: 20191122T132210Z_1964_ST2_POM1 at 1000 index in request
+    stac item id: 20190829T172909Z_1600_POM1_ST2_P at 200 index in request
+    stac item id: 20190829T172054Z_1354_POM1_ST2_P at 400 index in request
+    stac item id: 20190829T171353Z_1152_POM1_ST2_P at 600 index in request
+    stac item id: 20190829T170046Z_771_POM1_ST2_P at 800 index in request
+    stac item id: 20190829T165125Z_497_POM1_ST2_P at 1000 index in request
 ```
 
 
