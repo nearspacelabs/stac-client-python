@@ -64,12 +64,8 @@ for stac_item in client.search(stac_request):
 ```text
     nsl client connecting to stac service at: eap.nearspacelabs.net:9090
     
-    SWIFT STAC item '20190822T183313Z_684_POM1_ST2_P' from 2019-08-22T18:33:13+00:00
-    has a off_nadir 12.588, which should be less than or equal to requested off_nadir 15.0: confirmed True
     SWIFT STAC item '20190822T183307Z_681_POM1_ST2_P' from 2019-08-22T18:33:07+00:00
     has a off_nadir 13.354, which should be less than or equal to requested off_nadir 15.0: confirmed True
-    SWIFT STAC item '20190822T183217Z_656_POM1_ST2_P' from 2019-08-22T18:32:17+00:00
-    has a off_nadir 12.556, which should be less than or equal to requested off_nadir 15.0: confirmed True
     SWIFT STAC item '20190821T180032Z_563_POM1_ST2_P' from 2019-08-21T18:00:32+00:00
     has a off_nadir 14.421, which should be less than or equal to requested off_nadir 15.0: confirmed True
 ```
@@ -135,8 +131,8 @@ while total < 1000:
     stac item id: 20190829T172909Z_1600_POM1_ST2_P at 200 index in request
     stac item id: 20190829T172054Z_1354_POM1_ST2_P at 400 index in request
     stac item id: 20190829T171353Z_1152_POM1_ST2_P at 600 index in request
-    stac item id: 20190829T170046Z_771_POM1_ST2_P at 800 index in request
-    stac item id: 20190829T165125Z_497_POM1_ST2_P at 1000 index in request
+    stac item id: 20190829T170044Z_770_POM1_ST2_P at 800 index in request
+    stac item id: 20190829T165121Z_495_POM1_ST2_P at 1000 index in request
 ```
 
 
