@@ -328,9 +328,9 @@ from epl.protobuf.stac_pb2 import AssetType
 for asset_key in stac_item.assets:
     print("{} asset key".format(asset_key))
     asset = stac_item.assets[asset_key]
-    print("href: {}".format(asset.href))
-    print("type: {}".format(asset.type))
-    print("protobuf enum number and name: {0}, {1}\n".format(asset.asset_type, AssetType.Name(asset.asset_type)))
+    print(" href: {}".format(asset.href))
+    print(" type: {}".format(asset.type))
+    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, AssetType.Name(asset.asset_type)))
 ```
 
 
@@ -344,15 +344,13 @@ for asset_key in stac_item.assets:
 
 ```text
     GEOTIFF_RGB asset key
-    href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
-    type: image/vnd.stac.geotiff
-    protobuf enum number and name: 2, GEOTIFF
-    
+     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
+     type: image/vnd.stac.geotiff
+     protobuf enum number and name: 2, GEOTIFF
     THUMBNAIL_RGB asset key
-    href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg
-    type: image/jpeg
-    protobuf enum number and name: 9, THUMBNAIL
-    
+     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg
+     type: image/jpeg
+     protobuf enum number and name: 9, THUMBNAIL
 ```
 
 
