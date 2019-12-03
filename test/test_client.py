@@ -400,7 +400,7 @@ class TestHelpers(unittest.TestCase):
                 self.assertMultiLineEqual(data1, data3)
 
     def test_download_href(self):
-        stac_id = "20191121T192629Z_1594_ST2_POM1"
+        stac_id = "20190829T172947Z_1619_POM1_ST2_P"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
         asset = utils.get_asset(stac_item, asset_types=[THUMBNAIL])
 
