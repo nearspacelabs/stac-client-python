@@ -365,7 +365,7 @@ As you can see above, our data only consists of jpg thumbnails and Geotiffs. But
 You can read more details about Assets [here](https://geo-grpc.github.io/api/#epl.protobuf.Asset)
 
 ### Electo Optical
-Some imagery analysis tools require knowing certain types of electro optical information. Here's a printout of the information we've collected with data.
+Some imagery analysis tools require knowing certain types of electro optical information. Here's a printout of the information we've collected with data. A summary of Electro Optical values can be found [here](https://geo-grpc.github.io/api/#epl.protobuf.Eo).
 
 
 
@@ -420,7 +420,7 @@ The `platform` is the model of the vehicle holding the sensor. The `instrument` 
 - `sensor`: OLI_TIRS
 - `constellation`: LANDSAT
 
-These `sun_azimuth`, `sun_elevation`, `off_nadir` and `azimuth` are all boxed in the [google.protobuf.FloatValue type](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/float-value). To get at the value you must access the `value` field:
+These `sun_azimuth`, `sun_elevation`, `off_nadir` and `azimuth` are all boxed in the [google.protobuf.FloatValue type](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/float-value). To get at the value you must access the `value` field.
 
 
 
