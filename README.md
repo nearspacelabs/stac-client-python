@@ -571,8 +571,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2019-08-08T19:12:09+00:00, is before 2019-08-10T00:00:00+00:00: True
-    STAC item date, 2019-08-08T19:12:05+00:00, is before 2019-08-10T00:00:00+00:00: True
+    STAC item date, 2019-08-06T20:42:53+00:00, is before 2019-08-10T00:00:00+00:00: True
+    STAC item date, 2019-08-06T20:42:51+00:00, is before 2019-08-10T00:00:00+00:00: True
 ```
 
 
