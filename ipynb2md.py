@@ -53,13 +53,13 @@ def markdowner(input_filename, markdown_filename, test=False):
 
         matches = re.finditer(regex, all_text, re.MULTILINE)
         for matchNum, match in enumerate(matches, start=1):
-            temp = "\n\n\n<details><summary>Python Print-out</summary>\n\n\n```text\n{}\n```\n\n\n</details>\n\n".format(
+            temp = "\n\n\n<details><summary>Expand Python Print-out</summary>\n\n\n```text\n{}\n```\n\n\n</details>\n\n".format(
                 match.group(1))
             all_text = all_text.replace(match.group(0), temp)
 
         matches = re.finditer(py_regex, all_text, re.MULTILINE)
         for matchNum, match in enumerate(matches, start=1):
-            temp = "\n\n\n<details><summary>Python Code Sample</summary>\n\n\n{}\n\n\n</details>\n\n".format(
+            temp = "\n\n\n<details><summary>Expand Python Code Sample</summary>\n\n\n{}\n\n\n</details>\n\n".format(
                 match.group(0))
             all_text = all_text.replace(match.group(0), temp)
 
