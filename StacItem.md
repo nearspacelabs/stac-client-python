@@ -324,13 +324,19 @@ Each STAC item should have at least one asset. An asset should be all the inform
 
 
 ```python
-from epl.protobuf.stac_pb2 import AssetType
-for asset_key in stac_item.assets:
-    print("{} asset key".format(asset_key))
-    asset = stac_item.assets[asset_key]
+from epl.protobuf.stac_pb2 import AssetType, Asset
+def print_asset(asset: Asset):
     print(" href: {}".format(asset.href))
     print(" type: {}".format(asset.type))
     print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, AssetType.Name(asset.asset_type)))
+    print()
+
+print("there are {} assets".format(len(stac_item.assets)))
+print("THUMBNAIL_RGB:")
+print_asset(stac_item.assets["THUMBNAIL_RGB"])
+
+print("GEOTIFF_RGB:")
+print_asset(stac_item.assets["GEOTIFF_RGB"])
 ```
 
 
@@ -343,14 +349,17 @@ for asset_key in stac_item.assets:
 
 
 ```text
-    GEOTIFF_RGB asset key
-     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
-     type: image/vnd.stac.geotiff
-     protobuf enum number and name: 2, GEOTIFF
-    THUMBNAIL_RGB asset key
+    there are 2 assets
+    THUMBNAIL_RGB:
      href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg
      type: image/jpeg
      protobuf enum number and name: 9, THUMBNAIL
+    
+    GEOTIFF_RGB:
+     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
+     type: image/vnd.stac.geotiff
+     protobuf enum number and name: 2, GEOTIFF
+    
 ```
 
 

@@ -602,20 +602,47 @@ from nsl.stac.client import NSLClient
 from nsl.stac import utils
 from epl.protobuf.stac_pb2 import StacRequest
 
-stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
+colorado_river_wkt = 'LINESTRING(-97.75803689750262 30.266434949323585,-97.75344495566912 30.264544585776626,-97.74576310905047 30.262135246151697)'
+geometry_data = GeometryData(wkt=colorado_river_wkt, 
+                             sr=SpatialReferenceData(wkid=4326))
+stac_request = StacRequest(geometry=geometry_data,
+                           limit=3)
 
 # get a client interface to the gRPC channel
 client = NSLClient()
-# for this request we might as well use the search one, as STAC ids ought to be unique
-stac_item = client.search_one(stac_request)
 
-# get the thumbnail asset from the assets map
-asset = stac_item.assets['THUMBNAIL_RGB']
+for stac_item in client.search(stac_request):
+    # get the thumbnail asset from the assets map
+    asset = stac_item.assets['THUMBNAIL_RGB']
 
-# (side-note delete=False in NamedTemporaryFile is only required for windows.)
-with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
-    utils.download_asset(asset=asset, file_obj=file_obj)
-    display(Image(filename=file_obj.name))
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```
+
+
+</details>
+
+text
+    # (side-note delete=False in NamedTemporaryFile is only required for windows.)
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
+        print("thumbnail for {0}:".format(stac_item.id))
+        utils.download_asset(asset=asset, file_obj=file_obj)
+        display(Image(filename=file_obj.name))
+```
+
+
+</details>
+
+```
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    thumbnail for 20190826T185316Z_560_POM1_ST2_P:
 ```
 
 
@@ -624,7 +651,41 @@ with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
 
 
 
-![jpeg](README_files/README_16_0.jpeg)
+![jpeg](README_files/README_16_1.jpeg)
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    thumbnail for 20190826T185222Z_533_POM1_ST2_P:
+```
+
+
+</details>
+
+
+
+
+![jpeg](README_files/README_16_3.jpeg)
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    thumbnail for 20190826T185212Z_528_POM1_ST2_P:
+```
+
+
+</details>
+
+
+
+
+![jpeg](README_files/README_16_5.jpeg)
 
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC
