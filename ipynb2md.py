@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import os
 import tempfile
+import difflib
 
 # https://regex101.com/r/ezekzs/1
 regex = r"\n\n( {4}[\w\S]+[\w\S ]*((\n {4}([\w \S]*))|(\n {4})){0,})\n"
@@ -31,6 +32,16 @@ def prepare_parser():
     arg_parser.add_argument("--test", "-t", action="store_true", help="test markdown against previous results")
 
     return arg_parser
+
+
+def compare_markdown(file_1, file_2):
+    with open(file_1) as file_obj_1:
+        with open(file_2) as file_obj_2:
+            lines1 = [line.strip() for line in file_obj_1.readlines()]
+            lines2 = [line.strip() for line in file_obj_2.readlines()]
+
+            for line in difflib.context_diff(lines1, lines2, fromfile=file_1, tofile=file_2, n=3, lineterm='\n'):
+                print(line)
 
 
 def markdowner(input_filename, markdown_filename, test=False):
@@ -75,6 +86,7 @@ def markdowner(input_filename, markdown_filename, test=False):
             temp.flush()
             os.system('diff -B {0} {1}'.format(temp.name, m_markdown_filename))
             os.system('diff -B -q {0} {1}'.format(temp.name, m_markdown_filename))
+            # compare_markdown(temp.name, m_markdown_filename)
 
 
 if __name__ == "__main__":
