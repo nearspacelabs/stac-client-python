@@ -328,9 +328,9 @@ from epl.protobuf.stac_pb2 import AssetType
 for asset_key in stac_item.assets:
     print("{} asset key".format(asset_key))
     asset = stac_item.assets[asset_key]
-    print("href: {}".format(asset.href))
-    print("type: {}".format(asset.type))
-    print("protobuf enum number and name: {0}, {1}\n".format(asset.asset_type, AssetType.Name(asset.asset_type)))
+    print(" href: {}".format(asset.href))
+    print(" type: {}".format(asset.type))
+    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, AssetType.Name(asset.asset_type)))
 ```
 
 
@@ -344,15 +344,13 @@ for asset_key in stac_item.assets:
 
 ```text
     GEOTIFF_RGB asset key
-    href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
-    type: image/vnd.stac.geotiff
-    protobuf enum number and name: 2, GEOTIFF
-    
+     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
+     type: image/vnd.stac.geotiff
+     protobuf enum number and name: 2, GEOTIFF
     THUMBNAIL_RGB asset key
-    href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg
-    type: image/jpeg
-    protobuf enum number and name: 9, THUMBNAIL
-    
+     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg
+     type: image/jpeg
+     protobuf enum number and name: 9, THUMBNAIL
 ```
 
 
@@ -365,7 +363,7 @@ As you can see above, our data only consists of jpg thumbnails and Geotiffs. But
 You can read more details about Assets [here](https://geo-grpc.github.io/api/#epl.protobuf.Asset)
 
 ### Electo Optical
-Some imagery analysis tools require knowing certain types of electro optical information. Here's a printout of the information we've collected with data.
+Some imagery analysis tools require knowing certain types of electro optical information. Here's a printout of the information we've collected with data. A summary of Electro Optical values can be found [here](https://geo-grpc.github.io/api/#epl.protobuf.Eo).
 
 
 
@@ -420,7 +418,7 @@ The `platform` is the model of the vehicle holding the sensor. The `instrument` 
 - `sensor`: OLI_TIRS
 - `constellation`: LANDSAT
 
-These `sun_azimuth`, `sun_elevation`, `off_nadir` and `azimuth` are all boxed in the [google.protobuf.FloatValue type](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/float-value). To get at the value you must access the `value` field:
+These `sun_azimuth`, `sun_elevation`, `off_nadir` and `azimuth` are all boxed in the [google.protobuf.FloatValue type](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/float-value). To get at the value you must access the `value` field.
 
 
 
