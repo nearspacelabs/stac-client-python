@@ -614,40 +614,20 @@ client = NSLClient()
 for stac_item in client.search(stac_request):
     # get the thumbnail asset from the assets map
     asset = stac_item.assets['THUMBNAIL_RGB']
-
-
-<details><summary>Expand Python Print-out</summary>
-
-
-```
-
-
-</details>
-
-text
     # (side-note delete=False in NamedTemporaryFile is only required for windows.)
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
-        print("thumbnail for {0}:".format(stac_item.id))
         utils.download_asset(asset=asset, file_obj=file_obj)
         display(Image(filename=file_obj.name))
+
 ```
 
 
 </details>
 
-```
 
 
-<details><summary>Expand Python Print-out</summary>
 
-
-```text
-    thumbnail for 20190826T185316Z_560_POM1_ST2_P:
-```
-
-
-</details>
-
+![jpeg](README_files/README_16_0.jpeg)
 
 
 
@@ -655,37 +635,7 @@ text
 
 
 
-<details><summary>Expand Python Print-out</summary>
-
-
-```text
-    thumbnail for 20190826T185222Z_533_POM1_ST2_P:
-```
-
-
-</details>
-
-
-
-
-![jpeg](README_files/README_16_3.jpeg)
-
-
-
-<details><summary>Expand Python Print-out</summary>
-
-
-```text
-    thumbnail for 20190826T185212Z_528_POM1_ST2_P:
-```
-
-
-</details>
-
-
-
-
-![jpeg](README_files/README_16_5.jpeg)
+![jpeg](README_files/README_16_2.jpeg)
 
 
 ## Differences between gRPC+Protobuf STAC and OpenAPI+JSON STAC
