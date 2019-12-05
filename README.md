@@ -19,7 +19,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
 - [Downloading](#downloading)
   - [Thumbnails](#thumbnails)
   - [Geotiffs](#geotiffs)
-  - [Handling Deadline](#handling-deadlines)
+  - [Handling Deadlines](#handling-deadlines)
 - [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
 ## Setup
@@ -720,7 +720,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ### Handling Deadlines
-The `search` method is a gRPC streaming request. It sends a single request to the server and then maintains an open connection to the server, which then pushes results to the client. This means that if you have a long running sub-routine that executes between each iterated result from `search` you may exceed the 15 second timeout. If you have a stac request so large that the results create a memory problem or the blocking behavior limits your application performance, then you will want to use `offset` and `limit` as described in Examples.md(./Examples.md#limits-and-offsets).
+The `search` method is a gRPC streaming request. It sends a single request to the server and then maintains an open connection to the server, which then pushes results to the client. This means that if you have a long running sub-routine that executes between each iterated result from `search` you may exceed the 15 second timeout. If you have a stac request so large that the results create a memory problem or the blocking behavior limits your application performance, then you will want to use `offset` and `limit` as described in [Examples.md](./Examples.md#limits-and-offsets).
 
 Otherwise, an easy way to iterate through results without timing-out on long running sub-routines is to capture the `search` results in a `list`.
 
@@ -778,9 +778,9 @@ with tempfile.TemporaryDirectory() as d:
 
 ```text
     STAC item id: 20190826T185828Z_715_POM1_ST2_P
-    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpmp3xp4c3/20190826T185828Z_715_POM1_ST2_P.tif
+    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpuk7_cqs5/20190826T185828Z_715_POM1_ST2_P.tif
     STAC item id: 20190826T185005Z_465_POM1_ST2_P
-    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpmp3xp4c3/20190826T185005Z_465_POM1_ST2_P.tif
+    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpuk7_cqs5/20190826T185005Z_465_POM1_ST2_P.tif
 ```
 
 
