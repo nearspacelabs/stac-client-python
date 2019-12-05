@@ -19,6 +19,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
 - [Downloading](#downloading)
   - [Thumbnails](#thumbnails)
   - [Geotiffs](#geotiffs)
+  - [Handling Deadlines](#handling-deadlines)
 - [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
 ## Setup
@@ -65,7 +66,9 @@ If you're on windows you'll need to set your environment variables using the `SE
 ### Rate Limiting and Timeouts
 To keep our services available to may simulataneous customers, we've implemented rate limiting for API requests and timeouts for long-standing requests. 
 
-At this release our timeouts are default 15 seconds. For streaming requests this means you may want to use a limit and offset in your request structure. For more details about `limit` and `offset` visit the [Examples.md](./Examples.md) doc.
+At this release our timeouts are default 15 seconds. If you use the `search` method, you're maintaining an open connection with the server while retrieving STAC items. If you have a sub-routine that is taking longer than 15 seconds, then you might want to circumvent the timeout by collecting all the STAC items in an `list` and then execute your sub-routine. An example of this can be seen in the [Handling Deadlines](#handling-deadlines) docs for downloads.
+
+If you are returning so many stac items that you are timing out then you may want to use a `limit` and `offset` variables in the `StacRequest`. For more details about `limit` and `offset` visit the [Examples.md](./Examples.md) doc.
 
 For our download API we've implemented a 4 requests per second limit. You may need implement a retry mechanism with an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) if you are overruning the rate limit.
 
@@ -709,6 +712,75 @@ with tempfile.TemporaryDirectory() as d:
     STAC item id 20190826T185828Z_715_POM1_ST2_P
     Date observed 08/26/2019, 18:58:28
     20190826T185828Z_715_POM1_ST2_P.tif has 141352740 bytes
+```
+
+
+</details>
+
+
+
+### Handling Deadlines
+The `search` method is a gRPC streaming request. It sends a single request to the server and then maintains an open connection to the server, which then pushes results to the client. This means that if you have a long running sub-routine that executes between each iterated result from `search` you may exceed the 15 second timeout. If you have a stac request so large that the results create a memory problem or the blocking behavior limits your application performance, then you will want to use `offset` and `limit` as described in [Examples.md](./Examples.md#limits-and-offsets).
+
+Otherwise, an easy way to iterate through results without timing-out on long running sub-routines is to capture the `search` results in a `list`.
+
+For example:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+import os
+import tempfile
+from datetime import datetime, date
+# the StacRequest is a protobuf message for making filter queries for data
+from epl.protobuf.stac_pb2 import StacRequest
+# GeometryData is a protobuf container for GIS geometry information
+from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
+# TimestampField is a query field that allows for making sql-like queries for information
+# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
+from epl.protobuf.query_pb2 import GT_OR_EQ
+from nsl.stac.utils import pb_timestampfield, download_asset
+from nsl.stac.client import NSLClient
+
+austin_capital_wkt = "POINT(-97.733333 30.266667)"
+geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
+
+# limit is set to 2 here, but it would work if you set it to 100 or 1000
+stac_request = StacRequest(geometry=geometry_data, limit=2)
+
+# get a client interface to the gRPC channel. This client singleton is threadsafe
+client = NSLClient()
+
+# collect all stac items in a list
+stac_items = list(client.search(stac_request))
+
+with tempfile.TemporaryDirectory() as d:
+    for stac_item in stac_items:
+        print("STAC item id: {}".format(stac_item.id))
+        asset = stac_item.assets['GEOTIFF_RGB']
+        filename = download_asset(asset=asset, save_directory=d)
+        print("saved {}".format(filename))
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    STAC item id: 20190826T185828Z_715_POM1_ST2_P
+    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpuk7_cqs5/20190826T185828Z_715_POM1_ST2_P.tif
+    STAC item id: 20190826T185005Z_465_POM1_ST2_P
+    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpuk7_cqs5/20190826T185005Z_465_POM1_ST2_P.tif
 ```
 
 
