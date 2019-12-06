@@ -15,10 +15,10 @@ from google.protobuf import timestamp_pb2, duration_pb2
 from nsl.stac import gcs_storage_client, bearer_auth
 
 from nsl.stac import StacItem, Asset, TimestampField, Eo
-from nsl.stac import enum
+from nsl.stac.enum import Band, AssetType, CloudPlatform, FieldRelationship, SortDirection
 
-DEFAULT_RGB = [enum.RED, enum.GREEN, enum.BLUE]
-RASTER_TYPES = [enum.CO_GEOTIFF, enum.GEOTIFF, enum.MRF]
+DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE]
+RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
 
 
 def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
@@ -156,12 +156,12 @@ def download_asset(asset: Asset,
         else:
             raise ValueError("directory 'save_directory' doesn't exist")
 
-    if from_bucket and asset.cloud_platform == enum.GCP:
+    if from_bucket and asset.cloud_platform == CloudPlatform.GCP:
         return download_gcs_object(bucket=asset.bucket,
                                    blob_name=asset.object_path,
                                    file_obj=file_obj,
                                    save_filename=save_filename)
-    elif from_bucket and asset.cloud_platform == enum.AWS:
+    elif from_bucket and asset.cloud_platform == CloudPlatform.AWS:
         return download_s3_object(bucket=asset.bucket,
                                   blob_name=asset.object_path,
                                   file_obj=file_obj,
@@ -194,7 +194,7 @@ def download_assets(stac_item: StacItem,
 def get_asset(stac_item: StacItem,
               band: Eo.Band = Eo.UNKNOWN_BAND,
               asset_types: List = None,
-              cloud_platform: enum.CloudPlatform = enum.UNKNOWN_CLOUD_PLATFORM,
+              cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
               asset_basename: str = "") -> Asset:
     """
     get protobuf object(pb) asset from a stac item pb.
@@ -217,7 +217,7 @@ def get_asset(stac_item: StacItem,
 def get_assets(stac_item: StacItem,
                band: Eo.Band = Eo.UNKNOWN_BAND,
                asset_types: List = None,
-               cloud_platform: enum.CloudPlatform = enum.UNKNOWN_CLOUD_PLATFORM,
+               cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
                asset_basename: str = "") -> Iterator[Asset]:
     """
     get a generator of protobuf object(pb) assets from a stac item pb.
@@ -231,7 +231,7 @@ def get_assets(stac_item: StacItem,
     :return: asset pb object
     """
     if asset_types is None:
-        asset_types = [enum.AssetType.Value(asset_type_str) for asset_type_str in enum.AssetType.keys()]
+        asset_types = [AssetType.Value(asset_type_str) for asset_type_str in AssetType.keys()]
 
     if not isinstance(asset_types, List):
         asset_types = [asset_types]
@@ -242,7 +242,7 @@ def get_assets(stac_item: StacItem,
             if asset.asset_type != asset_type:
                 continue
             if asset.eo_bands == band or band == Eo.UNKNOWN_BAND:
-                if asset.cloud_platform == cloud_platform or cloud_platform == enum.UNKNOWN_CLOUD_PLATFORM:
+                if asset.cloud_platform == cloud_platform or cloud_platform == CloudPlatform.UNKNOWN_CLOUD_PLATFORM:
                     if asset_basename and not _asset_has_filename(asset=asset, asset_basename=asset_basename):
                         continue
                     yield asset
@@ -251,7 +251,7 @@ def get_assets(stac_item: StacItem,
 
 
 def get_eo_assets(stac_item: StacItem,
-                  cloud_platform: enum.CloudPlatform = enum.UNKNOWN_CLOUD_PLATFORM,
+                  cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
                   bands: List = DEFAULT_RGB,
                   asset_types: List = RASTER_TYPES) -> Iterator[Asset]:
     """
@@ -268,7 +268,7 @@ def get_eo_assets(stac_item: StacItem,
         asset_types = RASTER_TYPES
 
     if cloud_platform is None:
-        cloud_platform = enum.UNKNOWN_CLOUD_PLATFORM
+        cloud_platform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM
 
     assets = []
     for band in bands:
@@ -298,7 +298,7 @@ def _asset_has_filename(asset: Asset, asset_basename):
 
 
 def has_asset_type(stac_item: StacItem,
-                   asset_type: enum.AssetType):
+                   asset_type: AssetType.AssetType):
     """
     does the stac item contain the asset
     :param stac_item:
@@ -348,9 +348,9 @@ def get_uri(asset: Asset, b_vsi_uri=True, prefix: str = "") -> str:
         if b_vsi_uri:
             prefix = "/vsi{0}_streaming"
 
-        if asset.cloud_platform == enum.GCP:
+        if asset.cloud_platform == CloudPlatform.GCP:
             prefix = prefix.format("gs")
-        elif asset.cloud_platform == enum.AWS:
+        elif asset.cloud_platform == CloudPlatform.AWS:
             prefix = prefix.format("s3")
         else:
             raise ValueError("The only current cloud platforms are GCP and AWS. This asset doesn't have the "
@@ -359,11 +359,11 @@ def get_uri(asset: Asset, b_vsi_uri=True, prefix: str = "") -> str:
     return "{0}/{1}/{2}".format(prefix, asset.bucket, asset.object_path)
 
 
-def pb_timestampfield(rel_type: enum.FieldRelationship,
+def pb_timestampfield(rel_type: FieldRelationship,
                       value: datetime.date or datetime.datetime = None,
                       start: datetime.date or datetime.datetime = None,
                       end: datetime.date or datetime.datetime = None,
-                      sort_direction: enum.SortDirection = enum.NOT_SORTED) -> TimestampField:
+                      sort_direction: SortDirection.SortDirection = SortDirection.NOT_SORTED) -> TimestampField:
     """
     Create a protobuf query for a timestamp or a range of timestamps.
     :param rel_type: the relationship type to query more

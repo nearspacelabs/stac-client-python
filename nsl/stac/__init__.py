@@ -17,6 +17,7 @@ from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
 
 __all__ = [
+    'stac_service',
     'EoRequest', 'StacRequest', 'LandsatRequest',
     'GeometryData', 'SpatialReferenceData', 'EnvelopeData',
     'FloatField', 'TimestampField',

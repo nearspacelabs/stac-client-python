@@ -103,7 +103,7 @@ geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wki
 # TimestampField is a query field that allows for making sql-like queries for information
 # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
 # Query data from August 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.GT_OR_EQ)
+time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.CloudPlatform.AWS)
 
 # the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
@@ -488,7 +488,7 @@ from nsl.stac.client import NSLClient
 from nsl.stac import utils, StacRequest, enum
 
 # make a filter that selects all data on or after January 1st, 2017
-time_filter = utils.pb_timestampfield(value=date(2017,1,1), rel_type=enum.GT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2017,1,1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
@@ -540,7 +540,7 @@ from nsl.stac import utils, StacRequest, TimestampField, enum
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
 stop = datetime(2019, 8, 10, 0, 0, 0, tzinfo=timezone.utc)
-time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=enum.BETWEEN)
+time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=enum.FieldRelationship.BETWEEN)
 
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
@@ -656,7 +656,7 @@ austin_capital_wkt = "POINT(-97.733333 30.266667)"
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # Query data from August 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.GT_OR_EQ)
+time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
 # area of interest and was observed on or after the 1st of August
