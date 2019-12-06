@@ -12,7 +12,7 @@ Return to [README.md](./README.md)
 
 ```python
 from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
+from nsl.stac import StacRequest
 
 stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
 
@@ -324,11 +324,11 @@ Each STAC item should have at least one asset. An asset should be all the inform
 
 
 ```python
-from epl.protobuf.stac_pb2 import AssetType, Asset
+from nsl.stac import Asset, enum
 def print_asset(asset: Asset):
     print(" href: {}".format(asset.href))
     print(" type: {}".format(asset.type))
-    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, AssetType.Name(asset.asset_type)))
+    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, enum.AssetType.Name(asset.asset_type)))
     print()
 
 print("there are {} assets".format(len(stac_item.assets)))

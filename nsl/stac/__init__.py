@@ -9,9 +9,20 @@ import grpc
 
 from google.auth.exceptions import DefaultCredentialsError
 
+from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData, EnvelopeData
+from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest
+from epl.protobuf.query_pb2 import TimestampField, FloatField
 from epl.protobuf import stac_service_pb2_grpc
 from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
+
+__all__ = [
+    'EoRequest', 'StacRequest', 'LandsatRequest',
+    'GeometryData', 'SpatialReferenceData', 'EnvelopeData',
+    'FloatField', 'TimestampField',
+    'StacItem', 'Asset', 'Eo',
+    'gcs_storage_client', 'bearer_auth'
+]
 
 CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
