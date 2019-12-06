@@ -265,7 +265,7 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_GT(self):
         bdt = datetime(2015, 11, 3, 1, 1, 1, tzinfo=timezone.utc)
         observed_range = TimestampField(value=utils.pb_timestamp(bdt),
-                                        rel_type=enum.enum.GT)
+                                        rel_type=enum.GT)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
