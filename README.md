@@ -87,10 +87,9 @@ import os
 import tempfile
 from IPython.display import Image, display
 from datetime import datetime, date
-from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
-from nsl.stac.utils import pb_timestampfield, download_asset
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
+from nsl.stac import enum, utils
 from nsl.stac.client import NSLClient
-from nsl.stac.enum import Band
 
 
 # the client package stubs out a little bit of the gRPC connection code 
@@ -105,7 +104,7 @@ geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wki
 # TimestampField is a query field that allows for making sql-like queries for information
 # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
 # Query data from August 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.CloudPlatform.AWS)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.CloudPlatform.AWS)
 
 # the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
@@ -117,10 +116,10 @@ stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 stac_item = client.search_one(stac_request)
 
 # get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
-asset = stac_item.assets['THUMBNAIL_RGB']
+asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
 
 with tempfile.TemporaryDirectory() as d:
-    filename = download_asset(asset=asset, save_directory=d)
+    filename = utils.download_asset(asset=asset, save_directory=d)
     display(Image(filename=filename))
 ```
 
@@ -537,7 +536,7 @@ Now we're going to do a range request and select data between two dates:
 ```python
 from datetime import datetime, timezone
 from nsl.stac.client import NSLClient
-from nsl.stac import utils, StacRequest, TimestampField, enum
+from nsl.stac import utils, enum, StacRequest, TimestampField
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
@@ -594,7 +593,7 @@ import tempfile
 from IPython.display import Image, display
 
 from nsl.stac.client import NSLClient
-from nsl.stac import utils, StacRequest
+from nsl.stac import utils, enum, StacRequest
 
 colorado_river_wkt = 'LINESTRING(-97.75803689750262 30.266434949323585,-97.75344495566912 30.264544585776626,-97.74576310905047 30.262135246151697)'
 geometry_data = GeometryData(wkt=colorado_river_wkt, 
@@ -607,7 +606,7 @@ client = NSLClient()
 
 for stac_item in client.search(stac_request):
     # get the thumbnail asset from the assets map
-    asset = stac_item.assets['THUMBNAIL_RGB']
+    asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
     # (side-note delete=False in NamedTemporaryFile is only required for windows.)
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
         utils.download_asset(asset=asset, file_obj=file_obj)
@@ -647,7 +646,7 @@ import os
 import tempfile
 from datetime import datetime, date
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
-from nsl.stac.utils import pb_timestampfield, download_asset
+from nsl.stac import utils
 from nsl.stac.client import NSLClient
 
 client = NSLClient()
@@ -656,17 +655,17 @@ austin_capital_wkt = "POINT(-97.733333 30.266667)"
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # Query data from August 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
 stac_item = client.search_one(stac_request)
 
 # get the Geotiff asset from the assets map
-asset = stac_item.assets['GEOTIFF_RGB']
+asset = utils.get_asset(stac_item, asset_type=enum.AssetType.GEOTIFF)
 
 with tempfile.TemporaryDirectory() as d:
-    file_path = download_asset(asset=asset, save_directory=d)
+    file_path = utils.download_asset(asset=asset, save_directory=d)
     print("{0} has {1} bytes".format(os.path.basename(file_path), os.path.getsize(file_path)))
 ```
 
