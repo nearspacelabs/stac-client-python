@@ -1,26 +1,26 @@
-from epl.protobuf.stac_pb2 import Eo
+from epl.protobuf.stac_pb2 import Eo as _Eo
 
-__all__ = Eo.Constellation.keys()
+__all__ = _Eo.Constellation.keys()
 
-UNKNOWN_PLATFORM = Eo.UNKNOWN_CONSTELLATION
-LANDSAT = Eo.LANDSAT
-NAIP = Eo.NAIP
-SWIFT = Eo.SWIFT
-PNOA = Eo.PNOA
+UNKNOWN_PLATFORM = _Eo.UNKNOWN_CONSTELLATION
+LANDSAT = _Eo.LANDSAT
+NAIP = _Eo.NAIP
+SWIFT = _Eo.SWIFT
+PNOA = _Eo.PNOA
 
 
 def Value(name):
-    return Eo.Constellaion.Value(name)
+    return _Eo.Constellaion.Value(name)
 
 
 def keys():
-    return Eo.Constellaion.keys()
+    return _Eo.Constellaion.keys()
 
 
 def Name(number):
-    return Eo.Constellaion.Name(number=number)
+    return _Eo.Constellaion.Name(number=number)
 
 
-for key, num in Eo.Constellation.items():
+for key, num in _Eo.Constellation.items():
     if key not in __all__:
         raise Exception("protobuf key {} not accounted for in enum".format(key))

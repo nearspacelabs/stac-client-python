@@ -7,7 +7,6 @@ from datetime import datetime, timezone, date, timedelta
 from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField
 from nsl.stac import utils
 from nsl.stac.enum import Band, CloudPlatform, FieldRelationship, AssetType, Constellation, SortDirection
-
 from nsl.stac.client import NSLClient
 
 client = NSLClient()

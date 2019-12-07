@@ -1,31 +1,29 @@
-from epl.protobuf.stac_pb2 import Eo
+from epl.protobuf.stac_pb2 import Eo as _Eo
 
-__all__ = [
-    Eo.Instrument.keys()
-]
+__all__ = _Eo.Instrument.keys()
 
-UNKNOWN_INSTRUMENT = Eo.UNKNOWN_INSTRUMENT
-OLI = Eo.OLI
-TIRS = Eo.TIRS
-OLI_TIRS = Eo.OLI_TIRS
-POM_1 = Eo.POM_1
-TM = Eo.TM
-ETM = Eo.ETM
-MSS = Eo.MSS
+UNKNOWN_INSTRUMENT = _Eo.UNKNOWN_INSTRUMENT
+OLI = _Eo.OLI
+TIRS = _Eo.TIRS
+OLI_TIRS = _Eo.OLI_TIRS
+POM_1 = _Eo.POM_1
+TM = _Eo.TM
+ETM = _Eo.ETM
+MSS = _Eo.MSS
 
 
 def Value(name):
-    return Eo.Instrument.Value(name)
+    return _Eo.Instrument.Value(name)
 
 
 def keys():
-    return Eo.Instrument.keys()
+    return _Eo.Instrument.keys()
 
 
 def Name(number):
-    return Eo.Instrument.Name(number=number)
+    return _Eo.Instrument.Name(number=number)
 
 
-for key, num in Eo.Instrument.items():
+for key, num in _Eo.Instrument.items():
     if key not in __all__:
         raise Exception("protobuf key {} not accounted for in enum".format(key))

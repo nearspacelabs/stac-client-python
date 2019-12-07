@@ -1,25 +1,25 @@
-from epl.protobuf.query_pb2 import SortDirection
+from epl.protobuf.query_pb2 import SortDirection as _SortDirection
 
-__all__ = SortDirection.keys()
+__all__ = _SortDirection.keys()
 
 
-NOT_SORTED = SortDirection.NOT_SORTED
-DESC = SortDirection.DESC
-ASC = SortDirection.ASC
+NOT_SORTED = _SortDirection.NOT_SORTED
+DESC = _SortDirection.DESC
+ASC = _SortDirection.ASC
 
 
 def Value(name):
-    return SortDirection.Value(name)
+    return _SortDirection.Value(name)
 
 
 def keys():
-    return SortDirection.keys()
+    return _SortDirection.keys()
 
 
 def Name(number):
-    return SortDirection.Name(number=number)
+    return _SortDirection.Name(number=number)
 
 
-for key, num in SortDirection.items():
+for key, num in _SortDirection.items():
     if key not in __all__:
         raise Exception("protobuf key {} not accounted for in enum".format(key))

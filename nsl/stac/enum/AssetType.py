@@ -1,41 +1,41 @@
 # ugly, but intellisense
-from epl.protobuf.stac_pb2 import AssetType
+from epl.protobuf.stac_pb2 import AssetType as _AssetType
 
-__all__ = AssetType.keys()
+__all__ = _AssetType.keys()
 
-UNKNOWN_ASSET = AssetType.UNKNOWN_ASSET
-JPEG = AssetType.JPEG
-GEOTIFF = AssetType.GEOTIFF
-LERC = AssetType.LERC
-MRF = AssetType.MRF
-MRF_IDX = AssetType.MRF_IDX
-MRF_XML = AssetType.MRF_XML
-CO_GEOTIFF = AssetType.CO_GEOTIFF
-RAW = AssetType.RAW
-THUMBNAIL = AssetType.THUMBNAIL
-TIFF = AssetType.TIFF
-JPEG_2000 = AssetType.JPEG_2000
-XML = AssetType.XML
-TXT = AssetType.TXT
-PNG = AssetType.PNG
-OVERVIEW = AssetType.OVERVIEW
-JSON = AssetType.JSON
-HTML = AssetType.HTML
-# WEBP = AssetType.WEBP
+UNKNOWN_ASSET = _AssetType.UNKNOWN_ASSET
+JPEG = _AssetType.JPEG
+GEOTIFF = _AssetType.GEOTIFF
+LERC = _AssetType.LERC
+MRF = _AssetType.MRF
+MRF_IDX = _AssetType.MRF_IDX
+MRF_XML = _AssetType.MRF_XML
+CO_GEOTIFF = _AssetType.CO_GEOTIFF
+RAW = _AssetType.RAW
+THUMBNAIL = _AssetType.THUMBNAIL
+TIFF = _AssetType.TIFF
+JPEG_2000 = _AssetType.JPEG_2000
+XML = _AssetType.XML
+TXT = _AssetType.TXT
+PNG = _AssetType.PNG
+OVERVIEW = _AssetType.OVERVIEW
+JSON = _AssetType.JSON
+HTML = _AssetType.HTML
+# WEBP = _AssetType.WEBP
 
 
 def Value(name):
-    return AssetType.Value(name)
+    return _AssetType.Value(name)
 
 
 def keys():
-    return AssetType.keys()
+    return _AssetType.keys()
 
 
 def Name(number):
-    return AssetType.Name(number=number)
+    return _AssetType.Name(number=number)
 
 
-for key, num in AssetType.items():
+for key, num in _AssetType.items():
     if key not in __all__:
         raise Exception("protobuf key {} not accounted for in enum".format(key))
