@@ -15,7 +15,7 @@ from google.protobuf import timestamp_pb2, duration_pb2
 from nsl.stac import gcs_storage_client, bearer_auth
 
 from nsl.stac import StacItem, Asset, TimestampField, Eo
-from nsl.stac.enum import Band, AssetType, CloudPlatform, FieldRelationship, SortDirection
+from nsl.stac.enum import Band,  CloudPlatform, FieldRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
 RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
@@ -192,35 +192,37 @@ def download_assets(stac_item: StacItem,
 
 
 def get_asset(stac_item: StacItem,
-              band: Eo.Band = Eo.UNKNOWN_BAND,
-              asset_types: List = None,
+              asset_type: AssetType = None,
               cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+              band: Eo.Band = Eo.UNKNOWN_BAND,
               asset_basename: str = "") -> Asset:
     """
-    get protobuf object(pb) asset from a stac item pb.
+    get a protobuf object(pb) asset from a stac item pb. If your parameters are broad (say, if you used all defaults)
+    this function would only return you the first asset that matches the parameters. use
+    :func:`get_assets <st.stac.utils.get_assets>` to return more than one asset from a request.
     :param stac_item: stac item whose assets we want to search by parameters
-    :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is
-    not electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
-    :param asset_types: a list of asset_types to seach. if not defined then it is assumed to search all asset types
+    :param asset_type: an asset_type enum to return. if not defined then it is assumed to search all asset types
     :param cloud_platform: only return assets that are hosted on the cloud platform described in the cloud_platform
     field of the item. default grabs the first asset that meets all the other parameters.
+    :param band: if the data has electro-optical spectrum data, define the band you want to retrieve. if the data is
+    not electro-optical then don't define this parameter (defaults to UNKNOWN_BAND)
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    # return next(get_assets(stac_item, band, asset_types, cloud_platform, asset_basename))
-    data = list(get_assets(stac_item, band, asset_types, cloud_platform, asset_basename))
-    if len(data) == 0:
-        return None
-    return data[0]
+    return next(get_assets(stac_item,
+                           asset_types=[asset_type],
+                           cloud_platform=cloud_platform,
+                           band=band,
+                           asset_basename=asset_basename), None)
 
 
 def get_assets(stac_item: StacItem,
-               band: Eo.Band = Eo.UNKNOWN_BAND,
                asset_types: List = None,
                cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+               band: Eo.Band = Eo.UNKNOWN_BAND,
                asset_basename: str = "") -> Iterator[Asset]:
     """
-    get a generator of protobuf object(pb) assets from a stac item pb.
+    get a generator of assets from a stac item, filtered by the parameters.
     :param stac_item: stac item whose assets we want to search by parameters
     :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is not
      electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
@@ -230,11 +232,9 @@ def get_assets(stac_item: StacItem,
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    if asset_types is None:
-        asset_types = [AssetType.Value(asset_type_str) for asset_type_str in AssetType.keys()]
-
-    if not isinstance(asset_types, List):
-        asset_types = [asset_types]
+    # if no asset_types defined, create a list of all available assets from the protobuf definition file
+    if asset_types is None or asset_types[0] is None:
+        asset_types = [asset_type for asset_type in AssetType]
 
     for asset_type in asset_types:
         for key in stac_item.assets:
@@ -252,10 +252,10 @@ def get_assets(stac_item: StacItem,
 
 def get_eo_assets(stac_item: StacItem,
                   cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-                  bands: List = DEFAULT_RGB,
-                  asset_types: List = RASTER_TYPES) -> Iterator[Asset]:
+                  bands: List = None,
+                  asset_types: List = None) -> Iterator[Asset]:
     """
-    get generator of electro optical assets that match the restrictions. if no restrictions are set,
+    get generator of electro optical assets that match the query restrictions. if no restrictions are set,
     then the default is any cloud platform, RGB for the bands, and all raster types.
     :param stac_item: stac item to search for electro optical assets
     :param cloud_platform: cloud platform (if an asset has both GCP and AWS but you prefer AWS, set this)
@@ -266,6 +266,9 @@ def get_eo_assets(stac_item: StacItem,
 
     if asset_types is None:
         asset_types = RASTER_TYPES
+
+    if bands is None:
+        bands = DEFAULT_RGB
 
     if cloud_platform is None:
         cloud_platform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM

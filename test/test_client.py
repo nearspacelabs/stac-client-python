@@ -5,9 +5,8 @@ from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
 from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField
-from nsl.stac import utils
-from nsl.stac.enum import Band, CloudPlatform, AssetType, Constellation, FieldRelationship
-from nsl.stac import enum
+from nsl.stac import utils, enum
+from nsl.stac.enum import AssetType, Band, CloudPlatform, Constellation, FieldRelationship
 from nsl.stac.client import NSLClient
 
 client = NSLClient()
@@ -125,7 +124,7 @@ class TestLandsat(unittest.TestCase):
         stac_id = 'LO81120152015061LGN00'
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, asset_types=[AssetType.THUMBNAIL], cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL, cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
     def test_aws(self):
@@ -354,7 +353,7 @@ class TestHelpers(unittest.TestCase):
         stac_id = "LO81120152015061LGN00"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
         asset = utils.get_asset(stac_item,
-                                asset_types=[AssetType.TXT],
+                                asset_type=AssetType.TXT,
                                 cloud_platform=CloudPlatform.GCP,
                                 asset_basename='LO81120152015061LGN00_MTL.txt')
         self.assertIsNotNone(asset)
@@ -379,7 +378,7 @@ class TestHelpers(unittest.TestCase):
         stac_id = "LC80270392015025LGN00"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
         asset = utils.get_asset(stac_item,
-                                asset_types=[AssetType.TXT],
+                                asset_type=AssetType.TXT,
                                 cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
@@ -402,7 +401,7 @@ class TestHelpers(unittest.TestCase):
     def test_download_href(self):
         stac_id = "20190829T172947Z_1619_POM1_ST2_P"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
-        asset = utils.get_asset(stac_item, asset_types=[AssetType.THUMBNAIL])
+        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL)
 
         self.assertIsNotNone(asset)
 
