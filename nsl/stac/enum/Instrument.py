@@ -24,3 +24,8 @@ def keys():
 
 def Name(number):
     return Eo.Instrument.Name(number=number)
+
+
+for key, num in Eo.Instrument.items():
+    if key not in __all__:
+        raise Exception("protobuf key {} not accounted for in enum".format(key))

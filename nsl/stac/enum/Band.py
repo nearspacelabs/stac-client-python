@@ -1,8 +1,6 @@
 from epl.protobuf.stac_pb2 import Eo
 
-__all__ = [
-    Eo.Band.keys()
-]
+__all__ = Eo.Band.keys()
 
 UNKNOWN_BAND = Eo.UNKNOWN_BAND
 COASTAL = Eo.COASTAL
@@ -32,3 +30,8 @@ def keys():
 
 def Name(number):
     return Eo.Band.Name(number=number)
+
+
+for key, num in Eo.Band.items():
+    if key not in __all__:
+        raise Exception("protobuf key {} not accounted for in enum".format(key))

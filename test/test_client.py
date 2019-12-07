@@ -125,8 +125,7 @@ class TestLandsat(unittest.TestCase):
         stac_id = 'LO81120152015061LGN00'
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset_type = AssetType.THUMBNAIL
-        asset = utils.get_asset(stac_item, asset_types=[asset_type], cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item, asset_types=[AssetType.THUMBNAIL], cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
     def test_aws(self):

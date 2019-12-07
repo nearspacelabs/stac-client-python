@@ -90,6 +90,8 @@ from datetime import datetime, date
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
 from nsl.stac.utils import pb_timestampfield, download_asset
 from nsl.stac.client import NSLClient
+from nsl.stac.enum import Band
+
 
 # the client package stubs out a little bit of the gRPC connection code 
 # get a client interface to the gRPC channel. This client singleton is threadsafe
@@ -644,35 +646,21 @@ To download the full geotiff asset follow the pattern in the below example:
 import os
 import tempfile
 from datetime import datetime, date
-# the StacRequest is a protobuf message for making filter queries for data
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
 from nsl.stac.utils import pb_timestampfield, download_asset
-
-# the client package stubs out a little bit of the gRPC connection code 
 from nsl.stac.client import NSLClient
 
-# our area of interest will be the coordinates of the Austin, Texas capital building
+client = NSLClient()
+
 austin_capital_wkt = "POINT(-97.733333 30.266667)"
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # Query data from August 1, 2019
 time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
-# This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
-# area of interest and was observed on or after the 1st of August
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
-# get a client interface to the gRPC channel. This client singleton is threadsafe
-client = NSLClient()
-# search_one method requests only one item be returned that meets the query filters in the StacRequest 
-# the item returned is a StacItem protobuf message
 stac_item = client.search_one(stac_request)
-# display the scene id
-print("STAC item id {}".format(stac_item.id))
-
-# display the observed date of the scene. The observed 
-dt_observed = datetime.utcfromtimestamp(stac_item.observed.seconds)
-print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 
 # get the Geotiff asset from the assets map
 asset = stac_item.assets['GEOTIFF_RGB']
@@ -692,8 +680,6 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    STAC item id 20190826T185828Z_715_POM1_ST2_P
-    Date observed 08/26/2019, 18:58:28
     20190826T185828Z_715_POM1_ST2_P.tif has 141352740 bytes
 ```
 

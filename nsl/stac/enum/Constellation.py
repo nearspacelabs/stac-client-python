@@ -1,8 +1,6 @@
 from epl.protobuf.stac_pb2 import Eo
 
-__all__ = [
-    Eo.Constellation.keys()
-]
+__all__ = Eo.Constellation.keys()
 
 UNKNOWN_PLATFORM = Eo.UNKNOWN_CONSTELLATION
 LANDSAT = Eo.LANDSAT
@@ -22,3 +20,7 @@ def keys():
 def Name(number):
     return Eo.Constellaion.Name(number=number)
 
+
+for key, num in Eo.Constellation.items():
+    if key not in __all__:
+        raise Exception("protobuf key {} not accounted for in enum".format(key))

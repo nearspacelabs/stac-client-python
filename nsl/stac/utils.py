@@ -17,7 +17,7 @@ from nsl.stac import gcs_storage_client, bearer_auth
 from nsl.stac import StacItem, Asset, TimestampField, Eo
 from nsl.stac.enum import Band, AssetType, CloudPlatform, FieldRelationship, SortDirection
 
-DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE]
+DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
 RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
 
 
@@ -298,7 +298,7 @@ def _asset_has_filename(asset: Asset, asset_basename):
 
 
 def has_asset_type(stac_item: StacItem,
-                   asset_type: AssetType.AssetType):
+                   asset_type: AssetType):
     """
     does the stac item contain the asset
     :param stac_item:
@@ -363,7 +363,7 @@ def pb_timestampfield(rel_type: FieldRelationship,
                       value: datetime.date or datetime.datetime = None,
                       start: datetime.date or datetime.datetime = None,
                       end: datetime.date or datetime.datetime = None,
-                      sort_direction: SortDirection.SortDirection = SortDirection.NOT_SORTED) -> TimestampField:
+                      sort_direction: SortDirection = SortDirection.NOT_SORTED) -> TimestampField:
     """
     Create a protobuf query for a timestamp or a range of timestamps.
     :param rel_type: the relationship type to query more
