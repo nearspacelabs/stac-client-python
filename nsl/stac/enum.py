@@ -4,29 +4,13 @@ from epl.protobuf.stac_pb2 import CloudPlatform as _CloudPlatform
 from epl.protobuf.query_pb2 import FieldRelationship as _FieldRelationship
 from epl.protobuf.query_pb2 import SortDirection as _SortDirection
 from epl.protobuf.stac_pb2 import Eo as _Eo
-from google.protobuf.internal.enum_type_wrapper import EnumTypeWrapper
 from enum import IntFlag
 
 __all__ = ['AssetType', 'CloudPlatform', 'FieldRelationship', 'SortDirection', 'Platform', 'Constellation', 'Band',
            'Instrument']
 
 
-class _BaseType(IntFlag):
-    def __init__(self, pb_enum: EnumTypeWrapper):
-        super().__init__()
-        self._pb_enum = pb_enum
-
-    def Value(self, name):
-        return self._pb_enum.Value(name)
-
-    def keys(self):
-        return self._pb_enum.keys()
-
-    def Name(self, number):
-        return self._pb_enum.Name(number=number)
-
-
-class AssetType(_BaseType):
+class AssetType(IntFlag):
     UNKNOWN_ASSET = _AssetType.UNKNOWN_ASSET
     JPEG = _AssetType.JPEG
     GEOTIFF = _AssetType.GEOTIFF
@@ -46,11 +30,10 @@ class AssetType(_BaseType):
     JSON = _AssetType.JSON
     HTML = _AssetType.HTML
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_AssetType)
 
 
-class Band(_BaseType):
+
+class Band(IntFlag):
     UNKNOWN_BAND = _Eo.UNKNOWN_BAND
     COASTAL = _Eo.COASTAL
     BLUE = _Eo.BLUE
@@ -68,41 +51,35 @@ class Band(_BaseType):
     LWIR_1 = _Eo.LWIR_1
     LWIR_2 = _Eo.LWIR_2
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_Eo.Band)
 
 
-class SortDirection(_BaseType):
+
+class SortDirection(IntFlag):
     NOT_SORTED = _SortDirection.NOT_SORTED
     DESC = _SortDirection.DESC
     ASC = _SortDirection.ASC
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_SortDirection)
 
 
-class CloudPlatform(_BaseType):
+
+
+class CloudPlatform(IntFlag):
     UNKNOWN_CLOUD_PLATFORM = _CloudPlatform.UNKNOWN_CLOUD_PLATFORM
     AWS = _CloudPlatform.AWS
     GCP = _CloudPlatform.GCP
     AZURE = _CloudPlatform.AZURE
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_SortDirection)
 
 
-class Constellation(_BaseType):
+class Constellation(IntFlag):
     UNKNOWN_PLATFORM = _Eo.UNKNOWN_CONSTELLATION
     LANDSAT = _Eo.LANDSAT
     NAIP = _Eo.NAIP
     SWIFT = _Eo.SWIFT
     PNOA = _Eo.PNOA
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_Eo.Constellation)
 
-
-class FieldRelationship(_BaseType):
+class FieldRelationship(IntFlag):
     EQ = _FieldRelationship.EQ
     LT_OR_EQ = _FieldRelationship.LT_OR_EQ
     GT_OR_EQ = _FieldRelationship.GT_OR_EQ
@@ -116,11 +93,10 @@ class FieldRelationship(_BaseType):
     LIKE = _FieldRelationship.LIKE
     NOT_LIKE = _FieldRelationship.NOT_LIKE
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_FieldRelationship)
 
 
-class Instrument(_BaseType):
+
+class Instrument(IntFlag):
     UNKNOWN_INSTRUMENT = _Eo.UNKNOWN_INSTRUMENT
     OLI = _Eo.OLI
     TIRS = _Eo.TIRS
@@ -130,11 +106,10 @@ class Instrument(_BaseType):
     ETM = _Eo.ETM
     MSS = _Eo.MSS
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_Eo.Instrument)
 
 
-class Platform(_BaseType):
+
+class Platform(IntFlag):
     UNKNOWN_PLATFORM = _Eo.UNKNOWN_PLATFORM
     LANDSAT_1 = _Eo.LANDSAT_1
     LANDSAT_2 = _Eo.LANDSAT_2
@@ -147,14 +122,13 @@ class Platform(_BaseType):
     LANDSAT_8 = _Eo.LANDSAT_8
     SWIFT_2 = _Eo.SWIFT_2
 
-    def __init__(self, *args):
-        super().__init__(pb_enum=_Eo.Platform)
+
+
 
 
 # Final check to make sure that all enums have complete definitions for the associated protobufs
 for enum_class_name in __all__:
     nsl_enum = getattr(sys.modules[__name__], enum_class_name)
-    print(nsl_enum)
     if enum_class_name in ['Platform', 'Constellation', 'Band', 'Instrument']:
         eo_class = getattr(sys.modules[__name__], '_Eo')
         epl_pb_enum_wrapper = getattr(eo_class, enum_class_name)
