@@ -6,8 +6,7 @@ from datetime import datetime, timezone, date, timedelta
 
 from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField
 from nsl.stac import utils
-from nsl.stac.enum import Band, CloudPlatform, AssetType, Constellation
-from nsl.stac.enum.FieldRelationship import *
+from nsl.stac.enum import Band, CloudPlatform, AssetType, Constellation, FieldRelationship
 from nsl.stac import enum
 from nsl.stac.client import NSLClient
 
@@ -242,7 +241,7 @@ class TestLandsat(unittest.TestCase):
         end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
         observed_range = TimestampField(start=utils.pb_timestamp(start),
                                         stop=utils.pb_timestamp(end),
-                                        rel_type=BETWEEN)
+                                        rel_type=FieldRelationship.BETWEEN)
 
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
         for stac_item in client.search(stac_request):
@@ -258,7 +257,7 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_date_GT_OR_EQ(self):
         bd = date(2015, 11, 3)
         observed_range = TimestampField(value=utils.pb_timestamp(bd),
-                                        rel_type=GT_OR_EQ)
+                                        rel_type=FieldRelationship.GT_OR_EQ)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -267,7 +266,7 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_GT(self):
         bdt = datetime(2015, 11, 3, 1, 1, 1, tzinfo=timezone.utc)
         observed_range = TimestampField(value=utils.pb_timestamp(bdt),
-                                        rel_type=GT)
+                                        rel_type=FieldRelationship.GT)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -278,7 +277,7 @@ class TestDatetimeQueries(unittest.TestCase):
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         observed_range = TimestampField(start=utils.pb_timestamp(start),
                                         stop=utils.pb_timestamp(end),
-                                        rel_type=BETWEEN)
+                                        rel_type=FieldRelationship.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
@@ -290,7 +289,7 @@ class TestDatetimeQueries(unittest.TestCase):
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         observed_range = TimestampField(start=utils.pb_timestamp(start),
                                         stop=utils.pb_timestamp(end),
-                                        rel_type=NOT_BETWEEN)
+                                        rel_type=FieldRelationship.NOT_BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
@@ -302,7 +301,7 @@ class TestDatetimeQueries(unittest.TestCase):
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         observed_range = TimestampField(start=utils.pb_timestamp(start),
                                         stop=utils.pb_timestamp(end),
-                                        rel_type=NOT_BETWEEN,
+                                        rel_type=FieldRelationship.NOT_BETWEEN,
                                         sort_direction=enum.SortDirection.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         count = 0
@@ -318,7 +317,7 @@ class TestDatetimeQueries(unittest.TestCase):
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         observed_range = TimestampField(start=utils.pb_timestamp(start),
                                         stop=utils.pb_timestamp(end),
-                                        rel_type=NOT_BETWEEN,
+                                        rel_type=FieldRelationship.NOT_BETWEEN,
                                         sort_direction=enum.SortDirection.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         count = 0
