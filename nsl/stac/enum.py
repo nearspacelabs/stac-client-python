@@ -29,8 +29,7 @@ class AssetType(IntFlag):
     OVERVIEW = _AssetType.OVERVIEW
     JSON = _AssetType.JSON
     HTML = _AssetType.HTML
-
-
+    WEBP = _AssetType.WEBP
 
 
 class Band(IntFlag):
@@ -52,15 +51,10 @@ class Band(IntFlag):
     LWIR_2 = _Eo.LWIR_2
 
 
-
-
 class SortDirection(IntFlag):
     NOT_SORTED = _SortDirection.NOT_SORTED
     DESC = _SortDirection.DESC
     ASC = _SortDirection.ASC
-
-
-
 
 
 class CloudPlatform(IntFlag):
@@ -68,7 +62,6 @@ class CloudPlatform(IntFlag):
     AWS = _CloudPlatform.AWS
     GCP = _CloudPlatform.GCP
     AZURE = _CloudPlatform.AZURE
-
 
 
 class Constellation(IntFlag):
@@ -94,8 +87,6 @@ class FieldRelationship(IntFlag):
     NOT_LIKE = _FieldRelationship.NOT_LIKE
 
 
-
-
 class Instrument(IntFlag):
     UNKNOWN_INSTRUMENT = _Eo.UNKNOWN_INSTRUMENT
     OLI = _Eo.OLI
@@ -105,8 +96,6 @@ class Instrument(IntFlag):
     TM = _Eo.TM
     ETM = _Eo.ETM
     MSS = _Eo.MSS
-
-
 
 
 class Platform(IntFlag):
@@ -121,9 +110,6 @@ class Platform(IntFlag):
     LANDSAT_7 = _Eo.LANDSAT_7
     LANDSAT_8 = _Eo.LANDSAT_8
     SWIFT_2 = _Eo.SWIFT_2
-
-
-
 
 
 # Final check to make sure that all enums have complete definitions for the associated protobufs

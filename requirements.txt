@@ -1,6 +1,6 @@
 auth0-python
 boto3==1.10.0
-epl.protobuf==0.4.3
+epl.protobuf==0.4.5
 google-cloud-storage>=1.14.0
 grpcio-tools
 protobuf>=3.8.0
