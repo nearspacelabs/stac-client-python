@@ -1,11 +1,10 @@
-import os
 import tempfile
 import unittest
 
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField, GeometryData, SpatialReferenceData
+from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField
 from nsl.stac import utils, enum
 from nsl.stac.enum import AssetType, Band, CloudPlatform, Constellation, FieldRelationship
 from nsl.stac.client import NSLClient
