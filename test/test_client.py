@@ -421,23 +421,3 @@ class TestHelpers(unittest.TestCase):
                 utils.download_asset(asset=asset, file_obj=file_obj)
                 data3 = file_obj.read()
                 self.assertEqual(data1, data3)
-
-    def test_download_dir(self):
-        austin_capital_wkt = "POINT(-97.733333 30.266667)"
-        geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
-
-        # limit is set to 2 here, but it would work if you set it to 100 or 1000
-        stac_request = StacRequest(geometry=geometry_data, limit=2)
-
-        # get a client interface to the gRPC channel. This client singleton is threadsafe
-        client = NSLClient()
-
-        # collect all stac items in a list
-        stac_items = list(client.search(stac_request))
-
-        with tempfile.TemporaryDirectory() as d:
-            for stac_item in stac_items:
-                print("STAC item id: {}".format(stac_item.id))
-                asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
-                filename = utils.download_asset(asset=asset, save_directory=d, from_bucket=True)
-                self.assertTrue(os.path.exists(filename))
