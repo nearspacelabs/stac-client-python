@@ -22,7 +22,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
 - [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
 ## Setup
-**WARNING** You'll need to have Python3 installed (nsl.stac **does not** work with Python2). If you've got multiple versions of Python and pip on your operating system, you may need to use `python3` and `pip3` in the below installation commands.
+**WARNING** You'll need to have Python3 installed (nsl.stac **does not** work with Python2). If you have multiple versions of Python and pip on your operating system, you may need to use `python3` and `pip3` in the below installation commands.
 
 Grab `nsl.stac` from [pip](https://pypi.org/project/nsl.stac/):
 ```bash
@@ -151,7 +151,7 @@ In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.prot
 ## What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
 This python client library is used for connecting to a gRPC enabled STAC service. STAC items and STAC requests are Protocol Buffers (protobuf) instead of traditional JSON.
 
-Never hear of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about these open source projects.
+Never heard of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about these open source projects.
 
 Definition of STAC from https://stacspec.org/:
 > The SpatioTemporal Asset Catalog (STAC) specification provides a common language to describe a range of geospatial information, so it can more easily be indexed and discovered.  A 'spatiotemporal asset' is any file that represents information about the earth captured in a certain space and time.
