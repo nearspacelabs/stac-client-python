@@ -11,12 +11,14 @@ from typing import List, Iterator, BinaryIO
 
 from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
-from epl.protobuf import stac_pb2, query_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth
 
-DEFAULT_RGB = [stac_pb2.Eo.RED, stac_pb2.Eo.GREEN, stac_pb2.Eo.BLUE]
-RASTER_TYPES = [stac_pb2.CO_GEOTIFF, stac_pb2.GEOTIFF, stac_pb2.MRF]
+from nsl.stac import StacItem, Asset, TimestampField, Eo
+from nsl.stac.enum import Band,  CloudPlatform, FieldRelationship, SortDirection, AssetType
+
+DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
+RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
 
 
 def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
@@ -94,7 +96,7 @@ def download_s3_object(bucket: str,
             raise
 
 
-def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_filename: str = ""):
+def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename: str = ""):
     """
     download the href of an asset
     :param asset: The asset to download
@@ -130,7 +132,7 @@ def download_href_object(asset: stac_pb2.Asset, file_obj: BinaryIO = None, save_
     return save_filename
 
 
-def download_asset(asset: stac_pb2.Asset,
+def download_asset(asset: Asset,
                    from_bucket: bool = False,
                    file_obj: BinaryIO = None,
                    save_filename: str = "",
@@ -154,12 +156,12 @@ def download_asset(asset: stac_pb2.Asset,
         else:
             raise ValueError("directory 'save_directory' doesn't exist")
 
-    if from_bucket and asset.cloud_platform == stac_pb2.GCP:
+    if from_bucket and asset.cloud_platform == CloudPlatform.GCP:
         return download_gcs_object(bucket=asset.bucket,
                                    blob_name=asset.object_path,
                                    file_obj=file_obj,
                                    save_filename=save_filename)
-    elif from_bucket and asset.cloud_platform == stac_pb2.AWS:
+    elif from_bucket and asset.cloud_platform == CloudPlatform.AWS:
         return download_s3_object(bucket=asset.bucket,
                                   blob_name=asset.object_path,
                                   file_obj=file_obj,
@@ -170,7 +172,7 @@ def download_asset(asset: stac_pb2.Asset,
                                     save_filename=save_filename)
 
 
-def download_assets(stac_item: stac_pb2.StacItem,
+def download_assets(stac_item: StacItem,
                     save_directory: str,
                     from_bucket: bool = False) -> List[str]:
     """
@@ -189,36 +191,38 @@ def download_assets(stac_item: stac_pb2.StacItem,
     return filenames
 
 
-def get_asset(stac_item: stac_pb2.StacItem,
-              band: stac_pb2.Eo.Band = stac_pb2.Eo.UNKNOWN_BAND,
-              asset_types: List = None,
-              cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
-              asset_basename: str = "") -> stac_pb2.Asset:
+def get_asset(stac_item: StacItem,
+              asset_type: AssetType = None,
+              cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+              band: Eo.Band = Eo.UNKNOWN_BAND,
+              asset_basename: str = "") -> Asset:
     """
-    get protobuf object(pb) asset from a stac item pb.
+    get a protobuf object(pb) asset from a stac item pb. If your parameters are broad (say, if you used all defaults)
+    this function would only return you the first asset that matches the parameters. use
+    :func:`get_assets <st.stac.utils.get_assets>` to return more than one asset from a request.
     :param stac_item: stac item whose assets we want to search by parameters
-    :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is
-    not electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
-    :param asset_types: a list of asset_types to seach. if not defined then it is assumed to search all asset types
+    :param asset_type: an asset_type enum to return. if not defined then it is assumed to search all asset types
     :param cloud_platform: only return assets that are hosted on the cloud platform described in the cloud_platform
     field of the item. default grabs the first asset that meets all the other parameters.
+    :param band: if the data has electro-optical spectrum data, define the band you want to retrieve. if the data is
+    not electro-optical then don't define this parameter (defaults to UNKNOWN_BAND)
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    # return next(get_assets(stac_item, band, asset_types, cloud_platform, asset_basename))
-    data = list(get_assets(stac_item, band, asset_types, cloud_platform, asset_basename))
-    if len(data) == 0:
-        return None
-    return data[0]
+    return next(get_assets(stac_item,
+                           asset_types=[asset_type],
+                           cloud_platform=cloud_platform,
+                           band=band,
+                           asset_basename=asset_basename), None)
 
 
-def get_assets(stac_item: stac_pb2.StacItem,
-               band: stac_pb2.Eo.Band = stac_pb2.Eo.UNKNOWN_BAND,
+def get_assets(stac_item: StacItem,
                asset_types: List = None,
-               cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
-               asset_basename: str = "") -> Iterator[stac_pb2.Asset]:
+               cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+               band: Eo.Band = Eo.UNKNOWN_BAND,
+               asset_basename: str = "") -> Iterator[Asset]:
     """
-    get a generator of protobuf object(pb) assets from a stac item pb.
+    get a generator of assets from a stac item, filtered by the parameters.
     :param stac_item: stac item whose assets we want to search by parameters
     :param band: if the data has electro optical spectrum data, define the band you want to retrieve. if the data is not
      electro optical then don't define this parameter (defaults to UNKNOWN_BAND)
@@ -228,19 +232,17 @@ def get_assets(stac_item: stac_pb2.StacItem,
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    if asset_types is None:
-        asset_types = [stac_pb2.AssetType.Value(asset_type_str) for asset_type_str in stac_pb2.AssetType.keys()]
-
-    if not isinstance(asset_types, List):
-        asset_types = [asset_types]
+    # if no asset_types defined, create a list of all available assets from the protobuf definition file
+    if asset_types is None or asset_types[0] is None:
+        asset_types = [asset_type for asset_type in AssetType]
 
     for asset_type in asset_types:
         for key in stac_item.assets:
             asset = stac_item.assets[key]
             if asset.asset_type != asset_type:
                 continue
-            if asset.eo_bands == band or band == stac_pb2.Eo.UNKNOWN_BAND:
-                if asset.cloud_platform == cloud_platform or cloud_platform == stac_pb2.UNKNOWN_CLOUD_PLATFORM:
+            if asset.eo_bands == band or band == Eo.UNKNOWN_BAND:
+                if asset.cloud_platform == cloud_platform or cloud_platform == CloudPlatform.UNKNOWN_CLOUD_PLATFORM:
                     if asset_basename and not _asset_has_filename(asset=asset, asset_basename=asset_basename):
                         continue
                     yield asset
@@ -248,12 +250,12 @@ def get_assets(stac_item: stac_pb2.StacItem,
     return
 
 
-def get_eo_assets(stac_item: stac_pb2.StacItem,
-                  cloud_platform: stac_pb2.CloudPlatform = stac_pb2.UNKNOWN_CLOUD_PLATFORM,
-                  bands: List = DEFAULT_RGB,
-                  asset_types: List = RASTER_TYPES) -> Iterator[stac_pb2.Asset]:
+def get_eo_assets(stac_item: StacItem,
+                  cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+                  bands: List = None,
+                  asset_types: List = None) -> Iterator[Asset]:
     """
-    get generator of electro optical assets that match the restrictions. if no restrictions are set,
+    get generator of electro optical assets that match the query restrictions. if no restrictions are set,
     then the default is any cloud platform, RGB for the bands, and all raster types.
     :param stac_item: stac item to search for electro optical assets
     :param cloud_platform: cloud platform (if an asset has both GCP and AWS but you prefer AWS, set this)
@@ -265,19 +267,22 @@ def get_eo_assets(stac_item: stac_pb2.StacItem,
     if asset_types is None:
         asset_types = RASTER_TYPES
 
+    if bands is None:
+        bands = DEFAULT_RGB
+
     if cloud_platform is None:
-        cloud_platform = stac_pb2.UNKNOWN_CLOUD_PLATFORM
+        cloud_platform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM
 
     assets = []
     for band in bands:
-        if band == stac_pb2.Eo.RGB or band == stac_pb2.Eo.RGBIR:
+        if band == Eo.RGB or band == Eo.RGBIR:
             yield get_eo_assets(stac_item=stac_item,
                                 bands=DEFAULT_RGB,
                                 cloud_platform=cloud_platform,
                                 asset_types=asset_types)
-            if band == stac_pb2.Eo.RGBIR:
+            if band == Eo.RGBIR:
                 yield get_assets(stac_item=stac_item,
-                                 band=stac_pb2.Eo.NIR,
+                                 band=Eo.NIR,
                                  cloud_platform=cloud_platform,
                                  asset_types=asset_types)
         else:
@@ -289,14 +294,14 @@ def get_eo_assets(stac_item: stac_pb2.StacItem,
     return assets
 
 
-def _asset_has_filename(asset: stac_pb2.Asset, asset_basename):
+def _asset_has_filename(asset: Asset, asset_basename):
     if os.path.basename(asset.object_path).lower() == os.path.basename(asset_basename).lower():
         return True
     return False
 
 
-def has_asset_type(stac_item: stac_pb2.StacItem,
-                   asset_type: stac_pb2.AssetType):
+def has_asset_type(stac_item: StacItem,
+                   asset_type: AssetType):
     """
     does the stac item contain the asset
     :param stac_item:
@@ -309,8 +314,8 @@ def has_asset_type(stac_item: stac_pb2.StacItem,
     return False
 
 
-def has_asset(stac_item: stac_pb2.StacItem,
-              asset: stac_pb2.Asset):
+def has_asset(stac_item: StacItem,
+              asset: Asset):
     """
     check whether a stac_item has a perfect match to the provided asset
     :param stac_item: stac item whose assets we're checking against asset
@@ -328,7 +333,7 @@ def has_asset(stac_item: stac_pb2.StacItem,
     return False
 
 
-def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
+def get_uri(asset: Asset, b_vsi_uri=True, prefix: str = "") -> str:
     """
     construct the uri for the resource in the asset.
     :param asset:
@@ -346,9 +351,9 @@ def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
         if b_vsi_uri:
             prefix = "/vsi{0}_streaming"
 
-        if asset.cloud_platform == stac_pb2.GCP:
+        if asset.cloud_platform == CloudPlatform.GCP:
             prefix = prefix.format("gs")
-        elif asset.cloud_platform == stac_pb2.AWS:
+        elif asset.cloud_platform == CloudPlatform.AWS:
             prefix = prefix.format("s3")
         else:
             raise ValueError("The only current cloud platforms are GCP and AWS. This asset doesn't have the "
@@ -357,11 +362,11 @@ def get_uri(asset: stac_pb2.Asset, b_vsi_uri=True, prefix: str = "") -> str:
     return "{0}/{1}/{2}".format(prefix, asset.bucket, asset.object_path)
 
 
-def pb_timestampfield(rel_type: query_pb2.FieldRelationship,
+def pb_timestampfield(rel_type: FieldRelationship,
                       value: datetime.date or datetime.datetime = None,
                       start: datetime.date or datetime.datetime = None,
                       end: datetime.date or datetime.datetime = None,
-                      sort_direction: query_pb2.SortDirection = query_pb2.NOT_SORTED) -> query_pb2.TimestampField:
+                      sort_direction: SortDirection = SortDirection.NOT_SORTED) -> TimestampField:
     """
     Create a protobuf query for a timestamp or a range of timestamps.
     :param rel_type: the relationship type to query more
@@ -373,11 +378,11 @@ def pb_timestampfield(rel_type: query_pb2.FieldRelationship,
     :return: TimestampField
     """
     if value is not None:
-        return query_pb2.TimestampField(value=pb_timestamp(value), rel_type=rel_type, sort_direction=sort_direction)
-    return query_pb2.TimestampField(start=pb_timestamp(start),
-                                    stop=pb_timestamp(end),
-                                    rel_type=rel_type,
-                                    sort_direction=sort_direction)
+        return TimestampField(value=pb_timestamp(value), rel_type=rel_type, sort_direction=sort_direction)
+    return TimestampField(start=pb_timestamp(start),
+                          stop=pb_timestamp(end),
+                          rel_type=rel_type,
+                          sort_direction=sort_direction)
 
 
 def pb_timestamp(d_utc: datetime.datetime or datetime.date) -> timestamp_pb2.Timestamp:

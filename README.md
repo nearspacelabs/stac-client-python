@@ -23,7 +23,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
 - [gRPC STAC vs REST STAC](#differences-between-grpcprotobuf-stac-and-openapijson-stac)
 
 ## Setup
-**WARNING** You'll need to have Python3 installed (nsl.stac **does not** work with Python2). If you've got multiple versions of Python and pip on your operating system, you may need to use `python3` and `pip3` in the below installation commands.
+**WARNING** You'll need to have Python3 installed (nsl.stac **does not** work with Python2). If you have multiple versions of Python and pip on your operating system, you may need to use `python3` and `pip3` in the below installation commands.
 
 Grab `nsl.stac` from [pip](https://pypi.org/project/nsl.stac/):
 ```bash
@@ -90,27 +90,26 @@ import os
 import tempfile
 from IPython.display import Image, display
 from datetime import datetime, date
-# the StacRequest is a protobuf message for making filter queries for data
-from epl.protobuf.stac_pb2 import StacRequest
-# GeometryData is a protobuf container for GIS geometry information
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
-# TimestampField is a query field that allows for making sql-like queries for information
-# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
-from epl.protobuf.query_pb2 import GT_OR_EQ
-from nsl.stac.utils import pb_timestampfield, download_asset
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
+from nsl.stac import enum, utils
+from nsl.stac.client import NSLClient
+
 
 # the client package stubs out a little bit of the gRPC connection code 
-from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
 # our area of interest will be the coordinates of the Austin, Texas capital building
 austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
+# GeometryData is a protobuf container for GIS geometry information
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
+# TimestampField is a query field that allows for making sql-like queries for information
+# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
 # Query data from August 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=GT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.CloudPlatform.AWS)
 
+# the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
 # area of interest and was observed on or after the 1st of August
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
@@ -120,10 +119,10 @@ stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 stac_item = client.search_one(stac_request)
 
 # get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
-asset = stac_item.assets['THUMBNAIL_RGB']
+asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
 
 with tempfile.TemporaryDirectory() as d:
-    filename = download_asset(asset=asset, save_directory=d)
+    filename = utils.download_asset(asset=asset, save_directory=d)
     display(Image(filename=filename))
 ```
 
@@ -155,7 +154,7 @@ In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.prot
 ## What are Protobufs, gRPC, and Spatio Temporal Asset Catalogs? 
 This python client library is used for connecting to a gRPC enabled STAC service. STAC items and STAC requests are Protocol Buffers (protobuf) instead of traditional JSON.
 
-Never hear of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about these open source projects.
+Never heard of gRPC, Protocol Buffers or STAC? Below are summary blurbs and links for more details about these open source projects.
 
 Definition of STAC from https://stacspec.org/:
 > The SpatioTemporal Asset Catalog (STAC) specification provides a common language to describe a range of geospatial information, so it can more easily be indexed and discovered.  A 'spatiotemporal asset' is any file that represents information about the earth captured in a certain space and time.
@@ -191,7 +190,7 @@ The easiest query to construct is a `StacRequest` constructor with no variables,
 
 ```python
 from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
+from nsl.stac import StacRequest
 
 stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
 
@@ -326,8 +325,7 @@ The STAC specification has a bounding box `bbox` specification for STAC items. H
 
 
 ```python
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.geometry_pb2 import EnvelopeData, SpatialReferenceData
+from nsl.stac import StacRequest, EnvelopeData, SpatialReferenceData
 from nsl.stac.client import NSLClient
 
 # define our area of interest bounds
@@ -391,8 +389,7 @@ Next we want to try searching by geometry instead of bounding box. We'll use a g
 import json
 import requests
 from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
 
 # request the geojson foot print of Travis County, Texas
 r = requests.get("https://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json")
@@ -443,7 +440,7 @@ Same geometry as above, but a wkt geometry instead of a geojson:
 
 
 ```python
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
+from nsl.stac import GeometryData, SpatialReferenceData
 # Same geometry as above, but a wkt geometry instead of a geojson
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
 geometry_data = GeometryData(wkt=travis_wkt, 
@@ -492,12 +489,10 @@ When creating a time query filter, we want to use the >, >=, <, <=, ==, != opera
 ```python
 from datetime import date, datetime, timezone
 from nsl.stac.client import NSLClient
-from nsl.stac import utils
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.query_pb2 import GT_OR_EQ
+from nsl.stac import utils, StacRequest, enum
 
 # make a filter that selects all data on or after January 1st, 2017
-time_filter = utils.pb_timestampfield(value=date(2017,1,1), rel_type=GT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2017,1,1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
@@ -544,14 +539,12 @@ Now we're going to do a range request and select data between two dates:
 ```python
 from datetime import datetime, timezone
 from nsl.stac.client import NSLClient
-from nsl.stac import utils
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.query_pb2 import TimestampField, BETWEEN
+from nsl.stac import utils, enum, StacRequest, TimestampField
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
 stop = datetime(2019, 8, 10, 0, 0, 0, tzinfo=timezone.utc)
-time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=BETWEEN)
+time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=enum.FieldRelationship.BETWEEN)
 
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
@@ -603,8 +596,7 @@ import tempfile
 from IPython.display import Image, display
 
 from nsl.stac.client import NSLClient
-from nsl.stac import utils
-from epl.protobuf.stac_pb2 import StacRequest
+from nsl.stac import utils, enum, StacRequest
 
 colorado_river_wkt = 'LINESTRING(-97.75803689750262 30.266434949323585,-97.75344495566912 30.264544585776626,-97.74576310905047 30.262135246151697)'
 geometry_data = GeometryData(wkt=colorado_river_wkt, 
@@ -617,7 +609,7 @@ client = NSLClient()
 
 for stac_item in client.search(stac_request):
     # get the thumbnail asset from the assets map
-    asset = stac_item.assets['THUMBNAIL_RGB']
+    asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
     # (side-note delete=False in NamedTemporaryFile is only required for windows.)
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
         utils.download_asset(asset=asset, file_obj=file_obj)
@@ -656,46 +648,27 @@ To download the full geotiff asset follow the pattern in the below example:
 import os
 import tempfile
 from datetime import datetime, date
-# the StacRequest is a protobuf message for making filter queries for data
-from epl.protobuf.stac_pb2 import StacRequest
-# GeometryData is a protobuf container for GIS geometry information
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
-# TimestampField is a query field that allows for making sql-like queries for information
-# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
-from epl.protobuf.query_pb2 import GT_OR_EQ
-from nsl.stac.utils import pb_timestampfield, download_asset
-
-# the client package stubs out a little bit of the gRPC connection code 
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
+from nsl.stac import utils
 from nsl.stac.client import NSLClient
 
-# our area of interest will be the coordinates of the Austin, Texas capital building
+client = NSLClient()
+
 austin_capital_wkt = "POINT(-97.733333 30.266667)"
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # Query data from August 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 8, 1), rel_type=GT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
-# This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
-# area of interest and was observed on or after the 1st of August
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
-# get a client interface to the gRPC channel. This client singleton is threadsafe
-client = NSLClient()
-# search_one method requests only one item be returned that meets the query filters in the StacRequest 
-# the item returned is a StacItem protobuf message
 stac_item = client.search_one(stac_request)
-# display the scene id
-print("STAC item id {}".format(stac_item.id))
-
-# display the observed date of the scene. The observed 
-dt_observed = datetime.utcfromtimestamp(stac_item.observed.seconds)
-print("Date observed {}".format(dt_observed.strftime("%m/%d/%Y, %H:%M:%S")))
 
 # get the Geotiff asset from the assets map
-asset = stac_item.assets['GEOTIFF_RGB']
+asset = utils.get_asset(stac_item, asset_type=enum.AssetType.GEOTIFF)
 
 with tempfile.TemporaryDirectory() as d:
-    file_path = download_asset(asset=asset, save_directory=d)
+    file_path = utils.download_asset(asset=asset, save_directory=d)
     print("{0} has {1} bytes".format(os.path.basename(file_path), os.path.getsize(file_path)))
 ```
 
@@ -709,8 +682,6 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    STAC item id 20190826T185828Z_715_POM1_ST2_P
-    Date observed 08/26/2019, 18:58:28
     20190826T185828Z_715_POM1_ST2_P.tif has 141352740 bytes
 ```
 

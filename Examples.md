@@ -24,13 +24,11 @@ In order to make our off nadir query we need to insert it inside of an [EoReques
 ```python
 from datetime import datetime, timezone
 from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
-from epl.protobuf.query_pb2 import FloatField, LT_OR_EQ
-from epl.protobuf.stac_pb2 import EoRequest, Eo
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, EoRequest, Eo, FloatField
+from nsl.stac.enum import FieldRelationship
 
 # create our ground sampling distance query to only return data less than or equal to 1 meter
-off_nadir = FloatField(value=15.0, rel_type=LT_OR_EQ)
+off_nadir = FloatField(value=15.0, rel_type=FieldRelationship.LT_OR_EQ)
 # create an eo_request container
 eo_request = EoRequest(off_nadir=off_nadir)
 # define ourselves a point in Texas
@@ -93,8 +91,7 @@ For most simple requests, a `limit` and `offset` are not necessary. But if you'r
 
 ```python
 from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
 # Same geometry as above, but a wkt geometry instead of a geojson
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
 geometry_data = GeometryData(wkt=travis_wkt, 

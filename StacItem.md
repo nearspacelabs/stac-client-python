@@ -12,7 +12,7 @@ Return to [README.md](./README.md)
 
 ```python
 from nsl.stac.client import NSLClient
-from epl.protobuf.stac_pb2 import StacRequest
+from nsl.stac import StacRequest
 
 stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
 
@@ -324,19 +324,21 @@ Each STAC item should have at least one asset. An asset should be all the inform
 
 
 ```python
-from epl.protobuf.stac_pb2 import AssetType, Asset
+from nsl.stac import Asset, utils
+from nsl.stac.enum import AssetType
 def print_asset(asset: Asset):
+    
     print(" href: {}".format(asset.href))
     print(" type: {}".format(asset.type))
-    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, AssetType.Name(asset.asset_type)))
+    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, AssetType(asset.asset_type).name))
     print()
 
 print("there are {} assets".format(len(stac_item.assets)))
-print("THUMBNAIL_RGB:")
-print_asset(stac_item.assets["THUMBNAIL_RGB"])
+print(AssetType.THUMBNAIL.name)
+print_asset(utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL))
 
-print("GEOTIFF_RGB:")
-print_asset(stac_item.assets["GEOTIFF_RGB"])
+print(AssetType.GEOTIFF.name)
+print_asset(utils.get_asset(stac_item, asset_type=AssetType.GEOTIFF))
 ```
 
 
@@ -350,12 +352,12 @@ print_asset(stac_item.assets["GEOTIFF_RGB"])
 
 ```text
     there are 2 assets
-    THUMBNAIL_RGB:
+    THUMBNAIL
      href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg
      type: image/jpeg
      protobuf enum number and name: 9, THUMBNAIL
     
-    GEOTIFF_RGB:
+    GEOTIFF
      href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
      type: image/vnd.stac.geotiff
      protobuf enum number and name: 2, GEOTIFF

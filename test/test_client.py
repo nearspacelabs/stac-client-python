@@ -4,11 +4,10 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from epl.protobuf.stac_pb2 import StacRequest, StacItem, LandsatRequest, AWS, GCP, Eo, Asset, THUMBNAIL, TXT
-from epl.protobuf import query_pb2
-
+from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField
+from nsl.stac import utils, enum
+from nsl.stac.enum import AssetType, Band, CloudPlatform, Constellation, FieldRelationship
 from nsl.stac.client import NSLClient
-from nsl.stac import utils
 
 client = NSLClient()
 
@@ -87,24 +86,24 @@ class TestLandsat(unittest.TestCase):
         stac_id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, band=Eo.BLUE, cloud_platform=GCP)
+        asset = utils.get_asset(stac_item, band=Band.BLUE, cloud_platform=CloudPlatform.GCP)
         self.assertIsNotNone(asset)
-        asset = utils.get_asset(stac_item, band=Eo.BLUE, cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, band=Band.BLUE, cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
-        asset = utils.get_asset(stac_item, band=Eo.LWIR_1, cloud_platform=GCP)
+        asset = utils.get_asset(stac_item, band=Band.LWIR_1, cloud_platform=CloudPlatform.GCP)
         self.assertIsNone(asset)
-        asset = utils.get_asset(stac_item, band=Eo.LWIR_1, cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, band=Band.LWIR_1, cloud_platform=CloudPlatform.AWS)
         self.assertIsNone(asset)
 
-        asset = utils.get_asset(stac_item, band=Eo.CIRRUS, cloud_platform=GCP)
+        asset = utils.get_asset(stac_item, band=Band.CIRRUS, cloud_platform=CloudPlatform.GCP)
         self.assertIsNotNone(asset)
-        asset = utils.get_asset(stac_item, band=Eo.CIRRUS, cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, band=Band.CIRRUS, cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 print(asset.object_path)
                 aws_count += 1
             else:
@@ -125,8 +124,7 @@ class TestLandsat(unittest.TestCase):
         stac_id = 'LO81120152015061LGN00'
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset_type = THUMBNAIL
-        asset = utils.get_asset(stac_item, asset_types=[asset_type], cloud_platform=AWS)
+        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL, cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
     def test_aws(self):
@@ -136,7 +134,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
         count = 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 print(asset.object_path)
                 count += 1
         self.assertEquals(29, count)
@@ -148,7 +146,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 aws_count += 1
             else:
                 print(asset.object_path)
@@ -163,7 +161,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 aws_count += 1
             else:
                 print(asset.object_path)
@@ -178,7 +176,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 aws_count += 1
             else:
                 print(asset.object_path)
@@ -193,7 +191,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 aws_count += 1
             else:
                 print(asset.object_path)
@@ -208,7 +206,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 aws_count += 1
             else:
                 print(asset.object_path)
@@ -223,7 +221,7 @@ class TestLandsat(unittest.TestCase):
         self.assertIsNotNone(stac_item)
         aws_count, gcp_count = 0, 0
         for key, asset in stac_item.assets.items():
-            if asset.cloud_platform == AWS:
+            if asset.cloud_platform == CloudPlatform.AWS:
                 aws_count += 1
                 print(asset.object_path)
             else:
@@ -240,12 +238,13 @@ class TestLandsat(unittest.TestCase):
     def test_count_more(self):
         start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
-                                                  stop=utils.pb_timestamp(end),
-                                                  rel_type=query_pb2.BETWEEN)
+        observed_range = TimestampField(start=utils.pb_timestamp(start),
+                                        stop=utils.pb_timestamp(end),
+                                        rel_type=FieldRelationship.BETWEEN)
+
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
         for stac_item in client.search(stac_request):
-            self.assertEquals(Eo.LANDSAT, stac_item.eo.constellation)
+            self.assertEquals(Constellation.LANDSAT, stac_item.eo.constellation)
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
             self.assertGreaterEqual(utils.pb_timestamp(end).seconds, stac_item.datetime.seconds)
             self.assertLessEqual(utils.pb_timestamp(start).seconds, stac_item.datetime.seconds)
@@ -256,8 +255,8 @@ class TestLandsat(unittest.TestCase):
 class TestDatetimeQueries(unittest.TestCase):
     def test_date_GT_OR_EQ(self):
         bd = date(2015, 11, 3)
-        observed_range = query_pb2.TimestampField(value=utils.pb_timestamp(bd),
-                                                  rel_type=query_pb2.GT_OR_EQ)
+        observed_range = TimestampField(value=utils.pb_timestamp(bd),
+                                        rel_type=FieldRelationship.GT_OR_EQ)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -265,8 +264,8 @@ class TestDatetimeQueries(unittest.TestCase):
 
     def test_datetime_GT(self):
         bdt = datetime(2015, 11, 3, 1, 1, 1, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(value=utils.pb_timestamp(bdt),
-                                                  rel_type=query_pb2.GT)
+        observed_range = TimestampField(value=utils.pb_timestamp(bdt),
+                                        rel_type=FieldRelationship.GT)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -275,9 +274,9 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
-                                                  stop=utils.pb_timestamp(end),
-                                                  rel_type=query_pb2.BETWEEN)
+        observed_range = TimestampField(start=utils.pb_timestamp(start),
+                                        stop=utils.pb_timestamp(end),
+                                        rel_type=FieldRelationship.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
@@ -287,9 +286,9 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
-                                                  stop=utils.pb_timestamp(end),
-                                                  rel_type=query_pb2.NOT_BETWEEN)
+        observed_range = TimestampField(start=utils.pb_timestamp(start),
+                                        stop=utils.pb_timestamp(end),
+                                        rel_type=FieldRelationship.NOT_BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
@@ -299,10 +298,10 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range_asc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
-                                                  stop=utils.pb_timestamp(end),
-                                                  rel_type=query_pb2.NOT_BETWEEN,
-                                                  sort_direction=query_pb2.ASC)
+        observed_range = TimestampField(start=utils.pb_timestamp(start),
+                                        stop=utils.pb_timestamp(end),
+                                        rel_type=FieldRelationship.NOT_BETWEEN,
+                                        sort_direction=enum.SortDirection.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         count = 0
         for stac_item in client.search(stac_request):
@@ -315,10 +314,10 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = query_pb2.TimestampField(start=utils.pb_timestamp(start),
-                                                  stop=utils.pb_timestamp(end),
-                                                  rel_type=query_pb2.NOT_BETWEEN,
-                                                  sort_direction=query_pb2.DESC)
+        observed_range = TimestampField(start=utils.pb_timestamp(start),
+                                        stop=utils.pb_timestamp(end),
+                                        rel_type=FieldRelationship.NOT_BETWEEN,
+                                        sort_direction=enum.SortDirection.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         count = 0
         for stac_item in client.search(stac_request):
@@ -354,8 +353,8 @@ class TestHelpers(unittest.TestCase):
         stac_id = "LO81120152015061LGN00"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
         asset = utils.get_asset(stac_item,
-                                asset_types=[TXT],
-                                cloud_platform=GCP,
+                                asset_type=AssetType.TXT,
+                                cloud_platform=CloudPlatform.GCP,
                                 asset_basename='LO81120152015061LGN00_MTL.txt')
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
@@ -379,8 +378,8 @@ class TestHelpers(unittest.TestCase):
         stac_id = "LC80270392015025LGN00"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
         asset = utils.get_asset(stac_item,
-                                asset_types=[TXT],
-                                cloud_platform=AWS)
+                                asset_type=AssetType.TXT,
+                                cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
@@ -402,7 +401,7 @@ class TestHelpers(unittest.TestCase):
     def test_download_href(self):
         stac_id = "20190829T172947Z_1619_POM1_ST2_P"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
-        asset = utils.get_asset(stac_item, asset_types=[THUMBNAIL])
+        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL)
 
         self.assertIsNotNone(asset)
 
