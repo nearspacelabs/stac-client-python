@@ -439,5 +439,5 @@ class TestHelpers(unittest.TestCase):
             for stac_item in stac_items:
                 print("STAC item id: {}".format(stac_item.id))
                 asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
-                filename = utils.download_asset(asset=asset, save_directory=d)
+                filename = utils.download_asset(asset=asset, save_directory=d, from_bucket=True)
                 self.assertTrue(os.path.exists(filename))
