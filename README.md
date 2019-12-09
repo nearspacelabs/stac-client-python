@@ -86,10 +86,9 @@ This call will take a little bit to execute as it downloads an image.
 
 
 ```python
-import os
 import tempfile
 from IPython.display import Image, display
-from datetime import datetime, date
+from datetime import date
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
 from nsl.stac import enum, utils
 from nsl.stac.client import NSLClient
@@ -107,7 +106,7 @@ geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wki
 # TimestampField is a query field that allows for making sql-like queries for information
 # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
 # Query data from August 1, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.CloudPlatform.AWS)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
 # the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
@@ -440,7 +439,10 @@ Same geometry as above, but a wkt geometry instead of a geojson:
 
 
 ```python
-from nsl.stac import GeometryData, SpatialReferenceData
+from nsl.stac import GeometryData, SpatialReferenceData, StacRequest
+from nsl.stac.client import NSLClient
+client = NSLClient()
+
 # Same geometry as above, but a wkt geometry instead of a geojson
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
 geometry_data = GeometryData(wkt=travis_wkt, 
@@ -539,7 +541,7 @@ Now we're going to do a range request and select data between two dates:
 ```python
 from datetime import datetime, timezone
 from nsl.stac.client import NSLClient
-from nsl.stac import utils, enum, StacRequest, TimestampField
+from nsl.stac import utils, enum, StacRequest
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
@@ -596,7 +598,7 @@ import tempfile
 from IPython.display import Image, display
 
 from nsl.stac.client import NSLClient
-from nsl.stac import utils, enum, StacRequest
+from nsl.stac import utils, enum, StacRequest, GeometryData, SpatialReferenceData
 
 colorado_river_wkt = 'LINESTRING(-97.75803689750262 30.266434949323585,-97.75344495566912 30.264544585776626,-97.74576310905047 30.262135246151697)'
 geometry_data = GeometryData(wkt=colorado_river_wkt, 
@@ -647,7 +649,7 @@ To download the full geotiff asset follow the pattern in the below example:
 ```python
 import os
 import tempfile
-from datetime import datetime, date
+from datetime import date
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
 from nsl.stac import utils
 from nsl.stac.client import NSLClient
@@ -705,18 +707,11 @@ For example:
 
 
 ```python
-import os
 import tempfile
-from datetime import datetime, date
-# the StacRequest is a protobuf message for making filter queries for data
-from epl.protobuf.stac_pb2 import StacRequest
-# GeometryData is a protobuf container for GIS geometry information
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData
-# TimestampField is a query field that allows for making sql-like queries for information
-# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
-from epl.protobuf.query_pb2 import GT_OR_EQ
-from nsl.stac.utils import pb_timestampfield, download_asset
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
+from nsl.stac.utils import download_asset, get_asset
 from nsl.stac.client import NSLClient
+
 
 austin_capital_wkt = "POINT(-97.733333 30.266667)"
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
@@ -733,7 +728,7 @@ stac_items = list(client.search(stac_request))
 with tempfile.TemporaryDirectory() as d:
     for stac_item in stac_items:
         print("STAC item id: {}".format(stac_item.id))
-        asset = stac_item.assets['GEOTIFF_RGB']
+        asset = get_asset(stac_item, asset_type=enum.AssetType.GEOTIFF)
         filename = download_asset(asset=asset, save_directory=d)
         print("saved {}".format(filename))
 ```
@@ -749,9 +744,9 @@ with tempfile.TemporaryDirectory() as d:
 
 ```text
     STAC item id: 20190826T185828Z_715_POM1_ST2_P
-    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpuk7_cqs5/20190826T185828Z_715_POM1_ST2_P.tif
+    saved 20190826T185828Z_715_POM1_ST2_P.tif
     STAC item id: 20190826T185005Z_465_POM1_ST2_P
-    saved /var/folders/bm/0qdgsxyn1jd2rtcgmvd3jdc80000gn/T/tmpuk7_cqs5/20190826T185005Z_465_POM1_ST2_P.tif
+    saved 20190826T185005Z_465_POM1_ST2_P.tif
 ```
 
 
