@@ -1,17 +1,14 @@
-import os
-
 from typing import Iterator
 
 from epl.protobuf import stac_pb2
 
 from nsl.stac import stac_service as stac_singleton
+from nsl.stac import bearer_auth
 
 
 class NSLClient:
     def __init__(self):
         self._stac_service = stac_singleton
-        self._auth = os.getenv('AUTH')
-        self._bearer = os.getenv('BEARER')
 
     def update_service_url(self, stac_service_url):
         """
@@ -29,8 +26,7 @@ class NSLClient:
         :return: StacDbResponse, the response of the success of the insert
         """
         return self._stac_service.stub.InsertOne(stac_item, timeout=timeout, metadata=(
-            ('authorization', self._auth),
-            ('bearer', self._bearer),
+            ('authorization', bearer_auth.auth_header()),
         ))
 
     def search_one(self, stac_request: stac_pb2.StacRequest, timeout=15) -> stac_pb2.StacItem:
@@ -41,8 +37,7 @@ class NSLClient:
         :return: StacItem
         """
         return self._stac_service.stub.SearchOne(stac_request, timeout=timeout, metadata=(
-            ('authorization', self._auth),
-            ('bearer', self._bearer),
+            ('authorization', bearer_auth.auth_header()),
         ))
 
     def count(self, stac_request: stac_pb2.StacRequest, timeout=15) -> int:
@@ -53,8 +48,7 @@ class NSLClient:
         :return: int
         """
         db_result = self._stac_service.stub.Count(stac_request, timeout=timeout, metadata=(
-            ('authorization', self._auth),
-            ('bearer', self._bearer),
+            ('authorization', bearer_auth.auth_header()),
         ))
         return db_result.count
 
@@ -66,7 +60,6 @@ class NSLClient:
         :return: stream of StacItems
         """
         results_generator = self._stac_service.stub.Search(stac_request, timeout=timeout, metadata=(
-            ('authorization', self._auth),
-            ('bearer', self._bearer),
+            ('authorization', bearer_auth.auth_header()),
         ))
         return results_generator
