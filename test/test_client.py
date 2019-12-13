@@ -446,3 +446,27 @@ class TestPerf(unittest.TestCase):
             if total % limit == 0:
                 print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
         self.assertEqual(total, 1000)
+
+class TestSpatialQueries(unittest.TestCase):
+    def test_readme_1st(self):
+        # our area of interest will be the coordinates of the Austin, Texas capital building
+        austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
+        # GeometryData is a protobuf container for GIS geometry information
+        geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
+
+        # TimestampField is a query field that allows for making sql-like queries for information
+        # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
+        # Query data from August 1, 2019
+        time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
+
+        # the StacRequest is a protobuf message for making filter queries for data
+        # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital
+        # area of interest and was observed on or after the 1st of August
+        stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
+
+        # search_one method requests only one item be returned that meets the query filters in the StacRequest
+        # the item returned is a StacItem protobuf message
+        stac_item = client.search_one(stac_request)
+
+        # get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
+        asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
