@@ -15,7 +15,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
   - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
   - [Spatial](#spatial-queries)
   - [Temporal](#temporal-queries)
-  - [Complex Examples](./Examples.md)
+  - [Advanced Examples](./AdvancedExamples.md)
 - [Downloading](#downloading)
   - [Thumbnails](#thumbnails)
   - [Geotiffs](#geotiffs)
@@ -68,7 +68,7 @@ To keep our services available to may simulataneous customers, we've implemented
 
 At this release our timeouts are default 15 seconds. If you use the `search` method, you're maintaining an open connection with the server while retrieving STAC items. If you have a sub-routine that is taking longer than 15 seconds, then you might want to circumvent the timeout by collecting all the STAC items in an `list` and then execute your sub-routine. An example of this can be seen in the [Handling Deadlines](#handling-deadlines) docs for downloads.
 
-If you are returning so many stac items that you are timing out then you may want to use a `limit` and `offset` variables in the `StacRequest`. For more details about `limit` and `offset` visit the [Examples.md](./Examples.md) doc.
+If you are returning so many stac items that you are timing out then you may want to use a `limit` and `offset` variables in the `StacRequest`. For more details about `limit` and `offset` visit the [AdvancedExamples.md](./AdvancedExamples.md) doc.
 
 For our download API we've implemented a 4 requests per second limit. You may need implement a retry mechanism with an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) if you are overruning the rate limit.
 
@@ -691,7 +691,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ### Handling Deadlines
-The `search` method is a gRPC streaming request. It sends a single request to the server and then maintains an open connection to the server, which then pushes results to the client. This means that if you have a long running sub-routine that executes between each iterated result from `search` you may exceed the 15 second timeout. If you have a stac request so large that the results create a memory problem or the blocking behavior limits your application performance, then you will want to use `offset` and `limit` as described in [Examples.md](./Examples.md#limits-and-offsets).
+The `search` method is a gRPC streaming request. It sends a single request to the server and then maintains an open connection to the server, which then pushes results to the client. This means that if you have a long running sub-routine that executes between each iterated result from `search` you may exceed the 15 second timeout. If you have a stac request so large that the results create a memory problem or the blocking behavior limits your application performance, then you will want to use `offset` and `limit` as described in [AdvancedExamples.md](./AdvancedExamples.md#limits-and-offsets).
 
 Otherwise, an easy way to iterate through results without timing-out on long running sub-routines is to capture the `search` results in a `list`.
 
