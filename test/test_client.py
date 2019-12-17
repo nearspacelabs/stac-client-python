@@ -470,3 +470,5 @@ class TestSpatialQueries(unittest.TestCase):
 
         # get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
         asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
+
+        self.assertIsNotNone(asset)
