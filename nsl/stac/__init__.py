@@ -37,7 +37,7 @@ API_AUDIENCE = "http://localhost:8000"
 AUTH0_DOMAIN = "swiftera-dev.auth0.com"
 TOKEN_REFRESH_THRESHOLD = 300  # 5 minutes
 
-STAC_SERVICE = os.getenv('STAC_SERVICE', 'eap.nearspacelabs.net:9090')
+STAC_SERVICE = os.getenv('STAC_SERVICE', 'api.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
 # at this point only allowing 4 MB or smaller messages
 MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 4))
