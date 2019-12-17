@@ -27,7 +27,7 @@ from nsl.stac.client import NSLClient
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, EoRequest, Eo, FloatField
 from nsl.stac.enum import FieldRelationship
 
-# create our ground sampling distance query to only return data less than or equal to 1 meter
+# create our off_nadir query to only return data captured with an angle of less than or equal to 15 degrees
 off_nadir = FloatField(value=15.0, rel_type=FieldRelationship.LT_OR_EQ)
 # create an eo_request container
 eo_request = EoRequest(off_nadir=off_nadir)

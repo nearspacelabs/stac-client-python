@@ -97,9 +97,12 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the Austin, Texas capital building
+# our area of interest will be the coordinates of the Austin, Texas capital building.
+# the order of coordinates defined by wkt is longitude, latitude (x, y)
 austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
 # GeometryData is a protobuf container for GIS geometry information
+# "wkid" here refers to the epsg code for WGS-84, the ellipsoidal coordinate system most commonly 
+# used when defining coordinates in longitude and latitude. 
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
@@ -113,7 +116,8 @@ time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.Clou
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
-# the item returned is a StacItem protobuf message
+# what's returned is the most recent data, that's after August 1st, 2019 and that intersects the coordinate
+# defined by geometry_data
 stac_item = client.search_one(stac_request)
 
 # get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
@@ -328,7 +332,7 @@ from nsl.stac.client import NSLClient
 
 client = NSLClient()
 
-# define our area of interest bounds
+# define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on the WGS-84 ellipsoid
 neighborhood_box = (-97.73294577459876, 30.251945643016235, -97.71732458929603, 30.264548996109724)
 # here we define our envelope_data protobuf with bounds and a WGS-84 (`wkid=4326`) spatial reference
 envelope_data = EnvelopeData(xmin=neighborhood_box[0], 
