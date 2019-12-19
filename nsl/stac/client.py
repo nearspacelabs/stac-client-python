@@ -7,13 +7,19 @@ from nsl.stac import bearer_auth
 
 
 class NSLClient:
-    def __init__(self):
+    def __init__(self, nsl_only=True):
+        """
+        Create a client connection to a gRPC STAC service. nsl_only limits all queries to only return data from Near
+        Space Labs.
+        :param nsl_only:
+        """
         self._stac_service = stac_singleton
+        self._nsl_only = nsl_only
 
     def update_service_url(self, stac_service_url):
         """
         update the stac service address
-        :param stac_service_url: localhost:8080, 34.34.34.34:9000, http://demo.nearspacelabs.com, etc
+        :param stac_service_url: localhost:8080, 34.34.34.34:9000, http://api.nearspacelabs.net:9090, etc
         :return:
         """
         self._stac_service.update_service_url(stac_service_url=stac_service_url)
@@ -36,6 +42,10 @@ class NSLClient:
         :param stac_request: StacRequest of query parameters to filter by
         :return: StacItem
         """
+        # limit to only search Near Space Labs SWIFT data
+        if self._nsl_only:
+            stac_request.eo = stac_pb2.Eo(constellation=stac_pb2.Eo.SWIFT)
+
         return self._stac_service.stub.SearchOne(stac_request, timeout=timeout, metadata=(
             ('authorization', bearer_auth.auth_header()),
         ))
@@ -47,6 +57,10 @@ class NSLClient:
         :param stac_request: StacRequest query parameters to apply to count method (limit ignored)
         :return: int
         """
+        # limit to only search Near Space Labs SWIFT data
+        if self._nsl_only:
+            stac_request.eo = stac_pb2.Eo(constellation=stac_pb2.Eo.SWIFT)
+
         db_result = self._stac_service.stub.Count(stac_request, timeout=timeout, metadata=(
             ('authorization', bearer_auth.auth_header()),
         ))
@@ -59,6 +73,10 @@ class NSLClient:
         :param stac_request: StacRequest of query parameters to filter by
         :return: stream of StacItems
         """
+        # limit to only search Near Space Labs SWIFT data
+        if self._nsl_only:
+            stac_request.eo = stac_pb2.Eo(constellation=stac_pb2.Eo.SWIFT)
+
         results_generator = self._stac_service.stub.Search(stac_request, timeout=timeout, metadata=(
             ('authorization', bearer_auth.auth_header()),
         ))

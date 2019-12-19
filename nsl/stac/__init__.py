@@ -155,10 +155,17 @@ class __BearerAuth:
         conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
         res = conn.getresponse()
 
-        # TODO: handle failure and retries
-        res_body = json.loads(res.read().decode("utf-8"))
-        self._expiry = res_body["expires_in"] + time.time()
-        self._token = res_body["access_token"]
+        # TODO: retries
+        if res.code != 200:
+            raise ConnectionError("authentication error code {0}, ", res.code)
+
+        try:
+            res_body = json.loads(res.read().decode("utf-8"))
+            self._expiry = res_body["expires_in"] + time.time()
+            self._token = res_body["access_token"]
+        except json.JSONDecodeError as e:
+            warnings.warn("failed to decode authentication json token")
+            raise e
 
     @property
     def expiry(self):

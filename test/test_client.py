@@ -9,7 +9,7 @@ from nsl.stac import utils, enum
 from nsl.stac.enum import AssetType, Band, CloudPlatform, Constellation, FieldRelationship
 from nsl.stac.client import NSLClient
 
-client = NSLClient()
+client = NSLClient(nsl_only=False)
 
 
 class TestProtobufs(unittest.TestCase):
