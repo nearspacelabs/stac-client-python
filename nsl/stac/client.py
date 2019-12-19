@@ -44,7 +44,7 @@ class NSLClient:
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
-            stac_request.eo = stac_pb2.Eo(constellation=stac_pb2.Eo.SWIFT)
+            stac_request.eo.MergeFrom(stac_pb2.EoRequest(constellation=stac_pb2.Eo.SWIFT))
 
         return self._stac_service.stub.SearchOne(stac_request, timeout=timeout, metadata=(
             ('authorization', bearer_auth.auth_header()),
@@ -59,7 +59,7 @@ class NSLClient:
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
-            stac_request.eo = stac_pb2.Eo(constellation=stac_pb2.Eo.SWIFT)
+            stac_request.eo.MergeFrom(stac_pb2.EoRequest(constellation=stac_pb2.Eo.SWIFT))
 
         db_result = self._stac_service.stub.Count(stac_request, timeout=timeout, metadata=(
             ('authorization', bearer_auth.auth_header()),
@@ -75,7 +75,7 @@ class NSLClient:
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
-            stac_request.eo = stac_pb2.Eo(constellation=stac_pb2.Eo.SWIFT)
+            stac_request.eo.MergeFrom(stac_pb2.EoRequest(constellation=stac_pb2.Eo.SWIFT))
 
         results_generator = self._stac_service.stub.Search(stac_request, timeout=timeout, metadata=(
             ('authorization', bearer_auth.auth_header()),
