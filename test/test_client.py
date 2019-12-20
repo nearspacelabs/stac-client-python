@@ -447,6 +447,7 @@ class TestPerf(unittest.TestCase):
                 print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
         self.assertEqual(total, 1000)
 
+
 class TestSpatialQueries(unittest.TestCase):
     def test_readme_1st(self):
         # our area of interest will be the coordinates of the Austin, Texas capital building
