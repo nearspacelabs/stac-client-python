@@ -97,10 +97,12 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the Austin, Texas capital building
-# btw, the order of coordinates here is longitude latitude (x, y). The results of our query 
+# our area of interest will be the coordinates of the Austin, Texas capital building.
+# the order of coordinates here is longitude then latitude (x, y). The results of our query 
 # will be returned only if they intersect this point geometry we've defined (other geometry 
 # types besides points are supported)
+# This string format, POINT(float, float) is the well-known-text geometry format:
+# https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
 austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
 # GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial reference
 # defines the WGS-84 elispsoid (`wkid=4326`) spatial reference (the latitude longitude spatial reference
