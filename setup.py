@@ -14,7 +14,7 @@ kwargs = {
     'url': 'https://github.com/nearspacelabs/stac-client-python',
     'long_description': "gRPC Spatio Temporal Asset Catalog library provided by Near Space Labs",
     'author': 'David Raleigh',
-    'author_email': 'david@swiftera.co',
+    'author_email': 'david@nearspacelabs.com',
     'license': 'Apache 2.0',
     'version': '0.3.0',
     'python_requires': '>3.6.0',

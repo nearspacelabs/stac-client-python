@@ -15,7 +15,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
   - [Simple](#simple-query-and-the-makeup-of-a-stacitem)
   - [Spatial](#spatial-queries)
   - [Temporal](#temporal-queries)
-  - [Complex Examples](./Examples.md)
+  - [Advanced Examples](./AdvancedExamples.md)
 - [Downloading](#downloading)
   - [Thumbnails](#thumbnails)
   - [Geotiffs](#geotiffs)
@@ -68,7 +68,7 @@ To keep our services available to may simulataneous customers, we've implemented
 
 At this release our timeouts are default 15 seconds. If you use the `search` method, you're maintaining an open connection with the server while retrieving STAC items. If you have a sub-routine that is taking longer than 15 seconds, then you might want to circumvent the timeout by collecting all the STAC items in an `list` and then execute your sub-routine. An example of this can be seen in the [Handling Deadlines](#handling-deadlines) docs for downloads.
 
-If you are returning so many stac items that you are timing out then you may want to use a `limit` and `offset` variables in the `StacRequest`. For more details about `limit` and `offset` visit the [Examples.md](./Examples.md) doc.
+If you are returning so many stac items that you are timing out then you may want to use a `limit` and `offset` variables in the `StacRequest`. For more details about `limit` and `offset` visit the [AdvancedExamples.md](./AdvancedExamples.md) doc.
 
 For our download API we've implemented a 4 requests per second limit. You may need implement a retry mechanism with an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) if you are overruning the rate limit.
 
@@ -97,15 +97,22 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the Austin, Texas capital building
+# our area of interest will be the coordinates of the Austin, Texas capital building.
+# the order of coordinates here is longitude then latitude (x, y). The results of our query 
+# will be returned only if they intersect this point geometry we've defined (other geometry 
+# types besides points are supported)
+# This string format, POINT(float, float) is the well-known-text geometry format:
+# https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
 austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
-# GeometryData is a protobuf container for GIS geometry information
+# GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial reference
+# defines the WGS-84 elispsoid (`wkid=4326`) spatial reference (the latitude longitude spatial reference
+# most commonly used)
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
 # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
 # Query data from August 1, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.CloudPlatform.AWS)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
 # the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
@@ -113,7 +120,8 @@ time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.Clou
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
-# the item returned is a StacItem protobuf message
+# the item returned is a StacItem protobuf message. search_one, will only return the most recently 
+# observed results that matches the time filter and spatial filter
 stac_item = client.search_one(stac_request)
 
 # get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
@@ -328,7 +336,7 @@ from nsl.stac.client import NSLClient
 
 client = NSLClient()
 
-# define our area of interest bounds
+# define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on the WGS-84 ellipsoid
 neighborhood_box = (-97.73294577459876, 30.251945643016235, -97.71732458929603, 30.264548996109724)
 # here we define our envelope_data protobuf with bounds and a WGS-84 (`wkid=4326`) spatial reference
 envelope_data = EnvelopeData(xmin=neighborhood_box[0], 
@@ -492,8 +500,8 @@ from datetime import date, datetime, timezone
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, StacRequest, enum
 
-# make a filter that selects all data on or after January 1st, 2017
-time_filter = utils.pb_timestampfield(value=date(2017,1,1), rel_type=enum.FieldRelationship.GT_OR_EQ)
+# make a filter that selects all data on or after August 8th, 2019
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 21), rel_type=enum.FieldRelationship.GT_OR_EQ)
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
@@ -501,7 +509,7 @@ client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item date, {0}, is after {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-        datetime.fromtimestamp(time_filter.start.seconds, tz=timezone.utc).isoformat(),
+        datetime.fromtimestamp(time_filter.value.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds > time_filter.start.seconds))
 ```
 
@@ -515,8 +523,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2019-08-29T17:35:49+00:00, is after 1970-01-01T00:00:00+00:00: True
-    STAC item date, 2019-08-29T17:35:47+00:00, is after 1970-01-01T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:35:49+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2019-08-29T17:35:47+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -691,7 +699,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ### Handling Deadlines
-The `search` method is a gRPC streaming request. It sends a single request to the server and then maintains an open connection to the server, which then pushes results to the client. This means that if you have a long running sub-routine that executes between each iterated result from `search` you may exceed the 15 second timeout. If you have a stac request so large that the results create a memory problem or the blocking behavior limits your application performance, then you will want to use `offset` and `limit` as described in [Examples.md](./Examples.md#limits-and-offsets).
+The `search` method is a gRPC streaming request. It sends a single request to the server and then maintains an open connection to the server, which then pushes results to the client. This means that if you have a long running sub-routine that executes between each iterated result from `search` you may exceed the 15 second timeout. If you have a stac request so large that the results create a memory problem or the blocking behavior limits your application performance, then you will want to use `offset` and `limit` as described in [AdvancedExamples.md](./AdvancedExamples.md#limits-and-offsets).
 
 Otherwise, an easy way to iterate through results without timing-out on long running sub-routines is to capture the `search` results in a `list`.
 
