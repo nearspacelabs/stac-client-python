@@ -32,7 +32,7 @@ stac_item = client.search_one(stac_request)
 
 
 ```text
-    nsl client connecting to stac service at: eap.nearspacelabs.net:9090
+    nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
 ```
 

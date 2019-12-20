@@ -86,14 +86,12 @@ This call will take a little bit to execute as it downloads an image.
 
 
 ```python
-import os
 import tempfile
 from IPython.display import Image, display
-from datetime import datetime, date
+from datetime import date
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
 from nsl.stac import enum, utils
 from nsl.stac.client import NSLClient
-
 
 # the client package stubs out a little bit of the gRPC connection code 
 # get a client interface to the gRPC channel. This client singleton is threadsafe
@@ -136,7 +134,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    nsl client connecting to stac service at: eap.nearspacelabs.net:9090
+    nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
 ```
 
@@ -146,7 +144,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 
-![jpeg](README_files/README_1_1.jpeg)
+![jpeg](README_files/README_1_1.jpg)
 
 
 In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) holds spatial and temporal query parameters for searching for [StacItems](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). The `client.search_one` method makes requests to the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method. In this case you can see that we've connected to the `eap.nearspacelabs.net` STAC service. In the next section we go into more detail about Protobufs, gRPC, and STAC.
@@ -191,11 +189,11 @@ The easiest query to construct is a `StacRequest` constructor with no variables,
 ```python
 from nsl.stac.client import NSLClient
 from nsl.stac import StacRequest
+# get a client interface to the gRPC channel
+client = NSLClient()
 
 stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
 
-# get a client interface to the gRPC channel
-client = NSLClient()
 # for this request we might as well use the search one, as STAC ids ought to be unique
 stac_item = client.search_one(stac_request)
 print(stac_item)
@@ -328,6 +326,8 @@ The STAC specification has a bounding box `bbox` specification for STAC items. H
 from nsl.stac import StacRequest, EnvelopeData, SpatialReferenceData
 from nsl.stac.client import NSLClient
 
+client = NSLClient()
+
 # define our area of interest bounds
 neighborhood_box = (-97.73294577459876, 30.251945643016235, -97.71732458929603, 30.264548996109724)
 # here we define our envelope_data protobuf with bounds and a WGS-84 (`wkid=4326`) spatial reference
@@ -339,8 +339,7 @@ envelope_data = EnvelopeData(xmin=neighborhood_box[0],
 # Search for data that intersects the bounding box
 stac_request = StacRequest(bbox=envelope_data)
 
-# get a client interface to the gRPC channel
-client = NSLClient()
+
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
 ```
@@ -388,8 +387,10 @@ Next we want to try searching by geometry instead of bounding box. We'll use a g
 ```python
 import json
 import requests
-from nsl.stac.client import NSLClient
+
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
+from nsl.stac.client import NSLClient
+client = NSLClient()
 
 # request the geojson foot print of Travis County, Texas
 r = requests.get("https://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json")
@@ -622,15 +623,15 @@ for stac_item in client.search(stac_request):
 
 
 
-![jpeg](README_files/README_16_0.jpeg)
+![jpeg](README_files/README_16_0.jpg)
 
 
 
-![jpeg](README_files/README_16_1.jpeg)
+![jpeg](README_files/README_16_1.jpg)
 
 
 
-![jpeg](README_files/README_16_2.jpeg)
+![jpeg](README_files/README_16_2.jpg)
 
 
 ### Geotiffs
@@ -806,7 +807,7 @@ For Comparison, here is the [JSON STAC Electro Optical field summary](https://gi
 Use this README.ipynb notebook to update the README.md. Do not directly edit the README.md. It will be overwritten by output from `ipynb2md.py`. `ipynb2md.py` can be downloaded from this [gist](https://gist.github.com/davidraleigh/a24f637ccb018610a87aaacb12281452).
 
 ```bash
-curl -o ipynb2md.py https://gist.githubusercontent.com/davidraleigh/a24f637ccb018610a87aaacb12281452/raw/c1b82cdaf36c474ac83d63335a5446eed2a122df/ipynb2md.py
+curl -o ipynb2md.py https://gist.githubusercontent.com/davidraleigh/a24f637ccb018610a87aaacb12281452/raw/20216b01987a2163b37f12b09596b5d322195e79/ipynb2md.py
 ```
 
 Make your edits to the README.ipynb, in *Kernel->Restart & Run All* to confirm your changes worked, Save and Checkpoint, then run the python script `python ipynb2md.py -i README.ipynb`.

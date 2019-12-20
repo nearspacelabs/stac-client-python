@@ -4,12 +4,12 @@ import unittest
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField
+from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField, GeometryData, SpatialReferenceData
 from nsl.stac import utils, enum
 from nsl.stac.enum import AssetType, Band, CloudPlatform, Constellation, FieldRelationship
 from nsl.stac.client import NSLClient
 
-client = NSLClient()
+client = NSLClient(nsl_only=False)
 
 
 class TestProtobufs(unittest.TestCase):
@@ -420,3 +420,29 @@ class TestHelpers(unittest.TestCase):
                 utils.download_asset(asset=asset, file_obj=file_obj)
                 data3 = file_obj.read()
                 self.assertEqual(data1, data3)
+
+
+class TestPerf(unittest.TestCase):
+    def test_query_limits(self):
+        # Same geometry as above, but a wkt geometry instead of a geojson
+        travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 " \
+                     "30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, " \
+                     "-97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, " \
+                     "-98.0503 30.6251)) "
+        geometry_data = GeometryData(wkt=travis_wkt,
+                                     sr=SpatialReferenceData(wkid=4326))
+
+        limit = 200
+        offset = 0
+        total = 0
+        while total < 1000:
+            # make our request
+            stac_request = StacRequest(geometry=geometry_data, limit=limit, offset=offset)
+            # prepare request for next
+            offset += limit
+            for stac_item in client.search(stac_request):
+                total += 1
+                # do cool things with data here
+            if total % limit == 0:
+                print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
+        self.assertEqual(total, 1000)
