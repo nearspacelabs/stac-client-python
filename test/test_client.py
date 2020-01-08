@@ -326,6 +326,33 @@ class TestDatetimeQueries(unittest.TestCase):
             self.assertTrue(utils.pb_timestamp(end).seconds < stac_item.datetime.seconds)
         self.assertEqual(count, 5)
 
+    def test_date_utc_eq(self):
+        value = date(2019, 8, 6)
+        texas_utc_offset = timezone(timedelta(hours=-6))
+        time_filter = utils.pb_timestampfield(rel_type=enum.FieldRelationship.EQ,
+                                              value=value,
+                                              tzinfo=texas_utc_offset)
+
+        stac_request = StacRequest(datetime=time_filter, limit=2)
+
+        # get a client interface to the gRPC channel
+        for stac_item in client.search(stac_request):
+            print("STAC item date, {0}, is before {1}: {2}".format(
+                datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
+                datetime.fromtimestamp(time_filter.stop.seconds, tz=texas_utc_offset).isoformat(),
+                stac_item.observed.seconds < time_filter.stop.seconds))
+
+        start = date(2019, 8, 6)
+        time_filter = utils.pb_timestampfield(rel_type=FieldRelationship.EQ,
+                                              value=start,
+                                              tzinfo=timezone(timedelta(hours=-6)))
+        stac_request = StacRequest(datetime=time_filter, limit=2)
+        count = 0
+        for _ in client.search(stac_request):
+            count += 1
+
+        self.assertEqual(2, count)
+
 
 class TestHelpers(unittest.TestCase):
     def test_has_asset(self):

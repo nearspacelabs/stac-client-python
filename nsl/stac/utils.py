@@ -15,7 +15,7 @@ from google.protobuf import timestamp_pb2, duration_pb2
 from nsl.stac import gcs_storage_client, bearer_auth
 
 from nsl.stac import StacItem, Asset, TimestampField, Eo
-from nsl.stac.enum import Band,  CloudPlatform, FieldRelationship, SortDirection, AssetType
+from nsl.stac.enum import Band, CloudPlatform, FieldRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
 RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
@@ -366,37 +366,49 @@ def pb_timestampfield(rel_type: FieldRelationship,
                       value: datetime.date or datetime.datetime = None,
                       start: datetime.date or datetime.datetime = None,
                       end: datetime.date or datetime.datetime = None,
-                      sort_direction: SortDirection = SortDirection.NOT_SORTED) -> TimestampField:
+                      sort_direction: SortDirection = SortDirection.NOT_SORTED,
+                      tzinfo: datetime.timezone = datetime.timezone.utc) -> TimestampField:
     """
-    Create a protobuf query for a timestamp or a range of timestamps.
+    Create a protobuf query filter for a timestamp or a range of timestamps. If you use a datetime.date as
+    the value combined with a rel_type of EQ then you will be creating a query filter for the
+    24 period of that date.
     :param rel_type: the relationship type to query more
     [here](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship)
-    :param value: time to search by using >, >=, <, <=, etc.
-    :param start: start time for between/not between query
-    :param end: end time for between/not between query
-    :param sort_direction: sort direction for results
+    :param value: time to search by using >, >=, <, <=, etc. cannot be used with start or end
+    :param start: start time for between/not between query. cannot be used with value
+    :param end: end time for between/not between query. cannot be used with value
+    :param sort_direction: sort direction for results. Defaults to not sorting by this field
+    :param tzinfo: timezone info, defaults to UTC
     :return: TimestampField
     """
-    if value is not None:
-        return TimestampField(value=pb_timestamp(value), rel_type=rel_type, sort_direction=sort_direction)
-    return TimestampField(start=pb_timestamp(start),
-                          stop=pb_timestamp(end),
+    if value is not None and rel_type != FieldRelationship.EQ:
+        return TimestampField(value=pb_timestamp(value, tzinfo), rel_type=rel_type, sort_direction=sort_direction)
+    elif value is not None and rel_type == FieldRelationship.EQ and not isinstance(value, datetime.datetime):
+        start = datetime.datetime.combine(value, datetime.datetime.min.time(), tzinfo=tzinfo)
+        end = datetime.datetime.combine(value, datetime.datetime.max.time(), tzinfo=tzinfo)
+        rel_type = FieldRelationship.BETWEEN
+
+    return TimestampField(start=pb_timestamp(start, tzinfo),
+                          stop=pb_timestamp(end, tzinfo),
                           rel_type=rel_type,
                           sort_direction=sort_direction)
 
 
-def pb_timestamp(d_utc: datetime.datetime or datetime.date) -> timestamp_pb2.Timestamp:
+def pb_timestamp(d_utc: datetime.datetime or datetime.date,
+                 tzinfo: datetime.timezone = datetime.timezone.utc) -> timestamp_pb2.Timestamp:
     """
     create a google.protobuf.Timestamp from a python datetime
     :param d_utc: python datetime or date
+    :param tzinfo:
     :return:
     """
     ts = timestamp_pb2.Timestamp()
-    ts.FromDatetime(timezoned(d_utc))
+    ts.FromDatetime(timezoned(d_utc, tzinfo))
     return ts
 
 
-def timezoned(d_utc: datetime.datetime or datetime.date):
+def timezoned(d_utc: datetime.datetime or datetime.date,
+              tzinfo: datetime.timezone = datetime.timezone.utc):
     # datetime is child to datetime.date, so if we reverse the order of this instance of we fail
     if isinstance(d_utc, datetime.datetime) and d_utc.tzinfo is None:
         # TODO add warning here:
@@ -408,10 +420,10 @@ def timezoned(d_utc: datetime.datetime or datetime.date):
                                   d_utc.minute,
                                   d_utc.second,
                                   d_utc.microsecond,
-                                  tzinfo=datetime.timezone.utc)
+                                  tzinfo=tzinfo)
     elif not isinstance(d_utc, datetime.datetime):
         # print("warning, no timezone provided with date, so UTC is assumed")
-        d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=datetime.timezone.utc)
+        d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=tzinfo)
     return d_utc
 
 

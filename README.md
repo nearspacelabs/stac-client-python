@@ -500,7 +500,7 @@ from datetime import date, datetime, timezone
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, StacRequest, enum
 
-# make a filter that selects all data on or after August 8th, 2019
+# make a filter that selects all data on or after August 21st, 2019
 time_filter = utils.pb_timestampfield(value=date(2019, 8, 21), rel_type=enum.FieldRelationship.GT_OR_EQ)
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
@@ -536,7 +536,7 @@ The above result shows the datetime of the STAC item, the datetime of the query 
 
 #### Everything Between Two Dates
 
-Now we're going to do a range request and select data between two dates:
+Now we're going to do a range request and select data between two dates using the `start` and `stop` parameters instead of the `value` parameter:
 
 
 
@@ -546,13 +546,13 @@ Now we're going to do a range request and select data between two dates:
 
 
 ```python
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, enum, StacRequest
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
-stop = datetime(2019, 8, 10, 0, 0, 0, tzinfo=timezone.utc)
+stop = start + timedelta(days=9)
 time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=enum.FieldRelationship.BETWEEN)
 
 stac_request = StacRequest(datetime=time_filter, limit=2)
@@ -585,7 +585,68 @@ for stac_item in client.search(stac_request):
 
 
 
-In the above print out we are returned STAC items that are between the dates of Jan 1 2017 and Jan 1 2018. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
+In the above print out we are returned STAC items that are between the dates of Aug 1 2019 and Aug 10 2019. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
+
+#### Select Data for One Day
+
+No we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FieldRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+from datetime import datetime, timezone, timedelta, date
+from nsl.stac.client import NSLClient
+from nsl.stac import utils, enum, StacRequest
+# Query all data for the entire day of August 6, 2019
+value = date(2019, 8, 6)
+# if you omit this tzinfo from the pb_timestampfield function, the default for tzinfo is assumed to be utc 
+texas_utc_offset = timezone(timedelta(hours=-6))
+time_filter = utils.pb_timestampfield(rel_type=enum.FieldRelationship.EQ,
+                                      value=value,
+                                      tzinfo=texas_utc_offset)
+
+stac_request = StacRequest(datetime=time_filter, limit=2)
+
+# get a client interface to the gRPC channel
+client = NSLClient()
+for stac_item in client.search(stac_request):
+    print("STAC item date, {0}, is before {1}: {2}".format(
+        datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
+        datetime.fromtimestamp(time_filter.stop.seconds, tz=texas_utc_offset).isoformat(),
+        stac_item.observed.seconds < time_filter.stop.seconds))
+    print("STAC item date, {0}, is after {1}: {2}".format(
+        datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
+        datetime.fromtimestamp(time_filter.start.seconds, tz=texas_utc_offset).isoformat(),
+        stac_item.observed.seconds > time_filter.start.seconds))
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    STAC item date, 2019-08-06T20:42:53+00:00, is before 2019-08-06T23:59:59-06:00: True
+    STAC item date, 2019-08-06T20:42:53+00:00, is after 2019-08-06T00:00:00-06:00: True
+    STAC item date, 2019-08-06T20:42:51+00:00, is before 2019-08-06T23:59:59-06:00: True
+    STAC item date, 2019-08-06T20:42:51+00:00, is after 2019-08-06T00:00:00-06:00: True
+```
+
+
+</details>
+
+
+
+The above printout demonstrates that the results are between the time ranges of `2019-08-06T00:00:00-06:00` and `2019-08-06T23:59:59-06:00`.
 
 ## Downloading
 To download an asset use the `bucket` + `object_path` or the `href` fields from the asset, and download the data using the library of your choice. There is also a download utility in the `nsl.stac.utils` module. Downloading from Google Cloud Storage buckets requires having defined your `GOOGLE_APPLICATION_CREDENTIALS` [environment variable](https://cloud.google.com/docs/authentication/getting-started#setting_the_environment_variable). Downloading from AWS/S3 requires having your configuration file or environment variables defined as you would for [boto3](https://boto3.amazonaws.com/v1/documentation/api/1.9.42/guide/quickstart.html#configuration). 
@@ -631,15 +692,15 @@ for stac_item in client.search(stac_request):
 
 
 
-![jpeg](README_files/README_16_0.jpg)
+![jpeg](README_files/README_18_0.jpg)
 
 
 
-![jpeg](README_files/README_16_1.jpg)
+![jpeg](README_files/README_18_1.jpg)
 
 
 
-![jpeg](README_files/README_16_2.jpg)
+![jpeg](README_files/README_18_2.jpg)
 
 
 ### Geotiffs
