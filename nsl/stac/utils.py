@@ -371,7 +371,7 @@ def pb_timestampfield(rel_type: FieldRelationship,
     """
     Create a protobuf query filter for a timestamp or a range of timestamps. If you use a datetime.date as
     the value combined with a rel_type of EQ then you will be creating a query filter for the
-    24 peried of that date.
+    24 period of that date.
     :param rel_type: the relationship type to query more
     [here](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship)
     :param value: time to search by using >, >=, <, <=, etc. cannot be used with start or end

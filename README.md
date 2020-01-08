@@ -599,7 +599,7 @@ No we'll search for everything on a specific day using a python `datetime.date` 
 
 
 ```python
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, enum, StacRequest
 # Query all data for the entire day of August 6, 2019
@@ -613,6 +613,7 @@ time_filter = utils.pb_timestampfield(rel_type=enum.FieldRelationship.EQ,
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
+client = NSLClient()
 for stac_item in client.search(stac_request):
     print("STAC item date, {0}, is before {1}: {2}".format(
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
