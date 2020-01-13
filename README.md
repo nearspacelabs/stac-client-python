@@ -104,9 +104,9 @@ client = NSLClient()
 # This string format, POINT(float, float) is the well-known-text geometry format:
 # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
 austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
-# GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial reference
-# defines the WGS-84 elispsoid (`wkid=4326`) spatial reference (the latitude longitude spatial 
-# reference most commonly used)
+# GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial 
+# reference defines the WGS-84 elispsoid (`wkid=4326`) spatial reference (the latitude longitude 
+# spatial reference most commonly used)
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
@@ -115,8 +115,8 @@ geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wki
 time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
 # the StacRequest is a protobuf message for making filter queries for data
-# This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
-# area of interest and was observed on or after the 1st of August
+# This search looks for any type of imagery hosted in the STAC service that intersects the austin 
+# capital area of interest and was observed on or after the 1st of August
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
@@ -403,8 +403,8 @@ from nsl.stac.client import NSLClient
 client = NSLClient()
 
 # request the geojson foot print of Travis County, Texas
-json_url = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json"
-r = requests.get(json_url)
+url = "http://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json"
+r = requests.get(url)
 travis_geojson = json.dumps(r.json()['features'][0]['geometry'])
 # create our GeometryData protobuf from geojson string and WGS-84 SpatialReferenceData protobuf
 geometry_data = GeometryData(geojson=travis_geojson, 
