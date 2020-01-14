@@ -104,9 +104,9 @@ client = NSLClient()
 # This string format, POINT(float, float) is the well-known-text geometry format:
 # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
 austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
-# GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial reference
-# defines the WGS-84 elispsoid (`wkid=4326`) spatial reference (the latitude longitude spatial reference
-# most commonly used)
+# GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial 
+# reference defines the WGS-84 elispsoid (`wkid=4326`) spatial reference (the latitude longitude 
+# spatial reference most commonly used)
 geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
@@ -115,8 +115,8 @@ geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wki
 time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
 
 # the StacRequest is a protobuf message for making filter queries for data
-# This search looks for any type of imagery hosted in the STAC service that intersects the austin capital 
-# area of interest and was observed on or after the 1st of August
+# This search looks for any type of imagery hosted in the STAC service that intersects the austin 
+# capital area of interest and was observed on or after the 1st of August
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
@@ -124,7 +124,8 @@ stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 # observed results that matches the time filter and spatial filter
 stac_item = client.search_one(stac_request)
 
-# get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
+# get the thumbnail asset from the assets map. The other option would be a Geotiff, 
+# with asset key 'GEOTIFF_RGB'
 asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
 
 with tempfile.TemporaryDirectory() as d:
@@ -336,7 +337,8 @@ from nsl.stac.client import NSLClient
 
 client = NSLClient()
 
-# define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on the WGS-84 ellipsoid
+# define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on 
+# the WGS-84 ellipsoid
 neighborhood_box = (-97.73294577459876, 30.251945643016235, -97.71732458929603, 30.264548996109724)
 # here we define our envelope_data protobuf with bounds and a WGS-84 (`wkid=4326`) spatial reference
 envelope_data = EnvelopeData(xmin=neighborhood_box[0], 
@@ -401,12 +403,14 @@ from nsl.stac.client import NSLClient
 client = NSLClient()
 
 # request the geojson foot print of Travis County, Texas
-r = requests.get("https://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json")
+url = "http://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json"
+r = requests.get(url)
 travis_geojson = json.dumps(r.json()['features'][0]['geometry'])
 # create our GeometryData protobuf from geojson string and WGS-84 SpatialReferenceData protobuf
 geometry_data = GeometryData(geojson=travis_geojson, 
                              sr=SpatialReferenceData(wkid=4326))
-# Search for data that intersects the geojson geometry and limit results to 2 (instead of default of 10)
+# Search for data that intersects the geojson geometry and limit results 
+# to 2 (instead of default of 10)
 stac_request = StacRequest(geometry=geometry_data, limit=2)
 # collect the ids from STAC items to compare against results from wkt GeometryData
 geojson_ids = []
@@ -449,9 +453,11 @@ Same geometry as above, but a wkt geometry instead of a geojson:
 
 
 ```python
-from nsl.stac import GeometryData, SpatialReferenceData
 # Same geometry as above, but a wkt geometry instead of a geojson
-travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
+travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, \
+              -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, \
+              -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, \
+              -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
 geometry_data = GeometryData(wkt=travis_wkt, 
                              sr=SpatialReferenceData(wkid=4326))
 stac_request = StacRequest(geometry=geometry_data, limit=2)
@@ -501,7 +507,8 @@ from nsl.stac.client import NSLClient
 from nsl.stac import utils, StacRequest, enum
 
 # make a filter that selects all data on or after August 21st, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 21), rel_type=enum.FieldRelationship.GT_OR_EQ)
+value = date(2019, 8, 21)
+time_filter = utils.pb_timestampfield(value=value, rel_type=enum.FieldRelationship.GT_OR_EQ)
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
@@ -604,7 +611,8 @@ from nsl.stac.client import NSLClient
 from nsl.stac import utils, enum, StacRequest
 # Query all data for the entire day of August 6, 2019
 value = date(2019, 8, 6)
-# if you omit this tzinfo from the pb_timestampfield function, the default for tzinfo is assumed to be utc 
+# if you omit this tzinfo from the pb_timestampfield function, the default for tzinfo 
+# is assumed to be utc 
 texas_utc_offset = timezone(timedelta(hours=-6))
 time_filter = utils.pb_timestampfield(rel_type=enum.FieldRelationship.EQ,
                                       value=value,
@@ -668,7 +676,9 @@ from IPython.display import Image, display
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, enum, StacRequest, GeometryData, SpatialReferenceData
 
-colorado_river_wkt = 'LINESTRING(-97.75803689750262 30.266434949323585,-97.75344495566912 30.264544585776626,-97.74576310905047 30.262135246151697)'
+colorado_river_wkt = 'LINESTRING(-97.75803689750262 30.266434949323585, \
+                        -97.75344495566912 30.264544585776626, \
+                        -97.74576310905047 30.262135246151697)'
 geometry_data = GeometryData(wkt=colorado_river_wkt, 
                              sr=SpatialReferenceData(wkid=4326))
 stac_request = StacRequest(geometry=geometry_data,

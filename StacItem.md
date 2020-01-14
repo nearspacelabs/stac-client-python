@@ -327,10 +327,10 @@ Each STAC item should have at least one asset. An asset should be all the inform
 from nsl.stac import Asset, utils
 from nsl.stac.enum import AssetType
 def print_asset(asset: Asset):
-    
+    asset_name = AssetType(asset.asset_type).name
     print(" href: {}".format(asset.href))
     print(" type: {}".format(asset.type))
-    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, AssetType(asset.asset_type).name))
+    print(" protobuf enum number and name: {0}, {1}".format(asset.asset_type, asset_name))
     print()
 
 print("there are {} assets".format(len(stac_item.assets)))
