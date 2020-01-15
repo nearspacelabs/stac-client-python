@@ -31,6 +31,10 @@ SERVICE_ACCOUNT_DETAILS = os.getenv("SERVICE_ACCOUNT_DETAILS")
 
 NSL_ID = os.getenv("NSL_ID")
 NSL_SECRET = os.getenv("NSL_SECRET")
+# if an application uses this package, this singleton pattern of using an __init__.py file means that the package
+# and all the network calls will be made immediately upon application start. In some cases a virtual machine might
+# be able to start an application before it has network access.
+NSL_NETWORK_DELAY = int(os.getenv("NSL_NETWORK_DELAY", 0))
 
 # TODO:
 API_AUDIENCE = "http://localhost:8000"
@@ -143,35 +147,37 @@ class __BearerAuth:
         return "Bearer {token}".format(token=self._token)
 
     def authorize(self):
-        conn = http.client.HTTPSConnection(AUTH0_DOMAIN)
-        headers = {'content-type': 'application/json'}
-        post_body = {
-            'client_id': NSL_ID,
-            'client_secret': NSL_SECRET,
-            'audience': API_AUDIENCE,
-            'grant_type': 'client_credentials'
-        }
-
-        conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
-        res = conn.getresponse()
-
-        # TODO: retries
-        if res.code != 200:
-            raise ConnectionError("authentication error code {0}, ", res.code)
-
         try:
+            conn = http.client.HTTPSConnection(AUTH0_DOMAIN)
+            headers = {'content-type': 'application/json'}
+            post_body = {
+                'client_id': NSL_ID,
+                'client_secret': NSL_SECRET,
+                'audience': API_AUDIENCE,
+                'grant_type': 'client_credentials'
+            }
+
+            conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
+            res = conn.getresponse()
+
+            # TODO: retries
+            if res.code != 200:
+                warnings.warn("authentication error code {0}, ", res.code)
+
             res_body = json.loads(res.read().decode("utf-8"))
             self._expiry = res_body["expires_in"] + time.time()
             self._token = res_body["access_token"]
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             warnings.warn("failed to decode authentication json token")
-            raise e
+        except BaseException as be:
+            warnings.warn("failed to connect to authorization service with error: {0}".format(be))
 
     @property
     def expiry(self):
         return self._expiry
 
 
+time.sleep(NSL_NETWORK_DELAY)
 bearer_auth = __BearerAuth()
 stac_service = __StacServiceStub()
 gcs_storage_client = _get_storage_client()
