@@ -169,8 +169,12 @@ class __BearerAuth:
             self._token = res_body["access_token"]
         except json.JSONDecodeError:
             warnings.warn("failed to decode authentication json token")
+            self._expiry = 0
+            self._token = {}
         except BaseException as be:
             warnings.warn("failed to connect to authorization service with error: {0}".format(be))
+            self._expiry = 0
+            self._token = {}
 
     @property
     def expiry(self):
