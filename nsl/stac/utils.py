@@ -57,11 +57,14 @@ def download_gcs_object(bucket: str,
     blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
 
     if file_obj is not None:
-        result = file_obj.name
         blob.download_to_file(file_obj=file_obj, client=gcs_storage_client)
+        if "name" in file_obj:
+            save_filename = file_obj.name
+        else:
+            save_filename = ""
         file_obj.seek(0)
 
-        return result
+        return save_filename
     elif len(save_filename) > 0:
         with open(save_filename, "w+b") as file_obj:
             download_gcs_object(bucket, blob_name, file_obj=file_obj)
@@ -79,11 +82,14 @@ def download_s3_object(bucket: str,
     try:
         bucket_obj = s3.Bucket(bucket)
         if file_obj is not None:
-            result = file_obj.name
             bucket_obj.download_fileobj(blob_name, file_obj)
+            if "name" in file_obj:
+                save_filename = file_obj.name
+            else:
+                save_filename = ""
             file_obj.seek(0)
 
-            return result
+            return save_filename
         elif len(save_filename) > 0:
             bucket_obj.download_file(blob_name, save_filename)
             return save_filename
