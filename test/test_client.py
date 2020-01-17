@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import io
 
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
@@ -448,6 +449,11 @@ class TestHelpers(unittest.TestCase):
                 data3 = file_obj.read()
                 self.assertEqual(data1, data3)
 
+            b = io.BytesIO()
+            utils.download_asset(asset=asset, file_obj=b)
+            data4 = b.read()
+            self.assertEqual(data2, data4)
+
 
 class TestPerf(unittest.TestCase):
     def test_query_limits(self):
@@ -485,12 +491,12 @@ class TestSpatialQueries(unittest.TestCase):
         # TimestampField is a query field that allows for making sql-like queries for information
         # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
         # Query data from August 1, 2019
-        time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
+        time_filter = utils.pb_timestampfield(value=date(2019, 12, 31), rel_type=enum.FieldRelationship.LT_OR_EQ)
 
         # the StacRequest is a protobuf message for making filter queries for data
         # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital
         # area of interest and was observed on or after the 1st of August
-        stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
+        stac_request = StacRequest(processed=time_filter, geometry=geometry_data)
 
         # search_one method requests only one item be returned that meets the query filters in the StacRequest
         # the item returned is a StacItem protobuf message
