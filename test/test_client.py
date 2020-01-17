@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import io
 
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
@@ -447,6 +448,11 @@ class TestHelpers(unittest.TestCase):
                 utils.download_asset(asset=asset, file_obj=file_obj)
                 data3 = file_obj.read()
                 self.assertEqual(data1, data3)
+
+            b = io.BytesIO()
+            utils.download_asset(asset=asset, file_obj=b)
+            data4 = b.read()
+            self.assertEqual(data2, data4)
 
 
 class TestPerf(unittest.TestCase):

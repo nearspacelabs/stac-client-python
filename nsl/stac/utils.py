@@ -103,9 +103,9 @@ def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename:
     :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory
     are set, then only file_obj is used
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
-    :return:
+    :return: returns the save_filename. if BinaryIO is not a FileIO object type, save_filename returned is an
+    empty string
     """
-
     headers = {"authorization": bearer_auth.auth_header()}
     if len(asset.type) > 0:
         headers["content-type"] = asset.type
@@ -124,7 +124,10 @@ def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename:
             f.write(res.read())
     elif file_obj is not None:
         file_obj.write(res.read())
-        save_filename = file_obj.name
+        if "name" in file_obj:
+            save_filename = file_obj.name
+        else:
+            save_filename = ""
         file_obj.seek(0)
     else:
         raise ValueError("must provide filename or file_obj")
