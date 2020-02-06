@@ -22,7 +22,8 @@ import io
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from nsl.stac import StacRequest, StacItem, LandsatRequest, Asset, TimestampField, GeometryData, SpatialReferenceData
+from nsl.stac import StacRequest, LandsatRequest, MosaicRequest
+from nsl.stac import StacItem, Asset, TimestampField, GeometryData, SpatialReferenceData, Mosaic
 from nsl.stac import utils, enum
 from nsl.stac.enum import AssetType, Band, CloudPlatform, Constellation, FieldRelationship
 from nsl.stac.client import NSLClient
@@ -31,6 +32,22 @@ client = NSLClient(nsl_only=False)
 
 
 class TestProtobufs(unittest.TestCase):
+    def test_mosaic_parts(self):
+        mosaic = Mosaic(name="bananas", quad_key="stuff", provenance_ids=["no one", "wants", "potato", "waffles"])
+
+        self.assertEqual(mosaic.name, "bananas")
+        mosaic.observation_range.CopyFrom(utils.datetime_range(date(2017, 1, 1), date(2018, 1, 1)))
+        d_compare = utils.timezoned(date(2019, 1, 1))
+        self.assertGreater(d_compare.timestamp(), mosaic.observation_range.start.seconds)
+        self.assertGreater(d_compare.timestamp(), mosaic.observation_range.end.seconds)
+
+        self.assertEqual(mosaic.provenance_ids[0], "no one")
+        self.assertEqual(4, len(mosaic.provenance_ids))
+        mosaic.provenance_ids.append("and boiled chicken")
+        self.assertEqual(5, len(mosaic.provenance_ids))
+        mosaic_request = MosaicRequest(name="bananas", quad_key="stuffly")
+        self.assertEqual(mosaic_request.name, mosaic.name)
+
     def test_durations(self):
         d = utils.duration(datetime(2016, 1, 1), datetime(2017, 1, 1))
         self.assertEquals(d.seconds, 31622400)

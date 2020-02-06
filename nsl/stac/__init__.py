@@ -27,7 +27,8 @@ import grpc
 from google.auth.exceptions import DefaultCredentialsError
 
 from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData, EnvelopeData
-from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest
+from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, MosaicRequest, \
+    DatetimeRange
 from epl.protobuf.query_pb2 import TimestampField, FloatField, StringField, UInt32Field
 from epl.protobuf import stac_service_pb2_grpc
 from google.cloud import storage as gcp_storage
@@ -35,10 +36,10 @@ from google.oauth2 import service_account
 
 __all__ = [
     'stac_service',
-    'EoRequest', 'StacRequest', 'LandsatRequest',
+    'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest',
     'GeometryData', 'SpatialReferenceData', 'EnvelopeData',
     'FloatField', 'TimestampField', 'StringField', 'UInt32Field',
-    'StacItem', 'Asset', 'Eo',
+    'StacItem', 'Asset', 'Eo', 'Mosaic', 'DatetimeRange',
     'gcs_storage_client', 'bearer_auth'
 ]
 

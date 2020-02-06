@@ -31,7 +31,7 @@ from google.protobuf import timestamp_pb2, duration_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth
 
-from nsl.stac import StacItem, Asset, TimestampField, Eo
+from nsl.stac import StacItem, Asset, TimestampField, Eo, DatetimeRange
 from nsl.stac.enum import Band, CloudPlatform, FieldRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
@@ -457,3 +457,14 @@ def duration(d_start: datetime.date or datetime.datetime, d_end: datetime.date o
     d = duration_pb2.Duration()
     d.FromTimedelta(timezoned(d_end) - timezoned(d_start))
     return d
+
+
+def datetime_range(d_start: datetime.date or datetime.datetime,
+                   d_end: datetime.date or datetime.datetime) -> DatetimeRange:
+    """
+    for datetime range definitions for Mosaic objects.
+    :param d_start: start datetime or date
+    :param d_end: end datetime or date
+    :return: DatetimeRange object
+    """
+    return DatetimeRange(start=pb_timestamp(d_start), end=pb_timestamp(d_end))
