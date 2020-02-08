@@ -36,7 +36,7 @@ class TestProtobufs(unittest.TestCase):
         mosaic = Mosaic(name="bananas", quad_key="stuff", provenance_ids=["no one", "wants", "potato", "waffles"])
 
         self.assertEqual(mosaic.name, "bananas")
-        mosaic.observation_range.CopyFrom(utils.datetime_range(date(2017, 1, 1), date(2018, 1, 1)))
+        mosaic.observation_range.CopyFrom(utils.datetime_range(date(2016, 1, 1), date(2018, 1, 1)))
         d_compare = utils.timezoned(date(2019, 1, 1))
         self.assertGreater(d_compare.timestamp(), mosaic.observation_range.start.seconds)
         self.assertGreater(d_compare.timestamp(), mosaic.observation_range.end.seconds)
@@ -47,6 +47,11 @@ class TestProtobufs(unittest.TestCase):
         self.assertEqual(5, len(mosaic.provenance_ids))
         mosaic_request = MosaicRequest(name="bananas", quad_key="stuffly")
         self.assertEqual(mosaic_request.name, mosaic.name)
+        stac_item = StacItem(mosaic=mosaic)
+        self.assertEqual(stac_item.mosaic.name, mosaic.name)
+
+        stac_request = StacRequest(mosaic=mosaic_request)
+        self.assertEqual(stac_request.mosaic.name, mosaic.name)
 
     def test_durations(self):
         d = utils.duration(datetime(2016, 1, 1), datetime(2017, 1, 1))
