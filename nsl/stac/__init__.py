@@ -183,6 +183,11 @@ class __BearerAuth:
                 warnings.warn("authentication error code {0}, ".format(res.code))
 
             res_body = json.loads(res.read().decode("utf-8"))
+            if "error" in res_body:
+                warnings.warn("authentication failed with error '{0}' and message '{1}'"
+                              .format(res_body["error"], res_body["error_description"]))
+                return
+
             self._expiry = res_body["expires_in"] + time.time()
             self._token = res_body["access_token"]
         except json.JSONDecodeError:
