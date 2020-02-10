@@ -180,7 +180,7 @@ class __BearerAuth:
 
             # TODO: retries
             if res.code != 200:
-                warnings.warn("authentication error code {0}, ", res.code)
+                warnings.warn("authentication error code {0}, ".format(res.code))
 
             res_body = json.loads(res.read().decode("utf-8"))
             self._expiry = res_body["expires_in"] + time.time()
