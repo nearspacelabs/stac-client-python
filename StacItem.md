@@ -14,7 +14,7 @@ Return to [README.md](./README.md)
 from nsl.stac.client import NSLClient
 from nsl.stac import StacRequest
 
-stac_request = StacRequest(id='20190826T185828Z_715_POM1_ST2_P')
+stac_request = StacRequest(id='20190829T173429Z_1759_POM1_ST2_P')
 
 # get a client interface to the gRPC channel
 client = NSLClient()
@@ -70,89 +70,92 @@ print(stac_item)
 
 
 ```text
-    id: "20190826T185828Z_715_POM1_ST2_P"
+    id: "20190829T173429Z_1759_POM1_ST2_P"
     geometry {
-      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\367\330\320\314\025nX\300\031\2774\223vC>@3\312/\034-nX\300a\326Z\371*F>@\265\023\016i@oX\300\355\303\030N\350E>@\315\272\247\322.oX\300u\036\372\212)C>@\367\330\320\314\025nX\300\031\2774\223vC>@"
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\205N\247\203gqX\300l\226EM\267\037>@L\034efdqX\300q\307\267}L\">@\364y\rlxrX\300\030\316j\2561\">@?\305aT\177rX\300\322\244_\330\210\037>@\205N\247\203gqX\300l\226EM\267\037>@"
       sr {
         wkid: 4326
       }
       simple: STRONG_SIMPLE
     }
     bbox {
-      xmin: -97.73830629706102
-      ymin: 30.262352644027903
-      xmax: -97.7200805701758
-      ymax: 30.27409323184691
+      xmin: -97.78902158306026
+      ymin: 30.123181842184586
+      xmax: -97.77175292848659
+      ymax: 30.133979661338746
       sr {
         wkid: 4326
       }
     }
     properties {
       type_url: "type.googleapis.com/st.protobuf.SwiftMetadata"
-      value: "\n\03620190826T163847Z_TRAVIS_COUNTY\022 0495ead38e491e637414d508f2d230d6\032\03120191203T045008Z_SWIFTERA \0102.\032\'POINT(-97.75460815429688 30.3447265625):\003\010\346!:\005\r\232\266\244FB\003 \313\005R\03520191202T145554Z_715_ST2_POM1Z\03520190826T185828Z_715_POM1_ST2Z\03520191122T061353Z_715_ST2_POM1Z\03520191122T061722Z_715_ST2_POM1Z\03520191202T145554Z_715_ST2_POM1b\03520190826T185828Z_715_POM1_ST2h\001p\001x\326\001\200\001\262*\210\001\276\203\022"
+      value: "\n\03420190829T153004Z_HAYS_COUNTY\022 0495ead38e491e637414d508f2d230d6\032\03120200225T182845Z_SWIFTERA \010B\003 \337\rR\03620191202T150234Z_1759_ST2_POM1Z\03620190829T173429Z_1759_POM1_ST2Z\03620191122T065203Z_1759_ST2_POM1Z\03620191122T065513Z_1759_ST2_POM1Z\03620191202T150234Z_1759_ST2_POM1b\03620190829T173429Z_1759_POM1_ST2h\001p\001x\325\020\200\001\340\014\210\001\265\035\250\001\200\020"
     }
     assets {
       key: "GEOTIFF_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif"
+        href: "https://eap.nearspacelabs.net/download/20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P.tif"
         type: "image/vnd.stac.geotiff"
         eo_bands: RGB
         asset_type: GEOTIFF
         cloud_platform: GCP
-        bucket_manager: "Swiftera"
+        bucket_manager: "Near Space Labs"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif"
+        object_path: "20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P.tif"
       }
     }
     assets {
       key: "THUMBNAIL_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg"
+        href: "https://eap.nearspacelabs.net/download/20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P_thumb.jpg"
         type: "image/jpeg"
         eo_bands: RGB
         asset_type: THUMBNAIL
         cloud_platform: GCP
-        bucket_manager: "Swiftera"
+        bucket_manager: "Near Space Labs"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg"
+        object_path: "20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P_thumb.jpg"
       }
     }
     datetime {
-      seconds: 1566845908
-      nanos: 632167000
+      seconds: 1567100069
+      nanos: 429146000
     }
     observed {
-      seconds: 1566845908
-      nanos: 632167000
+      seconds: 1567100069
+      nanos: 429146000
     }
     processed {
-      seconds: 1575352682
-      nanos: 861234000
+      seconds: 1582655391
+      nanos: 944032000
     }
     updated {
-      seconds: 1575352687
-      nanos: 268198954
+      seconds: 1582655395
+      nanos: 410392398
     }
     eo {
       platform: SWIFT_2
       instrument: POM_1
       constellation: SWIFT
       sun_azimuth {
-        value: 197.96905517578125
+        value: 144.40382385253906
       }
       sun_elevation {
-        value: 69.09848022460938
+        value: 65.16360473632812
       }
       gsd {
         value: 0.30000001192092896
       }
       off_nadir {
-        value: 22.70497703552246
+        value: 21.890628814697266
       }
       azimuth {
-        value: 163.9722137451172
+        value: -155.82078552246094
+      }
+      sr {
+        wkid: 32614
       }
     }
     
@@ -191,23 +194,23 @@ print("STAC Item geometry: {}".format(stac_item.geometry))
 
 
 ```text
-    STAC Item id: 20190826T185828Z_715_POM1_ST2_P
+    STAC Item id: 20190829T173429Z_1759_POM1_ST2_P
     
-    STAC Item observed: seconds: 1566845908
-    nanos: 632167000
+    STAC Item observed: seconds: 1567100069
+    nanos: 429146000
     
-    STAC Item datetime: seconds: 1566845908
-    nanos: 632167000
+    STAC Item datetime: seconds: 1567100069
+    nanos: 429146000
     
-    STAC Item bbox: xmin: -97.73830629706102
-    ymin: 30.262352644027903
-    xmax: -97.7200805701758
-    ymax: 30.27409323184691
+    STAC Item bbox: xmin: -97.78902158306026
+    ymin: 30.123181842184586
+    xmax: -97.77175292848659
+    ymax: 30.133979661338746
     sr {
       wkid: 4326
     }
     
-    STAC Item geometry: wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\367\330\320\314\025nX\300\031\2774\223vC>@3\312/\034-nX\300a\326Z\371*F>@\265\023\016i@oX\300\355\303\030N\350E>@\315\272\247\322.oX\300u\036\372\212)C>@\367\330\320\314\025nX\300\031\2774\223vC>@"
+    STAC Item geometry: wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\205N\247\203gqX\300l\226EM\267\037>@L\034efdqX\300q\307\267}L\">@\364y\rlxrX\300\030\316j\2561\">@?\305aT\177rX\300\322\244_\330\210\037>@\205N\247\203gqX\300l\226EM\267\037>@"
     sr {
       wkid: 4326
     }
@@ -254,9 +257,9 @@ print("UTC Updated Metadata: {}".format(datetime.utcfromtimestamp(stac_item.upda
 
 
 ```text
-    UTC Observed Scene: 2019-08-26 18:58:28
-    UTC Processed Data: 2019-12-03 05:58:02
-    UTC Updated Metadata: 2019-12-03 05:58:07
+    UTC Observed Scene: 2019-08-29 17:34:29
+    UTC Processed Data: 2020-02-25 18:29:51
+    UTC Updated Metadata: 2020-02-25 18:29:55
 ```
 
 
@@ -298,13 +301,13 @@ print("bounds:\n{}\n".format(Polygon.from_bounds(stac_item.bbox.xmin,
 
 ```text
     wkt printout of polygon:
-    MULTIPOLYGON (((-97.7200805701758 30.26352806127315, -97.72150330225922 30.27409323184691, -97.73830629706102 30.27307594399092, -97.73723284129956 30.2623526440279, -97.7200805701758 30.26352806127315)))
+    MULTIPOLYGON (((-97.77194300974413 30.12389071415821, -97.77175292848659 30.13397966133875, -97.7885999805074 30.13357057673974, -97.78902158306026 30.12318184218459, -97.77194300974413 30.12389071415821)))
     
     centroid of polygon:
-    POINT (-97.72929640107934 30.26824224262507)
+    POINT (-97.78037008507624 30.12864316190825)
     
     bounds:
-    POLYGON ((-97.73830629706102 30.2623526440279, -97.73830629706102 30.27409323184691, -97.7200805701758 30.27409323184691, -97.7200805701758 30.2623526440279, -97.73830629706102 30.2623526440279))
+    POLYGON ((-97.78902158306026 30.12318184218459, -97.78902158306026 30.13397966133875, -97.77175292848659 30.13397966133875, -97.77175292848659 30.12318184218459, -97.78902158306026 30.12318184218459))
     
 ```
 
@@ -353,12 +356,12 @@ print_asset(utils.get_asset(stac_item, asset_type=AssetType.GEOTIFF))
 ```text
     there are 2 assets
     THUMBNAIL
-     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P_thumb.jpg
+     href: https://eap.nearspacelabs.net/download/20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P_thumb.jpg
      type: image/jpeg
      protobuf enum number and name: 9, THUMBNAIL
     
     GEOTIFF
-     href: https://eap.nearspacelabs.net/download/20191203T045008Z_SWIFTERA/Publish_0/20190826T185828Z_715_POM1_ST2_P.tif
+     href: https://eap.nearspacelabs.net/download/20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P.tif
      type: image/vnd.stac.geotiff
      protobuf enum number and name: 2, GEOTIFF
     
@@ -401,19 +404,22 @@ print(stac_item.eo)
     instrument: POM_1
     constellation: SWIFT
     sun_azimuth {
-      value: 197.96905517578125
+      value: 144.40382385253906
     }
     sun_elevation {
-      value: 69.09848022460938
+      value: 65.16360473632812
     }
     gsd {
       value: 0.30000001192092896
     }
     off_nadir {
-      value: 22.70497703552246
+      value: 21.890628814697266
     }
     azimuth {
-      value: 163.9722137451172
+      value: -155.82078552246094
+    }
+    sr {
+      wkid: 32614
     }
     
 ```
@@ -455,10 +461,10 @@ print("azimuth: {:.5f}".format(stac_item.eo.azimuth.value))
 
 
 ```text
-    sun_azimuth: 197.96906
-    sun_elevation: 69.09848
-    off_nadir: 22.70498
-    azimuth: 163.97221
+    sun_azimuth: 144.40382
+    sun_elevation: 65.16360
+    off_nadir: 21.89063
+    azimuth: -155.82079
 ```
 
 
