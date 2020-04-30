@@ -28,13 +28,13 @@ from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, EoRequest,
 from nsl.stac.enum import FieldRelationship
 
 # create our off_nadir query to only return data captured with an angle of less than or 
-# equal to 15 degrees
-off_nadir = FloatField(value=15.0, rel_type=FieldRelationship.LT_OR_EQ)
+# equal to 10 degrees
+off_nadir = FloatField(value=10.0, rel_type=FieldRelationship.LT_OR_EQ)
 # create an eo_request container
 eo_request = EoRequest(off_nadir=off_nadir)
 # define ourselves a point in Texas
-someplace_texas = "POINT(-97.72493696704974 30.25539788861046)"
-geometry_data = GeometryData(wkt=someplace_texas, sr=SpatialReferenceData(wkid=4326))
+ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
+geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 # create a StacRequest with geometry, eo_request and a limit of 20
 stac_request = StacRequest(geometry=geometry_data, eo=eo_request, limit=20)
 
@@ -63,10 +63,24 @@ for stac_item in client.search(stac_request):
 ```text
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
-    SWIFT STAC item '20190822T183307Z_681_POM1_ST2_P' from 2019-08-22T18:33:07+00:00
-    has a off_nadir 13.354, which should be less than or equal to requested off_nadir 15.0: confirmed True
-    SWIFT STAC item '20190821T180032Z_563_POM1_ST2_P' from 2019-08-21T18:00:32+00:00
-    has a off_nadir 14.421, which should be less than or equal to requested off_nadir 15.0: confirmed True
+    SWIFT STAC item '20190822T183518Z_746_POM1_ST2_P' from 2019-08-22T18:35:18+00:00
+    has a off_nadir 9.421, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190822T183510Z_742_POM1_ST2_P' from 2019-08-22T18:35:10+00:00
+    has a off_nadir 9.300, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190821T180042Z_568_POM1_ST2_P' from 2019-08-21T18:00:42+00:00
+    has a off_nadir 9.685, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190821T180028Z_561_POM1_ST2_P' from 2019-08-21T18:00:28+00:00
+    has a off_nadir 8.976, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190821T180002Z_548_POM1_ST2_P' from 2019-08-21T18:00:02+00:00
+    has a off_nadir 9.282, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190821T175954Z_544_POM1_ST2_P' from 2019-08-21T17:59:54+00:00
+    has a off_nadir 8.879, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190821T175943Z_539_POM1_ST2_P' from 2019-08-21T17:59:43+00:00
+    has a off_nadir 9.000, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190818T174304Z_205_POM1_ST2_P' from 2019-08-18T17:43:04+00:00
+    has a off_nadir 7.006, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20190818T174227Z_181_POM1_ST2_P' from 2019-08-18T17:42:27+00:00
+    has a off_nadir 8.232, which should be less than or equal to requested off_nadir 10.0: confirmed True
 ```
 
 
