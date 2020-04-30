@@ -97,22 +97,22 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the Austin, Texas capital building.
+# our area of interest will be the coordinates of the UT Stadium in Austin Texas
 # the order of coordinates here is longitude then latitude (x, y). The results of our query 
 # will be returned only if they intersect this point geometry we've defined (other geometry 
 # types besides points are supported)
 # This string format, POINT(float, float) is the well-known-text geometry format:
 # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
-austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
+ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
 # GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial 
 # reference defines the WGS-84 elispsoid (`wkid=4326`) spatial reference (the latitude longitude 
 # spatial reference most commonly used)
-geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
+geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
-# GT_OR_EQ is an enum that means greater than or equal to the value in the query field
-# Query data from August 1, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
+# LT_OR_EQ is an enum that means less than or equal to the value in the query field
+# Query data from August 25, 2019
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FieldRelationship.LT_OR_EQ)
 
 # the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin 
@@ -201,7 +201,7 @@ from nsl.stac import StacRequest
 # get a client interface to the gRPC channel
 client = NSLClient()
 
-stac_request = StacRequest(id='20190829T173429Z_1759_POM1_ST2_P')
+stac_request = StacRequest(id='20190822T183518Z_746_POM1_ST2_P')
 
 # for this request we might as well use the search one, as STAC ids ought to be unique
 stac_item = client.search_one(stac_request)
@@ -218,31 +218,31 @@ print(stac_item)
 
 
 ```text
-    id: "20190829T173429Z_1759_POM1_ST2_P"
+    id: "20190822T183518Z_746_POM1_ST2_P"
     geometry {
-      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\205N\247\203gqX\300l\226EM\267\037>@L\034efdqX\300q\307\267}L\">@\364y\rlxrX\300\030\316j\2561\">@?\305aT\177rX\300\322\244_\330\210\037>@\205N\247\203gqX\300l\226EM\267\037>@"
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000J&D\300\310oX\300\354\257\272\223\233I>@\256\311\271\217\270oX\300v\257\331\002FG>@\327-+\221\266nX\300V@\240\t\232G>@\366\032\253~\306nX\300\274\266sf\343I>@J&D\300\310oX\300\354\257\272\223\233I>@"
       sr {
         wkid: 4326
       }
       simple: STRONG_SIMPLE
     }
     bbox {
-      xmin: -97.78902158306026
-      ymin: 30.123181842184586
-      xmax: -97.77175292848659
-      ymax: 30.133979661338746
+      xmin: -97.74662787108642
+      ymin: 30.278412035127495
+      xmax: -97.7298930093451
+      ymax: 30.288626101732675
       sr {
         wkid: 4326
       }
     }
     properties {
-      type_url: "type.googleapis.com/st.protobuf.SwiftMetadata"
-      value: "\n\03420190829T153004Z_HAYS_COUNTY\022 0495ead38e491e637414d508f2d230d6\032\03120200225T182845Z_SWIFTERA \010B\003 \337\rR\03620191202T150234Z_1759_ST2_POM1Z\03620190829T173429Z_1759_POM1_ST2Z\03620191122T065203Z_1759_ST2_POM1Z\03620191122T065513Z_1759_ST2_POM1Z\03620191202T150234Z_1759_ST2_POM1b\03620190829T173429Z_1759_POM1_ST2h\001p\001x\325\020\200\001\340\014\210\001\265\035\250\001\200\020"
+      type_url: "nearspacelabs.com/proto/st.protobuf.SwiftMetadata/st.protobuf.SwiftMetadata"
+      value: "\n\03620190822T162258Z_TRAVIS_COUNTY\022 1e39f2910361bd23870c174804e83abe\032\03120200429T233414Z_SWIFTERA \010B\003 \352\005R\03520191202T140547Z_746_ST2_POM1Z\03520190822T183518Z_746_POM1_ST2Z\03520191122T035808Z_746_ST2_POM1Z\03520191122T040127Z_746_ST2_POM1Z\03520191202T140547Z_746_ST2_POM1b\03520190822T183518Z_746_POM1_ST2h\001p\001x\233\024\200\001\211G\210\001\244["
     }
     assets {
       key: "GEOTIFF_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P.tif"
+        href: "https://eap.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P.tif"
         type: "image/vnd.stac.geotiff"
         eo_bands: RGB
         asset_type: GEOTIFF
@@ -250,13 +250,13 @@ print(stac_item)
         bucket_manager: "Near Space Labs"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P.tif"
+        object_path: "20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P.tif"
       }
     }
     assets {
       key: "THUMBNAIL_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P_thumb.jpg"
+        href: "https://eap.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P_thumb.jpg"
         type: "image/jpeg"
         eo_bands: RGB
         asset_type: THUMBNAIL
@@ -264,43 +264,43 @@ print(stac_item)
         bucket_manager: "Near Space Labs"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20200225T182845Z_SWIFTERA/Publish_0/20191202T150234Z_1759_ST2_POM1_P_thumb.jpg"
+        object_path: "20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P_thumb.jpg"
       }
     }
     datetime {
-      seconds: 1567100069
-      nanos: 429146000
+      seconds: 1566498918
+      nanos: 505476000
     }
     observed {
-      seconds: 1567100069
-      nanos: 429146000
+      seconds: 1566498918
+      nanos: 505476000
     }
     processed {
-      seconds: 1582655391
-      nanos: 944032000
+      seconds: 1588204806
+      nanos: 96949000
     }
     updated {
-      seconds: 1582655395
-      nanos: 410392398
+      seconds: 1588204817
+      nanos: 398345603
     }
     eo {
       platform: SWIFT_2
       instrument: POM_1
       constellation: SWIFT
       sun_azimuth {
-        value: 144.40382385253906
+        value: 181.26959228515625
       }
       sun_elevation {
-        value: 65.16360473632812
+        value: 71.41288757324219
       }
       gsd {
         value: 0.30000001192092896
       }
       off_nadir {
-        value: 21.890628814697266
+        value: 9.420705795288086
       }
       azimuth {
-        value: -155.82078552246094
+        value: -74.87425231933594
       }
       sr {
         wkid: 32614
@@ -342,7 +342,7 @@ client = NSLClient()
 
 # define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on 
 # the WGS-84 ellipsoid
-neighborhood_box = (-97.73294577459876, 30.251945643016235, -97.71732458929603, 30.264548996109724)
+neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
 # here we define our envelope_data protobuf with bounds and a WGS-84 (`wkid=4326`) spatial reference
 envelope_data = EnvelopeData(xmin=neighborhood_box[0], 
                              ymin=neighborhood_box[1], 
@@ -367,16 +367,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20190829T172947Z_1619_POM1_ST2_P
-    STAC item id: 20190829T172941Z_1616_POM1_ST2_P
-    STAC item id: 20190829T172925Z_1608_POM1_ST2_P
-    STAC item id: 20190829T172919Z_1605_POM1_ST2_P
-    STAC item id: 20190829T172857Z_1594_POM1_ST2_P
-    STAC item id: 20190829T172853Z_1592_POM1_ST2_P
-    STAC item id: 20190829T172851Z_1591_POM1_ST2_P
-    STAC item id: 20190829T172847Z_1589_POM1_ST2_P
-    STAC item id: 20190829T172831Z_1581_POM1_ST2_P
-    STAC item id: 20190826T185828Z_715_POM1_ST2_P
+    STAC item id: 20190826T190031Z_776_POM1_ST2_P
+    STAC item id: 20190826T190001Z_761_POM1_ST2_P
+    STAC item id: 20190826T185935Z_748_POM1_ST2_P
+    STAC item id: 20190826T185933Z_747_POM1_ST2_P
+    STAC item id: 20190826T185916Z_739_POM1_ST2_P
+    STAC item id: 20190826T185914Z_738_POM1_ST2_P
+    STAC item id: 20190826T185858Z_730_POM1_ST2_P
+    STAC item id: 20190826T185856Z_729_POM1_ST2_P
+    STAC item id: 20190826T185842Z_722_POM1_ST2_P
+    STAC item id: 20190826T185840Z_721_POM1_ST2_P
 ```
 
 
@@ -679,12 +679,12 @@ from IPython.display import Image, display
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, enum, StacRequest, GeometryData, SpatialReferenceData
 
-colorado_river_wkt = 'LINESTRING(-97.75803689750262 30.266434949323585, \
-                        -97.75344495566912 30.264544585776626, \
-                        -97.74576310905047 30.262135246151697)'
-geometry_data = GeometryData(wkt=colorado_river_wkt, 
+mlk_blvd_wkt = 'LINESTRING(-97.72842049283962 30.278624772098176,-97.72142529172878 30.2796624743974)'
+geometry_data = GeometryData(wkt=mlk_blvd_wkt, 
                              sr=SpatialReferenceData(wkid=4326))
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FieldRelationship.LT_OR_EQ)
 stac_request = StacRequest(geometry=geometry_data,
+                           datetime=time_filter,
                            limit=3)
 
 # get a client interface to the gRPC channel
@@ -736,8 +736,8 @@ from nsl.stac.client import NSLClient
 
 client = NSLClient()
 
-austin_capital_wkt = "POINT(-97.733333 30.266667)"
-geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
+ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
+geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # Query data from August 1, 2019
 time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
@@ -764,7 +764,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    20191202T145554Z_715_ST2_POM1_P.tif has 141352740 bytes
+    20191202T144608Z_761_ST2_POM1_P.tif has 131626674 bytes
 ```
 
 
@@ -794,8 +794,8 @@ from nsl.stac.utils import download_asset, get_asset
 from nsl.stac.client import NSLClient
 
 
-austin_capital_wkt = "POINT(-97.733333 30.266667)"
-geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
+ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
+geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # limit is set to 2 here, but it would work if you set it to 100 or 1000
 stac_request = StacRequest(geometry=geometry_data, limit=2)
@@ -824,10 +824,10 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    STAC item id: 20190826T185828Z_715_POM1_ST2_P
-    saved 20191202T145554Z_715_ST2_POM1_P.tif
-    STAC item id: 20190826T185005Z_465_POM1_ST2_P
-    saved 20191202T141934Z_465_ST2_POM1_P.tif
+    STAC item id: 20190826T190001Z_761_POM1_ST2_P
+    saved 20191202T144608Z_761_ST2_POM1_P.tif
+    STAC item id: 20190826T185933Z_747_POM1_ST2_P
+    saved 20191202T144613Z_747_ST2_POM1_P.tif
 ```
 
 

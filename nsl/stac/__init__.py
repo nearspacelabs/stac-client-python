@@ -55,8 +55,8 @@ NSL_SECRET = os.getenv("NSL_SECRET")
 NSL_NETWORK_DELAY = int(os.getenv("NSL_NETWORK_DELAY", 0))
 
 # TODO:
-API_AUDIENCE = "http://localhost:8000"
-AUTH0_DOMAIN = "swiftera-dev.auth0.com"
+API_AUDIENCE = "https://api.nearspacelabs.com"
+AUTH0_DOMAIN = "nearspacelabs.auth0.com"
 TOKEN_REFRESH_THRESHOLD = 300  # 5 minutes
 
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'api.nearspacelabs.net:9090')
