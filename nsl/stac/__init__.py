@@ -19,20 +19,20 @@ import os
 import re
 import http.client
 import json
+import sched
 import time
 import warnings
 
-import grpc
-
 from google.auth.exceptions import DefaultCredentialsError
-
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData, EnvelopeData
-from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, MosaicRequest, \
-    DatetimeRange
-from epl.protobuf.query_pb2 import TimestampField, FloatField, StringField, UInt32Field
-from epl.protobuf import stac_service_pb2_grpc
 from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
+import grpc
+
+from epl.protobuf import stac_service_pb2_grpc
+from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData, EnvelopeData
+from epl.protobuf.query_pb2 import TimestampField, FloatField, StringField, UInt32Field
+from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, MosaicRequest, \
+    DatetimeRange
 
 __all__ = [
     'stac_service', 'url_to_channel', 'STAC_SERVICE',
@@ -54,10 +54,12 @@ NSL_SECRET = os.getenv("NSL_SECRET")
 # be able to start an application before it has network access.
 NSL_NETWORK_DELAY = int(os.getenv("NSL_NETWORK_DELAY", 0))
 
-# TODO:
-API_AUDIENCE = "https://api.nearspacelabs.com"
-AUTH0_DOMAIN = "nearspacelabs.auth0.com"
-TOKEN_REFRESH_THRESHOLD = 300  # 5 minutes
+AUTH0_TENANT = os.getenv('AUTH0_TENANT', 'nearspacelabs.auth0.com')
+API_AUDIENCE = os.getenv('API_AUDIENCE', 'https://api.nearspacelabs.com')
+TOKEN_REFRESH_THRESHOLD = 60  # seconds
+TOKEN_REFRESH_SCHEDULER = sched.scheduler(time.time, time.sleep)
+MAX_TOKEN_REFRESH_BACKOFF = 60
+
 
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'api.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
@@ -161,12 +163,15 @@ class __BearerAuth:
 
     def auth_header(self):
         if (bearer_auth.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+            print("re-authorize bearer expiration {0}, threshold (in seconds) {1}"
+                  .format(bearer_auth.expiry, time.time(), TOKEN_REFRESH_THRESHOLD))
             self.authorize()
         return "Bearer {token}".format(token=self._token)
 
     def authorize(self):
+        print("attempting NSL authentication against {}".format(AUTH0_TENANT))
         try:
-            conn = http.client.HTTPSConnection(AUTH0_DOMAIN)
+            conn = http.client.HTTPSConnection(AUTH0_TENANT)
             headers = {'content-type': 'application/json'}
             post_body = {
                 'client_id': NSL_ID,
@@ -178,14 +183,14 @@ class __BearerAuth:
             conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
             res = conn.getresponse()
 
-            # TODO: retries
             if res.code != 200:
-                warnings.warn("authentication error code {0}, ".format(res.code))
+                warnings.warn("authentication error code {0}".format(res.code))
 
             res_body = json.loads(res.read().decode("utf-8"))
             if "error" in res_body:
                 warnings.warn("authentication failed with error '{0}' and message '{1}'"
                               .format(res_body["error"], res_body["error_description"]))
+                self.retry()
                 return
 
             self._expiry = res_body["expires_in"] + time.time()
@@ -202,6 +207,12 @@ class __BearerAuth:
     @property
     def expiry(self):
         return self._expiry
+
+    def retry(self, timeout: int = 0):
+        """Retry authorization request, with exponential backoff"""
+        backoff = min(2 if timeout == 0 else timeout * 2, MAX_TOKEN_REFRESH_BACKOFF)
+        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize)
+        TOKEN_REFRESH_SCHEDULER.run()
 
 
 time.sleep(NSL_NETWORK_DELAY)
