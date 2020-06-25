@@ -55,26 +55,26 @@ class TestProtobufs(unittest.TestCase):
 
     def test_durations(self):
         d = utils.duration(datetime(2016, 1, 1), datetime(2017, 1, 1))
-        self.assertEquals(d.seconds, 31622400)
+        self.assertEqual(d.seconds, 31622400)
         d = utils.duration(date(2016, 1, 1), datetime(2017, 1, 1))
-        self.assertEquals(d.seconds, 31622400)
+        self.assertEqual(d.seconds, 31622400)
         d = utils.duration(date(2016, 1, 1), date(2017, 1, 1))
-        self.assertEquals(d.seconds, 31622400)
+        self.assertEqual(d.seconds, 31622400)
         d = utils.duration(datetime(2016, 1, 1), date(2017, 1, 1))
-        self.assertEquals(d.seconds, 31622400)
+        self.assertEqual(d.seconds, 31622400)
 
         td = timedelta(seconds=d.seconds)
         d_end = datetime(2016, 1, 1) + td
-        self.assertEquals(d_end.year, 2017)
-        self.assertEquals(d_end.day, 1)
-        self.assertEquals(d_end.month, 1)
+        self.assertEqual(d_end.year, 2017)
+        self.assertEqual(d_end.day, 1)
+        self.assertEqual(d_end.month, 1)
 
         # FromDatetime for protobuf 3.6.1 throws "TypeError: can't subtract offset-naive and offset-aware datetimes"
         ts = utils.pb_timestamp(datetime(2016, 1, 1, tzinfo=timezone.utc))
         self.assertIsNotNone(ts)
 
         d = utils.duration(datetime(2017, 1, 1), datetime(2017, 1, 1, 0, 0, 59))
-        self.assertEquals(d.seconds, 59)
+        self.assertEqual(d.seconds, 59)
 
         now_local = datetime.now().astimezone()
         now_utc = datetime.now(tz=timezone.utc)
@@ -84,17 +84,17 @@ class TestProtobufs(unittest.TestCase):
         ts = utils.pb_timestamp(now_local)
         ts2 = timestamp_pb2.Timestamp()
         ts2.FromDatetime(now_local)
-        self.assertEquals(ts.seconds, ts2.seconds)
+        self.assertEqual(ts.seconds, ts2.seconds)
 
         d = utils.duration(datetime(2016, 1, 1, 0, 0, 59, tzinfo=timezone.utc),
                            datetime(2016, 1, 1, 0, 1, 59, tzinfo=timezone.utc))
-        self.assertEquals(d.seconds, 60)
+        self.assertEqual(d.seconds, 60)
 
         utc_now = now_local.astimezone(tz=timezone.utc)
         later_now = utc_now + timedelta(seconds=33)
 
         d = utils.duration(now_local, later_now)
-        self.assertEquals(d.seconds, 33)
+        self.assertEqual(d.seconds, 33)
 
 
 class TestAssetMatching(unittest.TestCase):
@@ -112,7 +112,7 @@ class TestLandsat(unittest.TestCase):
         stac_request = StacRequest(landsat=LandsatRequest(product_id=product_id))
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
-        self.assertEquals("LC80270392015057LGN01", stac_item.id)
+        self.assertEqual("LC80270392015057LGN01", stac_item.id)
 
     def test_wrs_row_path(self):
         wrs_path = 27
@@ -149,8 +149,8 @@ class TestLandsat(unittest.TestCase):
             else:
                 # print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(25, aws_count)
-        self.assertEquals(12, gcp_count)
+        self.assertEqual(25, aws_count)
+        self.assertEqual(12, gcp_count)
 
     def test_basename(self):
         asset_name = 'LO81120152015061LGN00_B2.TIF'
@@ -177,7 +177,7 @@ class TestLandsat(unittest.TestCase):
             if asset.cloud_platform == CloudPlatform.AWS:
                 print(asset.object_path)
                 count += 1
-        self.assertEquals(29, count)
+        self.assertEqual(29, count)
 
     def test_L1TP(self):
         stac_id = "LT51560171989121KIS00"
@@ -191,8 +191,8 @@ class TestLandsat(unittest.TestCase):
             else:
                 print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(0, aws_count)
-        self.assertEquals(20, gcp_count)
+        self.assertEqual(0, aws_count)
+        self.assertEqual(20, gcp_count)
 
     def test_L1G(self):
         stac_id = "LT51560202010035IKR02"
@@ -206,8 +206,8 @@ class TestLandsat(unittest.TestCase):
             else:
                 print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(0, aws_count)
-        self.assertEquals(20, gcp_count)
+        self.assertEqual(0, aws_count)
+        self.assertEqual(20, gcp_count)
 
     def test_L1t(self):
         stac_id = "LT50590132011238PAC00"
@@ -221,8 +221,8 @@ class TestLandsat(unittest.TestCase):
             else:
                 print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(0, aws_count)
-        self.assertEquals(20, gcp_count)
+        self.assertEqual(0, aws_count)
+        self.assertEqual(20, gcp_count)
 
     def test_L1GT(self):
         stac_id = "LE70080622016239EDC00"
@@ -236,8 +236,8 @@ class TestLandsat(unittest.TestCase):
             else:
                 print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(0, aws_count)
-        self.assertEquals(22, gcp_count)
+        self.assertEqual(0, aws_count)
+        self.assertEqual(22, gcp_count)
 
     def test_L8_processed_id(self):
         stac_id = "LC81262052018263LGN00"
@@ -251,8 +251,8 @@ class TestLandsat(unittest.TestCase):
             else:
                 print(asset.object_path)
                 gcp_count += 1
-        self.assertEquals(42, aws_count)
-        self.assertEquals(14, gcp_count)
+        self.assertEqual(42, aws_count)
+        self.assertEqual(14, gcp_count)
 
     def test_L8_processed_id_2(self):
         stac_id = "LC81262052018263LGN00"
@@ -266,14 +266,14 @@ class TestLandsat(unittest.TestCase):
                 print(asset.object_path)
             else:
                 gcp_count += 1
-        self.assertEquals(42, aws_count)
-        self.assertEquals(14, gcp_count)
+        self.assertEqual(42, aws_count)
+        self.assertEqual(14, gcp_count)
 
     def test_count(self):
         stac_id = "LC81262052018263LGN00"
         stac_request = StacRequest(id=stac_id)
         number = client.count(stac_request)
-        self.assertEquals(1, number)
+        self.assertEqual(1, number)
 
     def test_count_more(self):
         start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
@@ -284,12 +284,12 @@ class TestLandsat(unittest.TestCase):
 
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
         for stac_item in client.search(stac_request):
-            self.assertEquals(Constellation.LANDSAT, stac_item.eo.constellation)
+            self.assertEqual(Constellation.LANDSAT, stac_item.eo.constellation)
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
             self.assertGreaterEqual(utils.pb_timestamp(end).seconds, stac_item.datetime.seconds)
             self.assertLessEqual(utils.pb_timestamp(start).seconds, stac_item.datetime.seconds)
 
-        self.assertEquals(12, client.count(stac_request))
+        self.assertEqual(12, client.count(stac_request))
 
 
 class TestDatetimeQueries(unittest.TestCase):

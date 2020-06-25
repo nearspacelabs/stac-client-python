@@ -143,6 +143,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
+    attempting NSL authentication against nearspacelabs.auth0.com
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
 ```
@@ -236,8 +237,8 @@ print(stac_item)
       }
     }
     properties {
-      type_url: "nearspacelabs.com/proto/st.protobuf.SwiftMetadata/st.protobuf.SwiftMetadata"
-      value: "\n\03620190822T162258Z_TRAVIS_COUNTY\022 1e39f2910361bd23870c174804e83abe\032\03120200429T233414Z_SWIFTERA \010B\003 \352\005R\03520191202T140547Z_746_ST2_POM1Z\03520190822T183518Z_746_POM1_ST2Z\03520191122T035808Z_746_ST2_POM1Z\03520191122T040127Z_746_ST2_POM1Z\03520191202T140547Z_746_ST2_POM1b\03520190822T183518Z_746_POM1_ST2h\001p\001x\233\024\200\001\211G\210\001\244["
+      type_url: "type.googleapis.com/st.protobuf.NslData"
+      value: "\n\341\001\n\03620190822T162258Z_TRAVIS_COUNTYB\003 \352\005R\03520191202T140547Z_746_ST2_POM1Z\03520190822T183518Z_746_POM1_ST2Z\03520191122T035808Z_746_ST2_POM1Z\03520191122T040127Z_746_ST2_POM1Z\03520191202T140547Z_746_ST2_POM1b\03520190822T183518Z_746_POM1_ST2p\001\022N\022 1e39f2910361bd23870c174804e83abe\032\03120200429T233414Z_SWIFTERA \0100rh\001x\233\024\200\001\211G\210\001\244["
     }
     assets {
       key: "GEOTIFF_RGB"
@@ -280,8 +281,8 @@ print(stac_item)
       nanos: 96949000
     }
     updated {
-      seconds: 1588204817
-      nanos: 398345603
+      seconds: 1591626804
+      nanos: 596990000
     }
     eo {
       platform: SWIFT_2
@@ -533,8 +534,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2019-08-29T17:35:49+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2019-08-29T17:35:47+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-03-26T11:32:22+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-03-26T11:14:25+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
