@@ -61,6 +61,7 @@ for stac_item in client.search(stac_request):
 
 
 ```text
+    attempting NSL authentication against nearspacelabs.auth0.com
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
     SWIFT STAC item '20190822T183518Z_746_POM1_ST2_P' from 2019-08-22T18:35:18+00:00

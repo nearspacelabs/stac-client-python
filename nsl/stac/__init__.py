@@ -23,9 +23,6 @@ import sched
 import time
 import warnings
 
-from google.auth.exceptions import DefaultCredentialsError
-from google.cloud import storage as gcp_storage
-from google.oauth2 import service_account
 import grpc
 
 from epl.protobuf import stac_service_pb2_grpc
@@ -33,6 +30,10 @@ from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData, Envelo
 from epl.protobuf.query_pb2 import TimestampField, FloatField, StringField, UInt32Field
 from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, MosaicRequest, \
     DatetimeRange
+
+from google.auth.exceptions import DefaultCredentialsError
+from google.cloud import storage as gcp_storage
+from google.oauth2 import service_account
 
 __all__ = [
     'stac_service', 'url_to_channel', 'STAC_SERVICE',
