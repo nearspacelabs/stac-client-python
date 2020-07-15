@@ -23,6 +23,9 @@ import sched
 import time
 import warnings
 
+from google.auth.exceptions import DefaultCredentialsError
+from google.cloud import storage as gcp_storage
+from google.oauth2 import service_account
 import grpc
 
 from epl.protobuf import stac_service_pb2_grpc
@@ -31,17 +34,14 @@ from epl.protobuf.query_pb2 import TimestampField, FloatField, StringField, UInt
 from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, MosaicRequest, \
     DatetimeRange
 
-from google.auth.exceptions import DefaultCredentialsError
-from google.cloud import storage as gcp_storage
-from google.oauth2 import service_account
-
 __all__ = [
     'stac_service', 'url_to_channel', 'STAC_SERVICE',
     'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest',
     'GeometryData', 'SpatialReferenceData', 'EnvelopeData',
     'FloatField', 'TimestampField', 'StringField', 'UInt32Field',
     'StacItem', 'Asset', 'Eo', 'Mosaic', 'DatetimeRange',
-    'gcs_storage_client', 'bearer_auth'
+    'gcs_storage_client',
+    'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'bearer_auth'
 ]
 
 CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
@@ -55,8 +55,13 @@ NSL_SECRET = os.getenv("NSL_SECRET")
 # be able to start an application before it has network access.
 NSL_NETWORK_DELAY = int(os.getenv("NSL_NETWORK_DELAY", 0))
 
-AUTH0_TENANT = os.getenv('AUTH0_TENANT', 'nearspacelabs.auth0.com')
+# URL of the OAuth service
+AUTH0_TENANT = os.getenv('AUTH0_TENANT', 'api.nearspacelabs.net')
+# Name of the API for which we issue tokens
 API_AUDIENCE = os.getenv('API_AUDIENCE', 'https://api.nearspacelabs.com')
+# Name of the service responsible for issuing NSL tokens
+ISSUER = 'https://api.nearspacelabs.net/'
+
 TOKEN_REFRESH_THRESHOLD = 60  # seconds
 TOKEN_REFRESH_SCHEDULER = sched.scheduler(time.time, time.sleep)
 MAX_TOKEN_REFRESH_BACKOFF = 60
@@ -156,21 +161,23 @@ class __BearerAuth:
     _expiry = 0
     _token = {}
 
-    def __init__(self):
+    def __init__(self, init=False):
         if not NSL_ID or not NSL_SECRET:
             warnings.warn("NSL_ID and NSL_SECRET should both be set")
-        else:
+
+        if init:
             self.authorize()
 
     def auth_header(self):
-        if (bearer_auth.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+        if (self.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
             print("re-authorize bearer expiration {0}, threshold (in seconds) {1}"
-                  .format(bearer_auth.expiry, time.time(), TOKEN_REFRESH_THRESHOLD))
+                  .format(self.expiry, time.time(), TOKEN_REFRESH_THRESHOLD))
             self.authorize()
         return "Bearer {token}".format(token=self._token)
 
     def authorize(self):
         print("attempting NSL authentication against {}".format(AUTH0_TENANT))
+        now = time.time()
         try:
             conn = http.client.HTTPSConnection(AUTH0_TENANT)
             headers = {'content-type': 'application/json'}
@@ -194,7 +201,7 @@ class __BearerAuth:
                 self.retry()
                 return
 
-            self._expiry = res_body["expires_in"] + time.time()
+            self._expiry = now + int(res_body["expires_in"])
             self._token = res_body["access_token"]
         except json.JSONDecodeError:
             warnings.warn("failed to decode authentication json token")

@@ -19,19 +19,16 @@ import os
 import datetime
 import http.client
 from urllib.parse import urlparse
+from typing import List, Iterator, BinaryIO
 
 import boto3
 import botocore
 import botocore.exceptions
-
-from typing import List, Iterator, BinaryIO
-
 from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 
-from nsl.stac import gcs_storage_client, bearer_auth
-
-from nsl.stac import StacItem, Asset, TimestampField, Eo, DatetimeRange
+from nsl.stac import gcs_storage_client, bearer_auth, \
+    StacItem, Asset, TimestampField, Eo, DatetimeRange
 from nsl.stac.enum import Band, CloudPlatform, FieldRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]

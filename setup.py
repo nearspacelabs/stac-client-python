@@ -25,17 +25,18 @@ old_path = os.getcwd()
 os.chdir(src_path)
 sys.path.insert(0, src_path)
 
+package_name = 'nsl.stac'
 kwargs = {
-    'name': 'nsl.stac',
+    'name': package_name,
     'description': 'gRPC Spatio Temporal Asset Catalog library',
     'url': 'https://github.com/nearspacelabs/stac-client-python',
     'long_description': "gRPC Spatio Temporal Asset Catalog library provided by Near Space Labs",
     'author': 'David Raleigh',
     'author_email': 'david@nearspacelabs.com',
     'license': 'Apache 2.0',
-    'version': '0.4.1',
+    'version': '0.4.3',
     'python_requires': '>3.6.0',
-    'packages': ['nsl.stac'],
+    'packages': [package_name],
     'install_requires': [
         'grpcio-tools',
         'protobuf',
