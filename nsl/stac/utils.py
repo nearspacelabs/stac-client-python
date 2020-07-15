@@ -137,7 +137,7 @@ def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename:
 
     res = conn.getresponse()
     if res.status is not 200:
-        raise ValueError("{path} does not exist".format(path=asset_url))
+        raise ValueError("{path} does not exist".format(path=asset.href))
 
     if len(save_filename) > 0:
         with open(save_filename, mode='wb') as f:

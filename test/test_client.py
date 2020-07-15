@@ -524,7 +524,6 @@ class TestHelpers(unittest.TestCase):
                 data3 = f_obj.read().decode('ascii')
                 self.assertMultiLineEqual(data1, data3)
 
-    @unittest.skip("mono-240 publishing failure")
     def test_download_geotiff(self):
         import os
         stac_request = StacRequest(id='20190822T183518Z_746_POM1_ST2_P')
@@ -538,7 +537,6 @@ class TestHelpers(unittest.TestCase):
             file_path = utils.download_asset(asset=asset, save_directory=d)
             print("{0} has {1} bytes".format(os.path.basename(file_path), os.path.getsize(file_path)))
 
-    @unittest.skip("mono-240 publishing failure")
     def test_download_href(self):
         stac_id = "20190829T173549Z_1799_POM1_ST2_P"
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
