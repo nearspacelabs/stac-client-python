@@ -19,7 +19,7 @@ import os
 import datetime
 import http.client
 from urllib.parse import urlparse
-from typing import List, Iterator, BinaryIO
+from typing import List, Iterator, IO
 
 import boto3
 import botocore
@@ -51,7 +51,7 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
 
 def download_gcs_object(bucket: str,
                         blob_name: str,
-                        file_obj: BinaryIO = None,
+                        file_obj: IO[bytes] = None,
                         save_filename: str = "",
                         make_dir=True) -> str:
     """
@@ -72,7 +72,7 @@ def download_gcs_object(bucket: str,
 
     if file_obj is not None:
         blob.download_to_file(file_obj=file_obj, client=gcs_storage_client)
-        if "name" in file_obj:
+        if "name" in file_obj.__dict__:
             save_filename = file_obj.name
         else:
             save_filename = ""
@@ -89,7 +89,7 @@ def download_gcs_object(bucket: str,
 
 def download_s3_object(bucket: str,
                        blob_name: str,
-                       file_obj: BinaryIO = None,
+                       file_obj: IO = None,
                        save_filename: str = ""):
     # TODO, can this be global?
     s3 = boto3.resource('s3')
@@ -97,7 +97,7 @@ def download_s3_object(bucket: str,
         bucket_obj = s3.Bucket(bucket)
         if file_obj is not None:
             bucket_obj.download_fileobj(blob_name, file_obj)
-            if "name" in file_obj:
+            if "name" in file_obj.__dict__:
                 save_filename = file_obj.name
             else:
                 save_filename = ""
@@ -116,7 +116,7 @@ def download_s3_object(bucket: str,
             raise
 
 
-def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename: str = ""):
+def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str = ""):
     """
     download the href of an asset
     :param asset: The asset to download
@@ -147,7 +147,7 @@ def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename:
             f.write(res.read())
     elif file_obj is not None:
         file_obj.write(res.read())
-        if "name" in file_obj:
+        if "name" in file_obj.__dict__:
             save_filename = file_obj.name
         else:
             save_filename = ""
@@ -160,7 +160,7 @@ def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename:
 
 def download_asset(asset: Asset,
                    from_bucket: bool = False,
-                   file_obj: BinaryIO = None,
+                   file_obj: IO = None,
                    save_filename: str = "",
                    save_directory: str = ""):
     """

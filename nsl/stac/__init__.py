@@ -15,6 +15,7 @@
 # for additional information, contact:
 #   info@nearspacelabs.com
 
+import abc
 import os
 import re
 import http.client
@@ -22,11 +23,16 @@ import json
 import sched
 import time
 import warnings
+import logging
+
+import grpc
+
+from random import randint
+from typing import Optional, Tuple
 
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
-import grpc
 
 from epl.protobuf import stac_service_pb2_grpc
 from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData, EnvelopeData
@@ -43,6 +49,11 @@ __all__ = [
     'gcs_storage_client',
     'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'bearer_auth'
 ]
+
+MAX_ATTEMPTS = int(os.getenv('MAX_ATTEMPTS', 4))
+INIT_BACKOFF_MS = int(os.getenv('INIT_BACKOFF_MS', 4))
+MAX_BACKOFF_MS = int(os.getenv('MAX_BACKOFF_MS', 4))
+MULTIPLIER = int(os.getenv('MULTIPLIER', 4))
 
 CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -79,6 +90,79 @@ IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
 # DEFAULT Insecure until we have a https service
 INSECURE = True
 
+logger = logging.getLogger()
+
+
+class SleepingPolicy(abc.ABC):
+    @abc.abstractmethod
+    def sleep(self, try_i: int):
+        """
+        How long to sleep in milliseconds.
+        :param try_i: the number of retry (starting from zero)
+        """
+        assert try_i >= 0
+
+
+# Retry mechanism
+# https://github.com/grpc/grpc/issues/19514#issuecomment-531700657
+class ExponentialBackoff(SleepingPolicy):
+    def __init__(self, *, init_backoff_ms: int, max_backoff_ms: int, multiplier: int):
+        self.init_backoff = randint(0, init_backoff_ms)
+        self.max_backoff = max_backoff_ms
+        self.multiplier = multiplier
+
+    def sleep(self, try_i: int):
+        sleep_range = min(self.init_backoff * self.multiplier ** try_i, self.max_backoff)
+        sleep_ms = randint(0, sleep_range)
+        logger.debug(f"Sleeping for {sleep_ms}")
+        time.sleep(sleep_ms / 1000)
+
+
+class RetryOnRpcErrorClientInterceptor(grpc.UnaryUnaryClientInterceptor, grpc.StreamUnaryClientInterceptor):
+    def __init__(self,
+                 *,
+                 max_attempts: int,
+                 sleeping_policy: SleepingPolicy,
+                 status_for_retry: Optional[Tuple[grpc.StatusCode]] = None):
+        self.max_attempts = max_attempts
+        self.sleeping_policy = sleeping_policy
+        self.status_for_retry = status_for_retry
+
+    def _intercept_call(self, continuation, client_call_details, request_or_iterator):
+        for try_i in range(self.max_attempts):
+            response = continuation(client_call_details, request_or_iterator)
+
+            if isinstance(response, grpc.RpcError):
+
+                # Return if it was last attempt
+                if try_i == (self.max_attempts - 1):
+                    return response
+
+                # If status code is not in retryable status codes
+                if self.status_for_retry and response.code() not in self.status_for_retry:
+                    return response
+
+                self.sleeping_policy.sleep(try_i)
+            else:
+                return response
+
+    def intercept_unary_unary(self, continuation, client_call_details, request):
+        return self._intercept_call(continuation, client_call_details, request)
+
+    def intercept_stream_unary(self, continuation, client_call_details, request_iterator):
+        return self._intercept_call(continuation, client_call_details, request_iterator)
+
+
+interceptors = (
+  RetryOnRpcErrorClientInterceptor(
+    max_attempts=MAX_ATTEMPTS,
+    sleeping_policy=ExponentialBackoff(init_backoff_ms=INIT_BACKOFF_MS,
+                                       max_backoff_ms=MAX_BACKOFF_MS,
+                                       multiplier=MULTIPLIER),
+    status_for_retry=(grpc.StatusCode.UNAVAILABLE,),
+  ),
+)
+
 
 def url_to_channel(stac_service_url):
     if stac_service_url.startswith("localhost") or IP_REGEX.match(stac_service_url) or \
@@ -92,7 +176,7 @@ def url_to_channel(stac_service_url):
                                       credentials=channel_credentials,
                                       options=GRPC_CHANNEL_OPTIONS)
 
-    return channel
+    return grpc.intercept_channel(channel, *interceptors)
 
 
 def _get_storage_client():
@@ -158,6 +242,7 @@ class __StacServiceStub(object):
 
 
 class __BearerAuth:
+    retries = 0
     _expiry = 0
     _token = {}
 
@@ -175,7 +260,10 @@ class __BearerAuth:
             self.authorize()
         return "Bearer {token}".format(token=self._token)
 
-    def authorize(self):
+    def authorize(self, backoff: int = 0):
+        if self.retries >= 20:
+            raise Exception("NSL authentication failed over 20 times")
+
         print("attempting NSL authentication against {}".format(AUTH0_TENANT))
         now = time.time()
         try:
@@ -198,9 +286,10 @@ class __BearerAuth:
             if "error" in res_body:
                 warnings.warn("authentication failed with error '{0}' and message '{1}'"
                               .format(res_body["error"], res_body["error_description"]))
-                self.retry()
+                self.retry(backoff)
                 return
 
+            self.retries = 0
             self._expiry = now + int(res_body["expires_in"])
             self._token = res_body["access_token"]
         except json.JSONDecodeError:
@@ -218,8 +307,9 @@ class __BearerAuth:
 
     def retry(self, timeout: int = 0):
         """Retry authorization request, with exponential backoff"""
+        self.retries += 1
         backoff = min(2 if timeout == 0 else timeout * 2, MAX_TOKEN_REFRESH_BACKOFF)
-        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize)
+        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize, argument=backoff)
         TOKEN_REFRESH_SCHEDULER.run()
 
 
