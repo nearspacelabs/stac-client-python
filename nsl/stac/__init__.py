@@ -50,11 +50,6 @@ __all__ = [
     'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'bearer_auth'
 ]
 
-MAX_ATTEMPTS = int(os.getenv('MAX_ATTEMPTS', 4))
-INIT_BACKOFF_MS = int(os.getenv('INIT_BACKOFF_MS', 4))
-MAX_BACKOFF_MS = int(os.getenv('MAX_BACKOFF_MS', 4))
-MULTIPLIER = int(os.getenv('MULTIPLIER', 4))
-
 CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 SERVICE_ACCOUNT_DETAILS = os.getenv("SERVICE_ACCOUNT_DETAILS")
@@ -76,6 +71,12 @@ ISSUER = 'https://api.nearspacelabs.net/'
 TOKEN_REFRESH_THRESHOLD = 60  # seconds
 TOKEN_REFRESH_SCHEDULER = sched.scheduler(time.time, time.sleep)
 MAX_TOKEN_REFRESH_BACKOFF = 60
+MAX_TOKEN_ATTEMPTS = 20
+
+MAX_GRPC_ATTEMPTS = int(os.getenv('MAX_ATTEMPTS', 4))
+INIT_BACKOFF_MS = int(os.getenv('INIT_BACKOFF_MS', 4))
+MAX_BACKOFF_MS = int(os.getenv('MAX_BACKOFF_MS', 4))
+MULTIPLIER = int(os.getenv('MULTIPLIER', 4))
 
 
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'api.nearspacelabs.net:9090')
@@ -155,7 +156,7 @@ class RetryOnRpcErrorClientInterceptor(grpc.UnaryUnaryClientInterceptor, grpc.St
 
 interceptors = (
   RetryOnRpcErrorClientInterceptor(
-    max_attempts=MAX_ATTEMPTS,
+    max_attempts=MAX_GRPC_ATTEMPTS,
     sleeping_policy=ExponentialBackoff(init_backoff_ms=INIT_BACKOFF_MS,
                                        max_backoff_ms=MAX_BACKOFF_MS,
                                        multiplier=MULTIPLIER),
@@ -261,7 +262,7 @@ class __BearerAuth:
         return "Bearer {token}".format(token=self._token)
 
     def authorize(self, backoff: int = 0):
-        if self.retries >= 20:
+        if self.retries >= MAX_TOKEN_ATTEMPTS:
             raise Exception("NSL authentication failed over 20 times")
 
         print("attempting NSL authentication against {}".format(AUTH0_TENANT))
