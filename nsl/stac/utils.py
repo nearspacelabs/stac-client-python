@@ -130,6 +130,9 @@ def download_href_object(asset: Asset, file_obj: BinaryIO = None, save_filename:
     if len(asset.type) > 0:
         headers["content-type"] = asset.type
 
+    if not asset.href:
+        raise ValueError("no href on asset")
+
     host = urlparse(asset.href)
     asset_url = "/download/{object}".format(object=asset.object_path)
     conn = http.client.HTTPConnection(host.netloc)
