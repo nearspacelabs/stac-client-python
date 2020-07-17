@@ -145,7 +145,7 @@ with tempfile.TemporaryDirectory() as d:
 ```text
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
-    re-authorize bearer expiration 0, threshold (in seconds) 1594997341.908685
+    re-authorize bearer expiration 0, threshold (in seconds) 1594997861.745559
     attempting NSL authentication against api.nearspacelabs.net
 ```
 
@@ -696,7 +696,7 @@ for stac_item in client.search(stac_request):
     # get the thumbnail asset from the assets map
     asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
     # (side-note delete=False in NamedTemporaryFile is only required for windows.)
-    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as file_obj:
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as file_obj:
         utils.download_asset(asset=asset, file_obj=file_obj)
         display(Image(filename=file_obj.name))
 ```
@@ -707,15 +707,15 @@ for stac_item in client.search(stac_request):
 
 
 
-![jpeg](README_files/README_18_0.jpg)
+![png](README_files/README_18_0.png)
 
 
 
-![jpeg](README_files/README_18_1.jpg)
+![png](README_files/README_18_1.png)
 
 
 
-![jpeg](README_files/README_18_2.jpg)
+![png](README_files/README_18_2.png)
 
 
 ### Geotiffs
