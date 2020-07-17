@@ -1,4 +1,4 @@
-FROM python:3.6-slim
+FROM python:3.7.7-slim-buster
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update
 
