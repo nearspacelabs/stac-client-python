@@ -145,8 +145,8 @@ with tempfile.TemporaryDirectory() as d:
 ```text
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
-    re-authorize bearer expiration 0, threshold (in seconds) 1594997861.745559
     attempting NSL authentication against api.nearspacelabs.net
+    fetching new authorization in 3540 seconds
 ```
 
 
