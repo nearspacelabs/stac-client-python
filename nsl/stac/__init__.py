@@ -256,9 +256,9 @@ class __BearerAuth:
 
     def auth_header(self):
         if (self.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
-            print("re-authorize bearer expiration {0}, threshold (in seconds) {1}"
-                  .format(self.expiry, time.time(), TOKEN_REFRESH_THRESHOLD))
             self.authorize()
+            print("fetching new authorization in {0} seconds".format(
+                round(self.expiry - time.time() - TOKEN_REFRESH_THRESHOLD)))
         return "Bearer {token}".format(token=self._token)
 
     def authorize(self, backoff: int = 0):
