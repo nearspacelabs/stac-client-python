@@ -143,9 +143,10 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    attempting NSL authentication against nearspacelabs.auth0.com
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
+    re-authorize bearer expiration 0, threshold (in seconds) 1594997341.908685
+    attempting NSL authentication against api.nearspacelabs.net
 ```
 
 
@@ -154,7 +155,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 
-![jpeg](README_files/README_1_1.jpg)
+![png](README_files/README_1_1.png)
 
 
 In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) holds spatial and temporal query parameters for searching for [StacItems](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). The `client.search_one` method makes requests to the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method. In this case you can see that we've connected to the `eap.nearspacelabs.net` STAC service. In the next section we go into more detail about Protobufs, gRPC, and STAC.
@@ -221,29 +222,29 @@ print(stac_item)
 ```text
     id: "20190822T183518Z_746_POM1_ST2_P"
     geometry {
-      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000J&D\300\310oX\300\354\257\272\223\233I>@\256\311\271\217\270oX\300v\257\331\002FG>@\327-+\221\266nX\300V@\240\t\232G>@\366\032\253~\306nX\300\274\266sf\343I>@J&D\300\310oX\300\354\257\272\223\233I>@"
+      wkb: "\001\006\000\000\000\001\000\000\000\001\003\000\000\000\001\000\000\000\005\000\000\000\352\244L\267\311oX\300\316\340\320\247\234I>@\241\273\2606\267oX\300<\002\205\'EG>@\031\003\203\307\266nX\3001z\244\372\233G>@CCAI\306nX\300\326\013\351\023\343I>@\352\244L\267\311oX\300\316\340\320\247\234I>@"
       sr {
         wkid: 4326
       }
       simple: STRONG_SIMPLE
     }
     bbox {
-      xmin: -97.74662787108642
-      ymin: 30.278412035127495
-      xmax: -97.7298930093451
-      ymax: 30.288626101732675
+      xmin: -97.7466867683867
+      ymin: 30.278398961994966
+      xmax: -97.72990596574927
+      ymax: 30.288621181865743
       sr {
         wkid: 4326
       }
     }
     properties {
-      type_url: "type.googleapis.com/st.protobuf.NslData"
-      value: "\n\341\001\n\03620190822T162258Z_TRAVIS_COUNTYB\003 \352\005R\03520191202T140547Z_746_ST2_POM1Z\03520190822T183518Z_746_POM1_ST2Z\03520191122T035808Z_746_ST2_POM1Z\03520191122T040127Z_746_ST2_POM1Z\03520191202T140547Z_746_ST2_POM1b\03520190822T183518Z_746_POM1_ST2p\001\022N\022 1e39f2910361bd23870c174804e83abe\032\03120200429T233414Z_SWIFTERA \0100rh\001x\233\024\200\001\211G\210\001\244["
+      type_url: "nearspacelabs.com/proto/st.protobuf.NslData/st.protobuf.NslData"
+      value: "\n\341\014\n\03620190822T162258Z_TRAVIS_COUNTYB\003 \352\005R\03520200702T102306Z_746_ST2_POM1Z\03520190822T183518Z_746_POM1_ST2Z\03520200702T101632Z_746_ST2_POM1Z\03520200702T102302Z_746_ST2_POM1Z\03520200702T102306Z_746_ST2_POM1b\03520190822T183518Z_746_POM1_ST2p\001\262\001\374\n\n$\004\304{?\216\371\350=\376\377\306>\300\327\256\275\323rv?2\026*D3Qy6\177>\3675\000\000\200?\022\024\r+}\303\302\025\033;\362A\0353}\367\300%g\232\250@\022\024\r\026}\303\302\025\376?\362A\035\000\367\235@%\232\t\331?\022\024\r\351|\303\302\025\021A\362A\035M\370\033\301%g\016\226\277\022\024\r\201|\303\302\025\3709\362A\035\000\252\245@%\315\3547?\022\024\r\310|\303\302\025\245G\362A\035\232\315l\301%3\347\270\300\022\024\rq|\303\302\025\2149\362A\035\000\376o@%\000(\017@\022\024\rD|\303\302\025oD\362A\0353\323\302\301%\315\306\230\300\022\024\r\031|\303\302\025\035=\362A\035g\277$A%\000\340\231?\022\024\rE|\303\302\025\215I\362A\0353\275z\300%g\020\236\300\022\024\r\345{\303\302\0258C\362A\035\0008\242?%\232\231\226\277\022\024\r\010|\303\302\025!I\362A\0353\377\212\300%\000V\241\300\022\024\r|{\303\302\025\207F\362A\0353\203Y@%\315,\313\276\022\024\r\001{\303\302\025FJ\362A\035g^\025@%\315\010\214?\022\024\r\313z\303\302\025\353H\362A\0353\3377@%g\326\325\277\022\024\rjz\303\302\025\260@\362A\035\315F\006A%g\246[\277\022\024\r\035z\303\302\0254E\362A\035\232\001|@%\232!\265?\022\024\r\330y\303\302\025\320@\362A\0353Sa\300%\000@\245>\022\024\r\362y\303\302\025zE\362A\035\232\221\020\300%3U\206@\022\024\r\337y\303\302\025\210F\362A\035g\246l?%gf\234\276\022\024\r\335y\303\302\025aF\362A\035\000\260\023@%\315,#\277\022\024\r\321y\303\302\025\234F\362A\035\000 7@%\232!\221?\022\024\r\307y\303\302\025\177F\362A\035\232\371\371?%\315\224\225?\022\024\r\213y\303\302\025\350@\362A\0353\'\343\300%3g&\300\022\024\r\300y\303\302\025\tF\362A\035\315h\312@%g\266\013?\022\024\r_y\303\302\025\236A\362A\035\315\340\311@%3\363j>\022\024\r\271x\303\302\025G?\362A\0353\334\272\301%gb\201\300\022\024\r\307x\303\302\025WG\362A\035\000|6\301%\232\231i>\022\024\r\200x\303\302\025\016F\362A\035\315\007\244\301%\315L\000>\022\024\rqx\303\302\025jI\362A\035\315\254\007\301%\232E\247?\022\024\rjx\303\302\025(I\362A\035\232\305\000\301%\315L\'>\022\024\r\027x\303\302\025\356A\362A\035\232I\246?%\315\004\246\277\022\024\r\010x\303\302\025AB\362A\035\232y\305\300%\315\3740?\022\024\r\032x\303\302\0257D\362A\0353\003\275\277%\232\311.?\022\024\r\002x\303\302\025&C\362A\035\315\014\301\277%g*2@\022\024\r\361w\303\302\025\330B\362A\035\000T\347\300%\232\235\025\300\022\024\r\372v\303\302\025\030<\362A\0353\323\364?%gNt\300\022\024\r;w\303\302\025\273I\362A\03533\335>%\232\025\213?\022\024\r\324v\303\302\025QC\362A\035\315,\305\277%\232\375\035@\022\024\r\340v\303\302\025@G\362A\035\315@\234\300%\232)\342?\022\024\r\312v\303\302\025yC\362A\035\315\214\247\276%g\246\375>\022\024\r\222v\303\302\025\233A\362A\035\315\334\244?%g\366\035\277\022\024\r\256v\303\302\025\\F\362A\0353G\204@%\232A\017@\022\024\rov\303\302\025\215=\362A\035\232\325\340@%3\263\033\276\022\024\r\206v\303\302\025SC\362A\0353\263k?%3\363\177\276\022\024\r\267v\303\302\025NK\362A\035\315\0148\277%3\323\000>\022\024\r\255v\303\302\025kK\362A\035gf4\277%\000\312\201\277\022\024\r)v\303\302\025\316=\362A\035\232\271Z\277%\315\014\375\277\022\024\r_v\303\302\025\356H\362A\035\315\004n@%3\243\240\276\022\024\r7v\303\302\025\350H\362A\0353#\212@%g~\272?\022\024\r\314u\303\302\025Y;\362A\035\000\000F=%gF\253?\022\024\r\276u\303\302\025q>\362A\0353/\234\300%g\246T\277\022\024\r\266u\303\302\025\321>\362A\035\315 \272\300%3SW\300\022\024\r\307u\303\302\025\211A\362A\035\000$\264\300%3\243\r\277\022\024\r\360u\303\302\025RK\362A\0353\347\231@%\315\325\036\300\022\024\r\262u\303\302\025\035F\362A\0353\2633\276%\232i3?\032#m_3009743_sw_14_1_20160928_20161129\"Y\t&\2068NM\357\"A\021\003\3272rL\217IA\031\267G\014x\260\375\"A!\202I\225>\020\222IA*3\0221+proj=utm +zone=14 +datum=NAD83 +units=m +no_defs*\005\r\205[\"A2\005\r\000\356\\@:\005\r\227\210\306AB\005\r\205E\257@\022R\022 e502fe83507f0d28c826f33619a678e9\032\03120200716T220911Z_SWIFTERA \0100\001h\001x\263\022\200\001\315\031\210\001\200,\250\001\307\026"
     }
     assets {
       key: "GEOTIFF_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P.tif"
+        href: "https://eap.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20200702T102306Z_746_ST2_POM1_P.tif"
         type: "image/vnd.stac.geotiff"
         eo_bands: RGB
         asset_type: GEOTIFF
@@ -251,21 +252,21 @@ print(stac_item)
         bucket_manager: "Near Space Labs"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P.tif"
+        object_path: "20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20200702T102306Z_746_ST2_POM1_P.tif"
       }
     }
     assets {
       key: "THUMBNAIL_RGB"
       value {
-        href: "https://eap.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P_thumb.jpg"
-        type: "image/jpeg"
+        href: "https://eap.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20200702T102306Z_746_ST2_POM1_P.png"
+        type: "image/png"
         eo_bands: RGB
         asset_type: THUMBNAIL
         cloud_platform: GCP
         bucket_manager: "Near Space Labs"
         bucket_region: "us-central1"
         bucket: "swiftera-processed-data"
-        object_path: "20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20191202T140547Z_746_ST2_POM1_P_thumb.jpg"
+        object_path: "20190822T162258Z_TRAVIS_COUNTY/Publish_0/REGION_0/20200702T102306Z_746_ST2_POM1_P.png"
       }
     }
     datetime {
@@ -277,12 +278,12 @@ print(stac_item)
       nanos: 505476000
     }
     processed {
-      seconds: 1588204806
-      nanos: 96949000
+      seconds: 1594996531
+      nanos: 64768000
     }
     updated {
-      seconds: 1591626804
-      nanos: 596990000
+      seconds: 1594996536
+      nanos: 345568935
     }
     eo {
       platform: SWIFT_2
@@ -295,13 +296,13 @@ print(stac_item)
         value: 71.41288757324219
       }
       gsd {
-        value: 0.30000001192092896
+        value: 0.20000000298023224
       }
       off_nadir {
-        value: 9.420705795288086
+        value: 9.42326831817627
       }
       azimuth {
-        value: -74.87425231933594
+        value: -74.85270690917969
       }
       sr {
         wkid: 32614
@@ -534,8 +535,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2020-03-26T11:32:22+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2020-03-26T11:14:25+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-03-26T12:31:37+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-03-26T12:31:34+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -765,7 +766,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    20191202T144608Z_761_ST2_POM1_P.tif has 131626674 bytes
+    20200702T073246Z_761_ST2_POM1_P.tif has 131373291 bytes
 ```
 
 
@@ -826,9 +827,9 @@ with tempfile.TemporaryDirectory() as d:
 
 ```text
     STAC item id: 20190826T190001Z_761_POM1_ST2_P
-    saved 20191202T144608Z_761_ST2_POM1_P.tif
+    saved 20200702T073246Z_761_ST2_POM1_P.tif
     STAC item id: 20190826T185933Z_747_POM1_ST2_P
-    saved 20191202T144613Z_747_ST2_POM1_P.tif
+    saved 20200702T074026Z_747_ST2_POM1_P.tif
 ```
 
 
