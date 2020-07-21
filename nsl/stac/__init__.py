@@ -280,11 +280,11 @@ class __BearerAuth:
             conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
             res = conn.getresponse()
 
-            if res.code != 200:
-                warnings.warn("authentication error code {0}".format(res.code))
+            if res.getcode() != 200:
+                warnings.warn("authentication error code {0}".format(res.getcode()))
 
             res_body = json.loads(res.read().decode("utf-8"))
-            if "error" in res_body:
+            if res_body == "" or "error" in res_body or res.getcode() != 200:
                 warnings.warn("authentication failed with error '{0}' and message '{1}'"
                               .format(res_body["error"], res_body["error_description"]))
                 self.retry(backoff)
