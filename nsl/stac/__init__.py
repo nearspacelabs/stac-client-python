@@ -280,14 +280,15 @@ class __BearerAuth:
             conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
             res = conn.getresponse()
 
-            res_decoded = res.read().decode("utf-8")
-            if res_decoded == "" or (res.getcode() != 200 and res.getcode() != 201):
+            # evaluate codes first.
+            # then if response is empty, HTTPResponse method for read returns b"" which will be zero in length
+            if (res.getcode() != 200 and res.getcode() != 201) or len(res.read()) == 0:
                 warnings.warn("authentication failed with code {0}".format(res.getcode()))
                 # recursive retry calls
                 self.retry(backoff)
                 return
 
-            res_body = json.loads(res_decoded)
+            res_body = json.loads(res.read().decode("utf-8"))
 
             self.retries = 0
             self._expiry = now + int(res_body["expires_in"])
