@@ -19,7 +19,7 @@ import os
 import datetime
 import http.client
 from urllib.parse import urlparse
-from typing import List, Iterator, IO
+from typing import List, Iterator, IO, Union
 
 import boto3
 import botocore
@@ -389,9 +389,9 @@ def get_uri(asset: Asset, b_vsi_uri=True, prefix: str = "") -> str:
 
 
 def pb_timestampfield(rel_type: FieldRelationship,
-                      value: datetime.date or datetime.datetime = None,
-                      start: datetime.date or datetime.datetime = None,
-                      end: datetime.date or datetime.datetime = None,
+                      value: Union[datetime.datetime, datetime.date] = None,
+                      start: Union[datetime.datetime, datetime.date] = None,
+                      end: Union[datetime.datetime, datetime.date] = None,
                       sort_direction: SortDirection = SortDirection.NOT_SORTED,
                       tzinfo: datetime.timezone = datetime.timezone.utc) -> TimestampField:
     """
@@ -420,7 +420,7 @@ def pb_timestampfield(rel_type: FieldRelationship,
                           sort_direction=sort_direction)
 
 
-def pb_timestamp(d_utc: datetime.datetime or datetime.date,
+def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
                  tzinfo: datetime.timezone = datetime.timezone.utc) -> timestamp_pb2.Timestamp:
     """
     create a google.protobuf.Timestamp from a python datetime
@@ -433,7 +433,7 @@ def pb_timestamp(d_utc: datetime.datetime or datetime.date,
     return ts
 
 
-def timezoned(d_utc: datetime.datetime or datetime.date,
+def timezoned(d_utc: Union[datetime.datetime, datetime.date],
               tzinfo: datetime.timezone = datetime.timezone.utc):
     # datetime is child to datetime.date, so if we reverse the order of this instance of we fail
     if isinstance(d_utc, datetime.datetime) and d_utc.tzinfo is None:
@@ -453,14 +453,14 @@ def timezoned(d_utc: datetime.datetime or datetime.date,
     return d_utc
 
 
-def duration(d_start: datetime.date or datetime.datetime, d_end: datetime.date or datetime.datetime):
+def duration(d_start: Union[datetime.datetime, datetime.date], d_end: Union[datetime.datetime, datetime.date]):
     d = duration_pb2.Duration()
     d.FromTimedelta(timezoned(d_end) - timezoned(d_start))
     return d
 
 
-def datetime_range(d_start: datetime.date or datetime.datetime,
-                   d_end: datetime.date or datetime.datetime) -> DatetimeRange:
+def datetime_range(d_start: Union[datetime.datetime, datetime.date],
+                   d_end: Union[datetime.datetime, datetime.date]) -> DatetimeRange:
     """
     for datetime range definitions for Mosaic objects.
     :param d_start: start datetime or date
