@@ -312,7 +312,7 @@ class __BearerAuth:
         """Retry authorization request, with exponential backoff"""
         self.retries += 1
         backoff = min(2 if timeout == 0 else timeout * 2, MAX_TOKEN_REFRESH_BACKOFF)
-        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize, argument=backoff)
+        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize, argument=[backoff])
         TOKEN_REFRESH_SCHEDULER.run()
 
 
