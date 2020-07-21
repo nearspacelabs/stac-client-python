@@ -280,21 +280,22 @@ class __BearerAuth:
             conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
             res = conn.getresponse()
 
-            res_body = json.loads(res.read().decode("utf-8"))
-            if res_body == "" or (res.getcode() != 200 and res.getcode() != 201):
-                warnings.warn("authentication failed with error '{0}' and message '{1}'"
-                              .format(res_body["error"], res_body["error_description"]))
+            res_decoded = res.read().decode("utf-8")
+            if res_decoded == "" or (res.getcode() != 200 and res.getcode() != 201):
+                warnings.warn("authentication failed with code {0}".format(res.getcode()))
                 # recursive retry calls
                 self.retry(backoff)
                 return
+
+            res_body = json.loads(res_decoded)
 
             self.retries = 0
             self._expiry = now + int(res_body["expires_in"])
             self._token = res_body["access_token"]
         except json.JSONDecodeError:
             warnings.warn("failed to decode authentication json token")
-            self._expiry = 0
-            self._token = {}
+            self.retry(backoff)
+            return
         except BaseException as be:
             warnings.warn("failed to connect to authorization service with error: {0}".format(be))
             self._expiry = 0
