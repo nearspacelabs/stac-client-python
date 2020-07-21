@@ -282,17 +282,19 @@ class __BearerAuth:
 
             # evaluate codes first.
             # then if response is empty, HTTPResponse method for read returns b"" which will be zero in length
-            if (res.getcode() != 200 and res.getcode() != 201) or len(res.read()) == 0:
+            res_body = res.read()
+            if (res.getcode() != 200 and res.getcode() != 201) or len(res_body) == 0:
                 warnings.warn("authentication failed with code {0}".format(res.getcode()))
-                # recursive retry calls
+
+                # TODO make this non-recursive
                 self.retry(backoff)
                 return
 
-            res_body = json.loads(res.read().decode("utf-8"))
+            res_json = json.loads(res_body.decode("utf-8"))
 
             self.retries = 0
-            self._expiry = now + int(res_body["expires_in"])
-            self._token = res_body["access_token"]
+            self._expiry = now + int(res_json["expires_in"])
+            self._token = res_json["access_token"]
         except json.JSONDecodeError:
             warnings.warn("failed to decode authentication json token")
             self.retry(backoff)
