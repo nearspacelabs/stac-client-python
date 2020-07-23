@@ -65,6 +65,12 @@ for stac_item in client.search(stac_request):
     
     attempting NSL authentication against api.nearspacelabs.net
     fetching new authorization in 3540 seconds
+    SWIFT STAC item '20200703T174443Z_650_POM1_ST2_P' from 2020-07-03T17:44:43+00:00
+    has a off_nadir 1.980, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20200703T174028Z_513_POM1_ST2_P' from 2020-07-03T17:40:28+00:00
+    has a off_nadir 9.310, which should be less than or equal to requested off_nadir 10.0: confirmed True
+    SWIFT STAC item '20200703T174021Z_509_POM1_ST2_P' from 2020-07-03T17:40:21+00:00
+    has a off_nadir 8.052, which should be less than or equal to requested off_nadir 10.0: confirmed True
     SWIFT STAC item '20190822T183518Z_746_POM1_ST2_P' from 2019-08-22T18:35:18+00:00
     has a off_nadir 9.423, which should be less than or equal to requested off_nadir 10.0: confirmed True
     SWIFT STAC item '20190822T183510Z_742_POM1_ST2_P' from 2019-08-22T18:35:10+00:00
@@ -107,14 +113,20 @@ For most simple requests, a `limit` and `offset` are not necessary. But if you'r
 
 
 ```python
+from datetime import date
 from nsl.stac.client import NSLClient
-from nsl.stac import StacRequest, GeometryData, SpatialReferenceData
+from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
+from nsl.stac.utils import pb_timestampfield
 # wkt geometry of Travis County, Texas
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, \
                 -97.8695 30.5484, -97.8476 30.4717, -97.7764 30.4279, \
                 -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, \
                 -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, \
                 -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
+
+# Query data from before September 1, 2019
+time_filter = pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FieldRelationship.LT_OR_EQ)
+
 geometry_data = GeometryData(wkt=travis_wkt, 
                              sr=SpatialReferenceData(wkid=4326))
 
@@ -126,7 +138,7 @@ offset = 0
 total = 0
 while total < 1000:
     # make our request
-    stac_request = StacRequest(geometry=geometry_data, limit=limit, offset=offset)
+    stac_request = StacRequest(datetime=time_filter, geometry=geometry_data, limit=limit, offset=offset)
     # prepare request for next 
     offset += limit
     for stac_item in client.search(stac_request):
