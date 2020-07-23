@@ -369,16 +369,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20190826T190031Z_776_POM1_ST2_P
-    STAC item id: 20190826T190001Z_761_POM1_ST2_P
-    STAC item id: 20190826T185935Z_748_POM1_ST2_P
-    STAC item id: 20190826T185933Z_747_POM1_ST2_P
-    STAC item id: 20190826T185916Z_739_POM1_ST2_P
-    STAC item id: 20190826T185914Z_738_POM1_ST2_P
-    STAC item id: 20190826T185858Z_730_POM1_ST2_P
-    STAC item id: 20190826T185856Z_729_POM1_ST2_P
-    STAC item id: 20190826T185842Z_722_POM1_ST2_P
-    STAC item id: 20190826T185840Z_721_POM1_ST2_P
+    STAC item id: 20200703T174443Z_650_POM1_ST2_P
+    STAC item id: 20200703T174303Z_595_POM1_ST2_P
+    STAC item id: 20200703T174258Z_592_POM1_ST2_P
+    STAC item id: 20200703T174234Z_579_POM1_ST2_P
+    STAC item id: 20200703T174155Z_558_POM1_ST2_P
+    STAC item id: 20200703T174034Z_516_POM1_ST2_P
+    STAC item id: 20200703T174032Z_515_POM1_ST2_P
+    STAC item id: 20200703T174028Z_513_POM1_ST2_P
+    STAC item id: 20200703T174021Z_509_POM1_ST2_P
+    STAC item id: 20200703T174019Z_508_POM1_ST2_P
 ```
 
 
@@ -437,8 +437,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20190829T173549Z_1799_POM1_ST2_P
-    STAC item id: 20190829T173547Z_1798_POM1_ST2_P
+    STAC item id: 20200703T182830Z_2048_POM1_ST2_P
+    STAC item id: 20200703T182828Z_2047_POM1_ST2_P
 ```
 
 
@@ -481,8 +481,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20190829T173549Z_1799_POM1_ST2_P from wkt filter intersects result from geojson filter: True
-    STAC item id: 20190829T173547Z_1798_POM1_ST2_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20200703T182830Z_2048_POM1_ST2_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20200703T182828Z_2047_POM1_ST2_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -535,8 +535,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2020-03-26T12:31:37+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2020-03-26T12:31:34+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-07-03T18:28:30+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-07-03T18:28:28+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -741,8 +741,8 @@ client = NSLClient()
 ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
 geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 
-# Query data from August 1, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 1), rel_type=enum.FieldRelationship.GT_OR_EQ)
+# Query data from before September 1, 2019
+time_filter = utils.pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FieldRelationship.LT_OR_EQ)
 
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
@@ -791,16 +791,20 @@ For example:
 ```python
 import os
 import tempfile
+from datetime import date
 from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
-from nsl.stac.utils import download_asset, get_asset
+from nsl.stac.utils import download_asset, get_asset, pb_timestampfield
 from nsl.stac.client import NSLClient
 
 
 ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
 geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 
+# Query data from before September 1, 2019
+time_filter = pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FieldRelationship.LT_OR_EQ)
+
 # limit is set to 2 here, but it would work if you set it to 100 or 1000
-stac_request = StacRequest(geometry=geometry_data, limit=2)
+stac_request = StacRequest(datetime=time_filter, geometry=geometry_data, limit=2)
 
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
