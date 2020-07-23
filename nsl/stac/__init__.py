@@ -280,27 +280,29 @@ class __BearerAuth:
             conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
             res = conn.getresponse()
 
-            if res.code != 200:
-                warnings.warn("authentication error code {0}".format(res.code))
+            # evaluate codes first.
+            # then if response is empty, HTTPResponse method for read returns b"" which will be zero in length
+            res_body = res.read()
+            if (res.getcode() != 200 and res.getcode() != 201) or len(res_body) == 0:
+                warnings.warn("authentication failed with code {0}".format(res.getcode()))
 
-            res_body = json.loads(res.read().decode("utf-8"))
-            if "error" in res_body:
-                warnings.warn("authentication failed with error '{0}' and message '{1}'"
-                              .format(res_body["error"], res_body["error_description"]))
+                # TODO make this non-recursive
                 self.retry(backoff)
                 return
 
+            res_json = json.loads(res_body.decode("utf-8"))
+
             self.retries = 0
-            self._expiry = now + int(res_body["expires_in"])
-            self._token = res_body["access_token"]
-        except json.JSONDecodeError:
-            warnings.warn("failed to decode authentication json token")
-            self._expiry = 0
-            self._token = {}
+            self._expiry = now + int(res_json["expires_in"])
+            self._token = res_json["access_token"]
+        except json.JSONDecodeError as je:
+            warnings.warn("failed to decode authentication json token with error: {}".format(je))
+            self.retry(backoff)
+            return
         except BaseException as be:
             warnings.warn("failed to connect to authorization service with error: {0}".format(be))
-            self._expiry = 0
-            self._token = {}
+            self.retry(backoff)
+            return
 
     @property
     def expiry(self):
@@ -310,7 +312,7 @@ class __BearerAuth:
         """Retry authorization request, with exponential backoff"""
         self.retries += 1
         backoff = min(2 if timeout == 0 else timeout * 2, MAX_TOKEN_REFRESH_BACKOFF)
-        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize, argument=backoff)
+        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize, argument=[backoff])
         TOKEN_REFRESH_SCHEDULER.run()
 
 
