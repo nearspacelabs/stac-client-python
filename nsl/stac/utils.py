@@ -24,12 +24,13 @@ from typing import List, Iterator, IO, Union
 import boto3
 import botocore
 import botocore.exceptions
+import botocore.client
 from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth, \
-    StacItem, Asset, TimestampField, Eo, DatetimeRange
-from nsl.stac.enum import Band, CloudPlatform, FieldRelationship, SortDirection, AssetType
+    StacItem, Asset, TimestampFilter, Eo, DatetimeRange
+from nsl.stac.enum import Band, CloudPlatform, FilterRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
 RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
@@ -90,13 +91,16 @@ def download_gcs_object(bucket: str,
 def download_s3_object(bucket: str,
                        blob_name: str,
                        file_obj: IO = None,
-                       save_filename: str = ""):
-    # TODO, can this be global?
-    s3 = boto3.resource('s3')
+                       save_filename: str = "",
+                       requester_pays: bool = False):
+    extra_args = None
+    if requester_pays:
+        extra_args = {'RequestPayer': 'requester'}
+
+    s3 = boto3.client('s3')
     try:
-        bucket_obj = s3.Bucket(bucket)
         if file_obj is not None:
-            bucket_obj.download_fileobj(blob_name, file_obj)
+            s3.download_fileobj(Bucket=bucket, Key=blob_name, Fileobj=file_obj, ExtraArgs=extra_args)
             if "name" in file_obj.__dict__:
                 save_filename = file_obj.name
             else:
@@ -105,7 +109,7 @@ def download_s3_object(bucket: str,
 
             return save_filename
         elif len(save_filename) > 0:
-            bucket_obj.download_file(blob_name, save_filename)
+            s3.download_file(Bucket=bucket, Key=blob_name, Filename=save_filename, ExtraArgs=extra_args)
             return save_filename
         else:
             raise ValueError("must provide filename or file_obj")
@@ -162,11 +166,14 @@ def download_asset(asset: Asset,
                    from_bucket: bool = False,
                    file_obj: IO = None,
                    save_filename: str = "",
-                   save_directory: str = ""):
+                   save_directory: str = "",
+                   requester_pays: bool = False):
     """
     download an asset. Defaults to downloading from cloud storage. save the data to a BinaryIO file object, a filename
     on your filesystem, or to a directory on your filesystem (the filename will be chosen from the basename of the
     object).
+    :param requester_pays: authorize a requester pays download. this can be costly,
+    so only enable it if you understand the implications.
     :param asset: The asset to download
     :param from_bucket: force the download to occur from cloud storage instead of href endpoint
     :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory are
@@ -191,7 +198,8 @@ def download_asset(asset: Asset,
         return download_s3_object(bucket=asset.bucket,
                                   blob_name=asset.object_path,
                                   file_obj=file_obj,
-                                  save_filename=save_filename)
+                                  save_filename=save_filename,
+                                  requester_pays=requester_pays)
     else:
         return download_href_object(asset=asset,
                                     file_obj=file_obj,
@@ -388,12 +396,12 @@ def get_uri(asset: Asset, b_vsi_uri=True, prefix: str = "") -> str:
     return "{0}/{1}/{2}".format(prefix, asset.bucket, asset.object_path)
 
 
-def pb_timestampfield(rel_type: FieldRelationship,
+def pb_timestampfield(rel_type: FilterRelationship,
                       value: Union[datetime.datetime, datetime.date] = None,
                       start: Union[datetime.datetime, datetime.date] = None,
                       end: Union[datetime.datetime, datetime.date] = None,
                       sort_direction: SortDirection = SortDirection.NOT_SORTED,
-                      tzinfo: datetime.timezone = datetime.timezone.utc) -> TimestampField:
+                      tzinfo: datetime.timezone = datetime.timezone.utc) -> TimestampFilter:
     """
     Create a protobuf query filter for a timestamp or a range of timestamps. If you use a datetime.date as
     the value combined with a rel_type of EQ then you will be creating a query filter for the
@@ -405,19 +413,19 @@ def pb_timestampfield(rel_type: FieldRelationship,
     :param end: end time for between/not between query. cannot be used with value
     :param sort_direction: sort direction for results. Defaults to not sorting by this field
     :param tzinfo: timezone info, defaults to UTC
-    :return: TimestampField
+    :return: TimestampFilter
     """
-    if value is not None and rel_type != FieldRelationship.EQ:
-        return TimestampField(value=pb_timestamp(value, tzinfo), rel_type=rel_type, sort_direction=sort_direction)
-    elif value is not None and rel_type == FieldRelationship.EQ and not isinstance(value, datetime.datetime):
+    if value is not None and rel_type != FilterRelationship.EQ:
+        return TimestampFilter(value=pb_timestamp(value, tzinfo), rel_type=rel_type, sort_direction=sort_direction)
+    elif value is not None and rel_type == FilterRelationship.EQ and not isinstance(value, datetime.datetime):
         start = datetime.datetime.combine(value, datetime.datetime.min.time(), tzinfo=tzinfo)
         end = datetime.datetime.combine(value, datetime.datetime.max.time(), tzinfo=tzinfo)
-        rel_type = FieldRelationship.BETWEEN
+        rel_type = FilterRelationship.BETWEEN
 
-    return TimestampField(start=pb_timestamp(start, tzinfo),
-                          stop=pb_timestamp(end, tzinfo),
-                          rel_type=rel_type,
-                          sort_direction=sort_direction)
+    return TimestampFilter(start=pb_timestamp(start, tzinfo),
+                           end=pb_timestamp(end, tzinfo),
+                           rel_type=rel_type,
+                           sort_direction=sort_direction)
 
 
 def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],

@@ -34,18 +34,18 @@ from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
 
-from epl.protobuf import stac_service_pb2_grpc
-from epl.protobuf.geometry_pb2 import GeometryData, SpatialReferenceData, EnvelopeData
-from epl.protobuf.query_pb2 import TimestampField, FloatField, StringField, UInt32Field
-from epl.protobuf.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, MosaicRequest, \
-    DatetimeRange
+from epl.protobuf.v1 import stac_service_pb2_grpc
+from epl.protobuf.v1.geometry_pb2 import GeometryData, ProjectionData, EnvelopeData
+from epl.protobuf.v1.query_pb2 import TimestampFilter, FloatFilter, StringFilter, UInt32Filter
+from epl.protobuf.v1.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, \
+    MosaicRequest, DatetimeRange, View, ViewRequest
 
 __all__ = [
     'stac_service', 'url_to_channel', 'STAC_SERVICE',
-    'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest',
-    'GeometryData', 'SpatialReferenceData', 'EnvelopeData',
-    'FloatField', 'TimestampField', 'StringField', 'UInt32Field',
-    'StacItem', 'Asset', 'Eo', 'Mosaic', 'DatetimeRange',
+    'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest', 'ViewRequest',
+    'GeometryData', 'ProjectionData', 'EnvelopeData',
+    'FloatFilter', 'TimestampFilter', 'StringFilter', 'UInt32Filter',
+    'StacItem', 'Asset', 'Eo', 'View', 'Mosaic', 'DatetimeRange',
     'gcs_storage_client',
     'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'bearer_auth'
 ]

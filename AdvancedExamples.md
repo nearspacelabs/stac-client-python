@@ -1,17 +1,17 @@
 # Complex Queries
 Below are a few complex queries, downloading and filtering of StacItem results. You can also look through the [test directory](./test) for more examples of how to use queries.
 
-- [Electro Optical](#electro-optical)
+- [View Optical](#view)
 - [Limits and Offsets](#limits-and-offsets)
 
-## Electro Optical
+## View
 Proto3, the version of proto definition used for gRPC STAC, creates messages that are similar to structs in C. One of the drawbacks to structs is that for floats, integers, enums and booleans all fields that are not set are initialized to a value of zero. In geospatial sciences, defaulting to zero can cause problems in that an algorithm or user might interpret that as a true value. 
 
-To get around this, Google uses wrappers for floats and ints and some of those are used in gRPC STAC. For example, some of the fields like `off_nadir`, `azimuth` and others in the Electro Optical protobuf message, [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo), use the `google.protobuf.FloatValue` wrapper. As a consequence, accessing those values requires calling `field_name.value` instead of `field_name` to access the data.
+To get around this, Google uses wrappers for floats and ints and some of those are used in gRPC STAC. For example, some of the fields like `off_nadir`, `azimuth` and others in the View protobuf message, [View](https://geo-grpc.github.io/api/#epl.protobuf.v1.View), use the `google.protobuf.FloatValue` wrapper. As a consequence, accessing those values requires calling `field_name.value` instead of `field_name` to access the data.
 
-For our ground sampling distance query we're using another query filter; this time it's the [FloatField](https://geo-grpc.github.io/api/#epl.protobuf.FloatField). It behaves just as the TimestampField, but with floats for `value` or for `start` + `stop`.
+For our ground sampling distance query we're using another query filter; this time it's the [FloatFilter](https://geo-grpc.github.io/api/#epl.protobuf.v1.FloatFilter). It behaves just as the TimestampFilter, but with floats for `value` or for `start` + `end`.
 
-In order to make our off nadir query we need to insert it inside of an [EoRequest](https://geo-grpc.github.io/api/#epl.protobuf.EoRequest) container and set that to the `eo` field of the `StacRequest`.
+In order to make our off nadir query we need to insert it inside of an [ViewRequest](https://geo-grpc.github.io/api/#epl.protobuf.v1.ViewRequest) container and set that to the `view` field of the `StacRequest`.
 
 
 
@@ -24,29 +24,29 @@ In order to make our off nadir query we need to insert it inside of an [EoReques
 ```python
 from datetime import datetime, timezone
 from nsl.stac.client import NSLClient
-from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, EoRequest, Eo, FloatField
-from nsl.stac.enum import FieldRelationship
+from nsl.stac import StacRequest, GeometryData, ProjectionData, ViewRequest, View, FloatFilter
+from nsl.stac.enum import FilterRelationship, Mission
 
 # create our off_nadir query to only return data captured with an angle of less than or 
 # equal to 10 degrees
-off_nadir = FloatField(value=10.0, rel_type=FieldRelationship.LT_OR_EQ)
+off_nadir = FloatFilter(value=10.0, rel_type=FilterRelationship.LTE)
 # create an eo_request container
-eo_request = EoRequest(off_nadir=off_nadir)
+view_request = ViewRequest(off_nadir=off_nadir)
 # define ourselves a point in Texas
 ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
-geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
+geometry_data = GeometryData(wkt=ut_stadium_wkt, proj=ProjectionData(epsg=4326))
 # create a StacRequest with geometry, eo_request and a limit of 20
-stac_request = StacRequest(geometry=geometry_data, eo=eo_request, limit=20)
+stac_request = StacRequest(intersects=geometry_data, view=view_request, limit=20)
 
 # get a client interface to the gRPC channel
 client = NSLClient()
 for stac_item in client.search(stac_request):
     print("{0} STAC item '{1}' from {2}\nhas a off_nadir {3:.3f}, which should be less than or "
           "equal to requested off_nadir {4}: confirmed {5}".format(
-        Eo.Constellation.Name(stac_item.eo.constellation),
+        stac_item.mission,
         stac_item.id,
         datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-        stac_item.eo.off_nadir.value,
+        stac_item.view.off_nadir.value,
         off_nadir.value,
         True))
 ```
@@ -115,7 +115,7 @@ For most simple requests, a `limit` and `offset` are not necessary. But if you'r
 ```python
 from datetime import date
 from nsl.stac.client import NSLClient
-from nsl.stac import StacRequest, GeometryData, SpatialReferenceData, enum
+from nsl.stac import StacRequest, GeometryData, ProjectionData, enum
 from nsl.stac.utils import pb_timestampfield
 # wkt geometry of Travis County, Texas
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, \
@@ -125,10 +125,10 @@ travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, \
                 -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251))" 
 
 # Query data from before September 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FieldRelationship.LT_OR_EQ)
+time_filter = pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FilterRelationship.LTE)
 
 geometry_data = GeometryData(wkt=travis_wkt, 
-                             sr=SpatialReferenceData(wkid=4326))
+                             proj=ProjectionData(epsg=4326))
 
 # get a client interface to the gRPC channel
 client = NSLClient()
@@ -138,7 +138,7 @@ offset = 0
 total = 0
 while total < 1000:
     # make our request
-    stac_request = StacRequest(datetime=time_filter, geometry=geometry_data, limit=limit, offset=offset)
+    stac_request = StacRequest(datetime=time_filter, intersects=geometry_data, limit=limit, offset=offset)
     # prepare request for next 
     offset += limit
     for stac_item in client.search(stac_request):
