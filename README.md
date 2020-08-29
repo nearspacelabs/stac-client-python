@@ -85,6 +85,12 @@ This call will take a little bit to execute as it downloads an image.
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 import tempfile
 from IPython.display import Image, display
@@ -112,7 +118,7 @@ geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=43
 # TimestampField is a query field that allows for making sql-like queries for information
 # LT_OR_EQ is an enum that means less than or equal to the value in the query field
 # Query data from August 25, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FieldRelationship.LT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LT_OR_EQ)
 
 # the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin 
@@ -132,6 +138,11 @@ with tempfile.TemporaryDirectory() as d:
     filename = utils.download_asset(asset=asset, save_directory=d)
     display(Image(filename=filename))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -197,6 +208,12 @@ The easiest query to construct is a `StacRequest` constructor with no variables,
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac.client import NSLClient
 from nsl.stac import StacRequest
@@ -209,6 +226,11 @@ stac_request = StacRequest(id='20190822T183518Z_746_POM1_ST2_P')
 stac_item = client.search_one(stac_request)
 print(stac_item)
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -336,6 +358,12 @@ The STAC specification has a bounding box `bbox` specification for STAC items. H
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac import StacRequest, EnvelopeData, SpatialReferenceData
 from nsl.stac.client import NSLClient
@@ -358,6 +386,11 @@ stac_request = StacRequest(bbox=envelope_data)
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -391,6 +424,12 @@ Above should be printed the STAC ids of 10 items (10 is the default limit for th
 #### Query By GeoJSON
 
 Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esrishape:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -433,6 +472,11 @@ for stac_item in client.search(stac_request):
 
 
 
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -449,6 +493,12 @@ for stac_item in client.search(stac_request):
 #### Query By WKT
 
 Same geometry as above, but a wkt geometry instead of a geojson:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -477,6 +527,11 @@ for stac_item in client.search(stac_request):
 
 
 
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -495,9 +550,15 @@ When it comes to Temporal queries there are a few things to note. One is that we
 
 So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
 
-When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampField](https://geo-grpc.github.io/api/#epl.protobuf.TimestampField), where we define the value using the `value` field or the `start`&`stop` fields. And then we define a relationship type using the `rel_type` field and the [FieldRelationship](https://geo-grpc.github.io/api/#epl.protobuf.FieldRelationship) enum values of `EQ`, `LT_OR_EQ`, `GT_OR_EQ`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NOT_EQ`.
+When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampField](https://geo-grpc.github.io/api/#epl.protobuf.TimestampField), where we define the value using the `value` field or the `start`&`stop` fields. And then we define a relationship type using the `rel_type` field and the [FilterRelationship](https://geo-grpc.github.io/api/#epl.protobuf.FilterRelationship) enum values of `EQ`, `LT_OR_EQ`, `GT_OR_EQ`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NOT_EQ`.
 
 #### Everything After A Secific Date
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -513,7 +574,7 @@ from nsl.stac import utils, StacRequest, enum
 
 # make a filter that selects all data on or after August 21st, 2019
 value = date(2019, 8, 21)
-time_filter = utils.pb_timestampfield(value=value, rel_type=enum.FieldRelationship.GT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=value, rel_type=enum.FilterRelationship.GT_OR_EQ)
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
 # get a client interface to the gRPC channel
@@ -524,6 +585,11 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(time_filter.value.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds > time_filter.start.seconds))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -557,6 +623,12 @@ Now we're going to do a range request and select data between two dates using th
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from datetime import datetime, timezone, timedelta
 from nsl.stac.client import NSLClient
@@ -565,7 +637,7 @@ from nsl.stac import utils, enum, StacRequest
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
 stop = start + timedelta(days=9)
-time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=enum.FieldRelationship.BETWEEN)
+time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=enum.FilterRelationship.BETWEEN)
 
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
@@ -577,6 +649,11 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(time_filter.stop.seconds, tz=timezone.utc).isoformat(),
         stac_item.observed.seconds < time_filter.stop.seconds))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -601,7 +678,13 @@ In the above print out we are returned STAC items that are between the dates of 
 
 #### Select Data for One Day
 
-No we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FieldRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
+No we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -619,7 +702,7 @@ value = date(2019, 8, 6)
 # if you omit this tzinfo from the pb_timestampfield function, the default for tzinfo 
 # is assumed to be utc 
 texas_utc_offset = timezone(timedelta(hours=-6))
-time_filter = utils.pb_timestampfield(rel_type=enum.FieldRelationship.EQ,
+time_filter = utils.pb_timestampfield(rel_type=enum.FilterRelationship.EQ,
                                       value=value,
                                       tzinfo=texas_utc_offset)
 
@@ -637,6 +720,11 @@ for stac_item in client.search(stac_request):
         datetime.fromtimestamp(time_filter.start.seconds, tz=texas_utc_offset).isoformat(),
         stac_item.observed.seconds > time_filter.start.seconds))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -674,6 +762,12 @@ To downlad thumbnail assets follow the pattern in the below example:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 import tempfile
 from IPython.display import Image, display
@@ -684,7 +778,7 @@ from nsl.stac import utils, enum, StacRequest, GeometryData, SpatialReferenceDat
 mlk_blvd_wkt = 'LINESTRING(-97.72842049283962 30.278624772098176,-97.72142529172878 30.2796624743974)'
 geometry_data = GeometryData(wkt=mlk_blvd_wkt, 
                              sr=SpatialReferenceData(wkid=4326))
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FieldRelationship.LT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LT_OR_EQ)
 stac_request = StacRequest(geometry=geometry_data,
                            datetime=time_filter,
                            limit=3)
@@ -700,6 +794,11 @@ for stac_item in client.search(stac_request):
         utils.download_asset(asset=asset, file_obj=file_obj)
         display(Image(filename=file_obj.name))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -728,6 +827,12 @@ To download the full geotiff asset follow the pattern in the below example:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 import os
 import tempfile
@@ -742,7 +847,7 @@ ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
 geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # Query data from before September 1, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FieldRelationship.LT_OR_EQ)
+time_filter = utils.pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FilterRelationship.LT_OR_EQ)
 
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data)
 
@@ -755,6 +860,11 @@ with tempfile.TemporaryDirectory() as d:
     file_path = utils.download_asset(asset=asset, save_directory=d)
     print("{0} has {1} bytes".format(os.path.basename(file_path), os.path.getsize(file_path)))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -788,6 +898,12 @@ For example:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 import os
 import tempfile
@@ -801,7 +917,7 @@ ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
 geometry_data = GeometryData(wkt=ut_stadium_wkt, sr=SpatialReferenceData(wkid=4326))
 
 # Query data from before September 1, 2019
-time_filter = pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FieldRelationship.LT_OR_EQ)
+time_filter = pb_timestampfield(value=date(2019, 9, 1), rel_type=enum.FilterRelationship.LT_OR_EQ)
 
 # limit is set to 2 here, but it would work if you set it to 100 or 1000
 stac_request = StacRequest(datetime=time_filter, geometry=geometry_data, limit=2)
@@ -819,6 +935,11 @@ with tempfile.TemporaryDirectory() as d:
         filename = download_asset(asset=asset, save_directory=d)
         print("saved {}".format(os.path.basename(filename)))
 ```
+
+
+</details>
+
+
 
 
 </details>

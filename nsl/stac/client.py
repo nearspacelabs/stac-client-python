@@ -17,7 +17,7 @@
 
 from typing import Iterator
 
-from epl.protobuf import stac_pb2
+from epl.protobuf.v1 import stac_pb2
 
 from nsl.stac import stac_service as stac_singleton
 from nsl.stac import bearer_auth
@@ -48,9 +48,8 @@ class NSLClient:
         :param stac_item: item to insert
         :return: StacDbResponse, the response of the success of the insert
         """
-        return self._stac_service.stub.InsertOne(stac_item, timeout=timeout, metadata=(
-            ('authorization', bearer_auth.auth_header()),
-        ))
+        metadata = (('authorization', bearer_auth.auth_header()),)
+        return self._stac_service.stub.InsertOneItem(stac_item, timeout=timeout, metadata=metadata)
 
     def search_one(self, stac_request: stac_pb2.StacRequest, timeout=15) -> stac_pb2.StacItem:
         """
@@ -61,11 +60,10 @@ class NSLClient:
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
-            stac_request.eo.MergeFrom(stac_pb2.EoRequest(constellation=stac_pb2.Eo.SWIFT))
+            stac_request.mission_enum = stac_pb2.SWIFT
 
-        return self._stac_service.stub.SearchOne(stac_request, timeout=timeout, metadata=(
-            ('authorization', bearer_auth.auth_header()),
-        ))
+        metadata = (('authorization', bearer_auth.auth_header()),)
+        return self._stac_service.stub.SearchOneItem(stac_request, timeout=timeout, metadata=metadata)
 
     def count(self, stac_request: stac_pb2.StacRequest, timeout=15) -> int:
         """
@@ -76,11 +74,10 @@ class NSLClient:
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
-            stac_request.eo.MergeFrom(stac_pb2.EoRequest(constellation=stac_pb2.Eo.SWIFT))
+            stac_request.mission_enum = stac_pb2.SWIFT
 
-        db_result = self._stac_service.stub.Count(stac_request, timeout=timeout, metadata=(
-            ('authorization', bearer_auth.auth_header()),
-        ))
+        metadata = (('authorization', bearer_auth.auth_header()),)
+        db_result = self._stac_service.stub.CountItems(stac_request, timeout=timeout, metadata=metadata)
         return db_result.count
 
     def search(self, stac_request: stac_pb2.StacRequest, timeout=15) -> Iterator[stac_pb2.StacItem]:
@@ -92,9 +89,8 @@ class NSLClient:
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
-            stac_request.eo.MergeFrom(stac_pb2.EoRequest(constellation=stac_pb2.Eo.SWIFT))
+            stac_request.mission_enum = stac_pb2.SWIFT
 
-        results_generator = self._stac_service.stub.Search(stac_request, timeout=timeout, metadata=(
-            ('authorization', bearer_auth.auth_header()),
-        ))
+        metadata = (('authorization', bearer_auth.auth_header()),)
+        results_generator = self._stac_service.stub.SearchItems(stac_request, timeout=timeout, metadata=metadata)
         return results_generator

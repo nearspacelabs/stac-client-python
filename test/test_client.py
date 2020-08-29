@@ -18,14 +18,15 @@
 import tempfile
 import unittest
 import io
+import os
 
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
-from nsl.stac import StacRequest, LandsatRequest, MosaicRequest, EoRequest
-from nsl.stac import StacItem, Asset, TimestampField, GeometryData, SpatialReferenceData, Mosaic
+from nsl.stac import StacRequest, LandsatRequest, MosaicRequest
+from nsl.stac import StacItem, Asset, TimestampFilter, GeometryData, ProjectionData, Mosaic
 from nsl.stac import utils, enum
-from nsl.stac.enum import AssetType, Band, CloudPlatform, Constellation, FieldRelationship
+from nsl.stac.enum import AssetType, Band, CloudPlatform, Mission, FilterRelationship
 from nsl.stac.client import NSLClient
 
 client = NSLClient(nsl_only=False)
@@ -278,11 +279,11 @@ class TestLandsat(unittest.TestCase):
     def test_2000(self):
         start = datetime(1999, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(1999, 4, 6, 12, 52, 59, tzinfo=timezone.utc)
-        observed_range = utils.pb_timestampfield(rel_type=FieldRelationship.BETWEEN, start=start, end=end)
+        observed_range = utils.pb_timestampfield(rel_type=FilterRelationship.BETWEEN, start=start, end=end)
 
         stac_request = StacRequest(observed=observed_range, limit=20, landsat=LandsatRequest())
         for stac_item in client.search(stac_request):
-            self.assertEquals(Constellation.LANDSAT, stac_item.eo.constellation)
+            self.assertEqual(Mission.LANDSAT, stac_item.mission_enum)
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
             self.assertGreaterEqual(utils.pb_timestamp(end).seconds, stac_item.datetime.seconds)
             self.assertLessEqual(utils.pb_timestamp(start).seconds, stac_item.datetime.seconds)
@@ -292,13 +293,13 @@ class TestLandsat(unittest.TestCase):
     def test_count_more(self):
         start = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 52, 59, tzinfo=timezone.utc)
-        observed_range = TimestampField(start=utils.pb_timestamp(start),
-                                        stop=utils.pb_timestamp(end),
-                                        rel_type=FieldRelationship.BETWEEN)
+        observed_range = TimestampFilter(start=utils.pb_timestamp(start),
+                                         end=utils.pb_timestamp(end),
+                                         rel_type=FilterRelationship.BETWEEN)
 
         stac_request = StacRequest(observed=observed_range, limit=40, landsat=LandsatRequest())
         for stac_item in client.search(stac_request):
-            self.assertEquals(Constellation.LANDSAT, stac_item.eo.constellation)
+            self.assertEquals(Mission.LANDSAT, stac_item.mission_enum)
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
             self.assertGreaterEqual(utils.pb_timestamp(end).seconds, stac_item.datetime.seconds)
             self.assertLessEqual(utils.pb_timestamp(start).seconds, stac_item.datetime.seconds)
@@ -309,27 +310,25 @@ class TestLandsat(unittest.TestCase):
 class TestDatetimeQueries(unittest.TestCase):
     def test_date_LT_OR_EQ(self):
         bd = date(2014, 11, 3)
-        observed_range = utils.pb_timestampfield(rel_type=FieldRelationship.LT_OR_EQ, value=bd)
-        eo = EoRequest(constellation=enum.Constellation.NAIP)
-        stac_request = StacRequest(observed=observed_range, eo=eo)
+        observed_range = utils.pb_timestampfield(rel_type=FilterRelationship.LTE, value=bd)
+        stac_request = StacRequest(observed=observed_range, mission_enum=enum.Mission.NAIP)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         self.assertLessEqual(utils.pb_timestamp(bd).seconds, stac_item.datetime.seconds)
 
     def test_date_GT_OR_EQ(self):
         bd = date(2015, 11, 3)
-        observed_range = TimestampField(value=utils.pb_timestamp(bd, tzinfo=timezone.utc),
-                                        rel_type=FieldRelationship.GT_OR_EQ)
+        observed_range = TimestampFilter(value=utils.pb_timestamp(bd, tzinfo=timezone.utc),
+                                         rel_type=FilterRelationship.GTE)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         self.assertLessEqual(utils.pb_timestamp(bd, tzinfo=timezone.utc).seconds, stac_item.observed.seconds)
 
-    @unittest.skip("mono-241 publishing failure")
     def test_date_GT_OR_EQ_datetime(self):
         bd = date(2015, 11, 3)
-        observed_range = TimestampField(value=utils.pb_timestamp(bd, tzinfo=timezone.utc),
-                                        rel_type=FieldRelationship.GT_OR_EQ)
+        observed_range = TimestampFilter(value=utils.pb_timestamp(bd, tzinfo=timezone.utc),
+                                         rel_type=FilterRelationship.GTE)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -337,18 +336,17 @@ class TestDatetimeQueries(unittest.TestCase):
 
     def test_observed_GT(self):
         bdt = datetime(2015, 11, 3, 1, 1, 1, tzinfo=timezone.utc)
-        observed_range = TimestampField(value=utils.pb_timestamp(bdt),
-                                        rel_type=FieldRelationship.GT)
+        observed_range = TimestampFilter(value=utils.pb_timestamp(bdt),
+                                         rel_type=FilterRelationship.GT)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
         self.assertLessEqual(utils.pb_timestamp(bdt).seconds, stac_item.observed.seconds)
 
-    @unittest.skip("mono-241 publishing failure")
     def test_datetime_GT(self):
         bdt = datetime(2015, 11, 3, 1, 1, 1, tzinfo=timezone.utc)
-        observed_range = TimestampField(value=utils.pb_timestamp(bdt),
-                                        rel_type=FieldRelationship.GT)
+        observed_range = TimestampFilter(value=utils.pb_timestamp(bdt),
+                                         rel_type=FilterRelationship.GT)
         stac_request = StacRequest(observed=observed_range)
         stac_item = client.search_one(stac_request)
         self.assertIsNotNone(stac_item)
@@ -357,9 +355,9 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = TimestampField(start=utils.pb_timestamp(start),
-                                        stop=utils.pb_timestamp(end),
-                                        rel_type=FieldRelationship.BETWEEN)
+        observed_range = TimestampFilter(start=utils.pb_timestamp(start),
+                                         end=utils.pb_timestamp(end),
+                                         rel_type=FilterRelationship.BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
@@ -369,9 +367,9 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = TimestampField(start=utils.pb_timestamp(start),
-                                        stop=utils.pb_timestamp(end),
-                                        rel_type=FieldRelationship.NOT_BETWEEN)
+        observed_range = TimestampFilter(start=utils.pb_timestamp(start),
+                                         end=utils.pb_timestamp(end),
+                                         rel_type=FilterRelationship.NOT_BETWEEN)
         stac_request = StacRequest(observed=observed_range, limit=5)
         for stac_item in client.search(stac_request):
             print(datetime.fromtimestamp(stac_item.datetime.seconds, tz=timezone.utc))
@@ -381,10 +379,10 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_datetime_not_range_asc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = TimestampField(start=utils.pb_timestamp(start),
-                                        stop=utils.pb_timestamp(end),
-                                        rel_type=FieldRelationship.NOT_BETWEEN,
-                                        sort_direction=enum.SortDirection.ASC)
+        observed_range = TimestampFilter(start=utils.pb_timestamp(start),
+                                         end=utils.pb_timestamp(end),
+                                         rel_type=FilterRelationship.NOT_BETWEEN,
+                                         sort_direction=enum.SortDirection.ASC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         count = 0
         for stac_item in client.search(stac_request):
@@ -394,14 +392,13 @@ class TestDatetimeQueries(unittest.TestCase):
                             utils.pb_timestamp(start).seconds < stac_item.datetime.seconds)
         self.assertEqual(count, 5)
 
-    @unittest.skip("mono-241 publishing failure")
     def test_datetime_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = TimestampField(start=utils.pb_timestamp(start),
-                                        stop=utils.pb_timestamp(end),
-                                        rel_type=FieldRelationship.NOT_BETWEEN,
-                                        sort_direction=enum.SortDirection.DESC)
+        observed_range = TimestampFilter(start=utils.pb_timestamp(start),
+                                         end=utils.pb_timestamp(end),
+                                         rel_type=FilterRelationship.NOT_BETWEEN,
+                                         sort_direction=enum.SortDirection.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         count = 0
         for stac_item in client.search(stac_request):
@@ -413,10 +410,10 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_observed_not_range_desc(self):
         start = datetime(2013, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
         end = datetime(2014, 4, 1, 12, 45, 59, tzinfo=timezone.utc)
-        observed_range = TimestampField(start=utils.pb_timestamp(start),
-                                        stop=utils.pb_timestamp(end),
-                                        rel_type=FieldRelationship.NOT_BETWEEN,
-                                        sort_direction=enum.SortDirection.DESC)
+        observed_range = TimestampFilter(start=utils.pb_timestamp(start),
+                                         end=utils.pb_timestamp(end),
+                                         rel_type=FilterRelationship.NOT_BETWEEN,
+                                         sort_direction=enum.SortDirection.DESC)
         stac_request = StacRequest(observed=observed_range, limit=5)
         count = 0
         for stac_item in client.search(stac_request):
@@ -428,7 +425,7 @@ class TestDatetimeQueries(unittest.TestCase):
     def test_date_utc_eq(self):
         value = date(2019, 8, 6)
         texas_utc_offset = timezone(timedelta(hours=-6))
-        time_filter = utils.pb_timestampfield(rel_type=enum.FieldRelationship.EQ,
+        time_filter = utils.pb_timestampfield(rel_type=enum.FilterRelationship.EQ,
                                               value=value,
                                               tzinfo=texas_utc_offset)
 
@@ -438,11 +435,11 @@ class TestDatetimeQueries(unittest.TestCase):
         for stac_item in client.search(stac_request):
             print("STAC item date, {0}, is before {1}: {2}".format(
                 datetime.fromtimestamp(stac_item.observed.seconds, tz=timezone.utc).isoformat(),
-                datetime.fromtimestamp(time_filter.stop.seconds, tz=texas_utc_offset).isoformat(),
-                stac_item.observed.seconds < time_filter.stop.seconds))
+                datetime.fromtimestamp(time_filter.end.seconds, tz=texas_utc_offset).isoformat(),
+                stac_item.observed.seconds < time_filter.end.seconds))
 
         start = date(2019, 8, 6)
-        time_filter = utils.pb_timestampfield(rel_type=FieldRelationship.EQ,
+        time_filter = utils.pb_timestampfield(rel_type=FilterRelationship.EQ,
                                               value=start,
                                               tzinfo=timezone(timedelta(hours=-6)))
         stac_request = StacRequest(datetime=time_filter, limit=2)
@@ -525,7 +522,6 @@ class TestHelpers(unittest.TestCase):
                 self.assertMultiLineEqual(data1, data3)
 
     def test_download_geotiff(self):
-        import os
         stac_request = StacRequest(id='20190822T183518Z_746_POM1_ST2_P')
 
         stac_item = client.search_one(stac_request)
@@ -574,14 +570,14 @@ class TestPerf(unittest.TestCase):
                      "-97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, " \
                      "-98.0503 30.6251)) "
         geometry_data = GeometryData(wkt=travis_wkt,
-                                     sr=SpatialReferenceData(wkid=4326))
+                                     proj=ProjectionData(epsg=4326))
 
         limit = 200
         offset = 0
         total = 0
         while total < 1000:
             # make our request
-            stac_request = StacRequest(geometry=geometry_data, limit=limit, offset=offset)
+            stac_request = StacRequest(intersects=geometry_data, limit=limit, offset=offset)
             # prepare request for next
             offset += limit
             for stac_item in client.search(stac_request):
@@ -590,30 +586,3 @@ class TestPerf(unittest.TestCase):
             if total % limit == 0:
                 print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
         self.assertEqual(total, 1000)
-
-
-class TestSpatialQueries(unittest.TestCase):
-    def test_readme_1st(self):
-        # our area of interest will be the coordinates of the Austin, Texas capital building
-        austin_capital_wkt = "POINT(-97.7430600 30.2671500)"
-        # GeometryData is a protobuf container for GIS geometry information
-        geometry_data = GeometryData(wkt=austin_capital_wkt, sr=SpatialReferenceData(wkid=4326))
-
-        # TimestampField is a query field that allows for making sql-like queries for information
-        # GT_OR_EQ is an enum that means greater than or equal to the value in the query field
-        # Query data from August 1, 2019
-        time_filter = utils.pb_timestampfield(value=date(2019, 12, 31), rel_type=enum.FieldRelationship.LT_OR_EQ)
-
-        # the StacRequest is a protobuf message for making filter queries for data
-        # This search looks for any type of imagery hosted in the STAC service that intersects the austin capital
-        # area of interest and was observed on or after the 1st of August
-        stac_request = StacRequest(processed=time_filter, geometry=geometry_data)
-
-        # search_one method requests only one item be returned that meets the query filters in the StacRequest
-        # the item returned is a StacItem protobuf message
-        stac_item = client.search_one(stac_request)
-
-        # get the thumbnail asset from the assets map. The other option would be a Geotiff, with asset key 'GEOTIFF_RGB'
-        asset = utils.get_asset(stac_item)
-
-        self.assertIsNotNone(asset)

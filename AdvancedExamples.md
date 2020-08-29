@@ -21,6 +21,12 @@ In order to make our off nadir query we need to insert it inside of an [EoReques
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from datetime import datetime, timezone
 from nsl.stac.client import NSLClient
@@ -50,6 +56,11 @@ for stac_item in client.search(stac_request):
         off_nadir.value,
         True))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -112,6 +123,12 @@ For most simple requests, a `limit` and `offset` are not necessary. But if you'r
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from datetime import date
 from nsl.stac.client import NSLClient
@@ -147,6 +164,11 @@ while total < 1000:
     if total % limit == 0:
         print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
 ```
+
+
+</details>
+
+
 
 
 </details>

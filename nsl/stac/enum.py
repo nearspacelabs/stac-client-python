@@ -16,15 +16,20 @@
 #   info@nearspacelabs.com
 
 import sys
-from epl.protobuf.stac_pb2 import AssetType as _AssetType
-from epl.protobuf.stac_pb2 import CloudPlatform as _CloudPlatform
-from epl.protobuf.query_pb2 import FieldRelationship as _FieldRelationship
-from epl.protobuf.query_pb2 import SortDirection as _SortDirection
-from epl.protobuf.stac_pb2 import Eo as _Eo
+from epl.protobuf.v1.stac_pb2 import AssetType as _AssetType
+from epl.protobuf.v1.stac_pb2 import CloudPlatform as _CloudPlatform
+from epl.protobuf.v1.query_pb2 import FilterRelationship as _FilterRelationship
+from epl.protobuf.v1.query_pb2 import SortDirection as _SortDirection
+from epl.protobuf.v1.stac_pb2 import Constellation as _Constellation
+from epl.protobuf.v1.stac_pb2 import Mission as _Mission
+from epl.protobuf.v1.stac_pb2 import Instrument as _Instrument
+from epl.protobuf.v1.stac_pb2 import Platform as _Platform
+from epl.protobuf.v1.stac_pb2 import Eo as _Eo
+
 from enum import IntFlag
 
-__all__ = ['AssetType', 'CloudPlatform', 'FieldRelationship', 'SortDirection', 'Platform', 'Constellation', 'Band',
-           'Instrument']
+__all__ = ['AssetType', 'CloudPlatform', 'FilterRelationship', 'SortDirection', 'Platform', 'Constellation', 'Band',
+           'Instrument', 'Mission']
 
 
 class AssetType(IntFlag):
@@ -79,60 +84,65 @@ class CloudPlatform(IntFlag):
     AWS = _CloudPlatform.AWS
     GCP = _CloudPlatform.GCP
     AZURE = _CloudPlatform.AZURE
+    IBM = _CloudPlatform.IBM
 
 
 class Constellation(IntFlag):
-    UNKNOWN_PLATFORM = _Eo.UNKNOWN_CONSTELLATION
-    LANDSAT = _Eo.LANDSAT
-    NAIP = _Eo.NAIP
-    SWIFT = _Eo.SWIFT
-    PNOA = _Eo.PNOA
+    UNKNOWN_PLATFORM = _Constellation.UNKNOWN_CONSTELLATION
 
 
-class FieldRelationship(IntFlag):
-    EQ = _FieldRelationship.EQ
-    LT_OR_EQ = _FieldRelationship.LT_OR_EQ
-    GT_OR_EQ = _FieldRelationship.GT_OR_EQ
-    LT = _FieldRelationship.LT
-    GT = _FieldRelationship.GT
-    BETWEEN = _FieldRelationship.BETWEEN
-    NOT_BETWEEN = _FieldRelationship.NOT_BETWEEN
-    NOT_EQ = _FieldRelationship.NOT_EQ
-    IN = _FieldRelationship.IN
-    NOT_IN = _FieldRelationship.NOT_IN
-    LIKE = _FieldRelationship.LIKE
-    NOT_LIKE = _FieldRelationship.NOT_LIKE
+class Mission(IntFlag):
+    UNKNOWN_MISSION = _Mission.UNKNOWN_MISSION
+    LANDSAT = _Mission.LANDSAT
+    NAIP = _Mission.NAIP
+    SWIFT = _Mission.SWIFT
+    PNOA = _Mission.PNOA
+
+
+class FilterRelationship(IntFlag):
+    EQ = _FilterRelationship.EQ
+    LTE = _FilterRelationship.LTE
+    GTE = _FilterRelationship.GTE
+    LT = _FilterRelationship.LT
+    GT = _FilterRelationship.GT
+    BETWEEN = _FilterRelationship.BETWEEN
+    NOT_BETWEEN = _FilterRelationship.NOT_BETWEEN
+    NEQ = _FilterRelationship.NEQ
+    IN = _FilterRelationship.IN
+    NOT_IN = _FilterRelationship.NOT_IN
+    LIKE = _FilterRelationship.LIKE
+    NOT_LIKE = _FilterRelationship.NOT_LIKE
 
 
 class Instrument(IntFlag):
-    UNKNOWN_INSTRUMENT = _Eo.UNKNOWN_INSTRUMENT
-    OLI = _Eo.OLI
-    TIRS = _Eo.TIRS
-    OLI_TIRS = _Eo.OLI_TIRS
-    POM_1 = _Eo.POM_1
-    TM = _Eo.TM
-    ETM = _Eo.ETM
-    MSS = _Eo.MSS
+    UNKNOWN_INSTRUMENT = _Instrument.UNKNOWN_INSTRUMENT
+    OLI = _Instrument.OLI
+    TIRS = _Instrument.TIRS
+    OLI_TIRS = _Instrument.OLI_TIRS
+    POM_1 = _Instrument.POM_1
+    TM = _Instrument.TM
+    ETM = _Instrument.ETM
+    MSS = _Instrument.MSS
 
 
 class Platform(IntFlag):
-    UNKNOWN_PLATFORM = _Eo.UNKNOWN_PLATFORM
-    LANDSAT_1 = _Eo.LANDSAT_1
-    LANDSAT_2 = _Eo.LANDSAT_2
-    LANDSAT_3 = _Eo.LANDSAT_3
-    LANDSAT_123 = _Eo.LANDSAT_123
-    LANDSAT_4 = _Eo.LANDSAT_4
-    LANDSAT_5 = _Eo.LANDSAT_5
-    LANDSAT_45 = _Eo.LANDSAT_45
-    LANDSAT_7 = _Eo.LANDSAT_7
-    LANDSAT_8 = _Eo.LANDSAT_8
-    SWIFT_2 = _Eo.SWIFT_2
+    UNKNOWN_PLATFORM = _Platform.UNKNOWN_PLATFORM
+    LANDSAT_1 = _Platform.LANDSAT_1
+    LANDSAT_2 = _Platform.LANDSAT_2
+    LANDSAT_3 = _Platform.LANDSAT_3
+    LANDSAT_123 = _Platform.LANDSAT_123
+    LANDSAT_4 = _Platform.LANDSAT_4
+    LANDSAT_5 = _Platform.LANDSAT_5
+    LANDSAT_45 = _Platform.LANDSAT_45
+    LANDSAT_7 = _Platform.LANDSAT_7
+    LANDSAT_8 = _Platform.LANDSAT_8
+    SWIFT_2 = _Platform.SWIFT_2
 
 
 # Final check to make sure that all enums have complete definitions for the associated protobufs
 for enum_class_name in __all__:
     nsl_enum = getattr(sys.modules[__name__], enum_class_name)
-    if enum_class_name in ['Platform', 'Constellation', 'Band', 'Instrument']:
+    if enum_class_name in ['Band']:
         eo_class = getattr(sys.modules[__name__], '_Eo')
         epl_pb_enum_wrapper = getattr(eo_class, enum_class_name)
     else:

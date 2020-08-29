@@ -10,6 +10,12 @@ Return to [README.md](./README.md)
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac.client import NSLClient
 from nsl.stac import StacRequest
@@ -21,6 +27,11 @@ client = NSLClient()
 # for this request we might as well use the search one, as STAC ids ought to be unique
 stac_item = client.search_one(stac_request)
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -58,9 +69,20 @@ Printing out all the data demonstrates what is typically in a StacItem:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 print(stac_item)
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -178,6 +200,12 @@ Every STAC Item has a unique id, a datetime/observation, and a geometry/bbox (bo
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 print("STAC Item id: {}\n".format(stac_item.id))
 print("STAC Item observed: {}".format(stac_item.observed))
@@ -185,6 +213,11 @@ print("STAC Item datetime: {}".format(stac_item.datetime))
 print("STAC Item bbox: {}".format(stac_item.bbox))
 print("STAC Item geometry: {}".format(stac_item.geometry))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -242,12 +275,23 @@ Below we demonstrate how you can create python `datetime` objects:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from datetime import datetime
 print("UTC Observed Scene: {}".format(datetime.utcfromtimestamp(stac_item.observed.seconds)))
 print("UTC Processed Data: {}".format(datetime.utcfromtimestamp(stac_item.processed.seconds)))
 print("UTC Updated Metadata: {}".format(datetime.utcfromtimestamp(stac_item.updated.seconds)))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -280,6 +324,12 @@ Below is a demo of using shapely to get at the geometry data.
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from shapely.geometry import Polygon
 from shapely.wkb import loads
@@ -291,6 +341,11 @@ print("bounds:\n{}\n".format(Polygon.from_bounds(stac_item.bbox.xmin,
                                                  stac_item.bbox.xmax, 
                                                  stac_item.bbox.ymax)))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -328,6 +383,12 @@ Each STAC item should have at least one asset. An asset should be all the inform
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac import Asset, utils
 from nsl.stac.enum import AssetType
@@ -345,6 +406,11 @@ print_asset(utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL))
 print(AssetType.GEOTIFF.name)
 print_asset(utils.get_asset(stac_item, asset_type=AssetType.GEOTIFF))
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -388,9 +454,20 @@ Some imagery analysis tools require knowing certain types of electro optical inf
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 print(stac_item.eo)
 ```
+
+
+</details>
+
+
 
 
 </details>
@@ -446,12 +523,23 @@ These `sun_azimuth`, `sun_elevation`, `off_nadir` and `azimuth` are all boxed in
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 print("sun_azimuth: {:.5f}".format(stac_item.eo.sun_azimuth.value))
 print("sun_elevation: {:.5f}".format(stac_item.eo.sun_elevation.value))
 print("off_nadir: {:.5f}".format(stac_item.eo.off_nadir.value))
 print("azimuth: {:.5f}".format(stac_item.eo.azimuth.value))
 ```
+
+
+</details>
+
+
 
 
 </details>
