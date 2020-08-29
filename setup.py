@@ -40,7 +40,7 @@ kwargs = {
     'install_requires': [
         'grpcio-tools',
         'protobuf',
-        'epl.protobuf',
+        'epl.protobuf.v1',
         'boto3',
         'google-cloud-storage'
     ],
