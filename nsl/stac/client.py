@@ -33,6 +33,19 @@ class NSLClient:
         self._stac_service = stac_singleton
         self._nsl_only = nsl_only
 
+    @property
+    def default_nsl_id(self):
+        """
+if you don't set the nsl_id for each stac request, then this nsl_id is the default choice. if you set this default
+value you must make sure that the nsl_id has already been 'set' by calling `set_credentials`
+        :return:
+        """
+        return bearer_auth.default_nsl_id
+
+    @default_nsl_id.setter
+    def default_nsl_id(self, value):
+        bearer_auth.default_nsl_id = value
+
     def set_credentials(self, nsl_id: str, nsl_secret: str):
         """
 Set nsl_id and secret for use in querying metadata and downloading imagery
@@ -53,7 +66,7 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         """
         Insert on item into the stac service
         :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
-        set_credentials to set credentials
+        NSLClient object's set_credentials to set credentials
         :param timeout: timeout for request
         :param stac_item: item to insert
         :return: StacDbResponse, the response of the success of the insert
@@ -67,7 +80,7 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
         :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
-        set_credentials to set credentials
+        NSLClient object's set_credentials to set credentials
         :return: StacItem
         """
         # limit to only search Near Space Labs SWIFT data
@@ -83,7 +96,7 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         :param timeout: timeout for request
         :param stac_request: StacRequest query parameters to apply to count method (limit ignored)
         :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
-        set_credentials to set credentials
+        NSLClient object's set_credentials to set credentials
         :return: int
         """
         # limit to only search Near Space Labs SWIFT data
@@ -100,7 +113,7 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
         :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
-        set_credentials to set credentials
+        NSLClient object's set_credentials to set credentials
         :return: stream of StacItems
         """
         # limit to only search Near Space Labs SWIFT data
