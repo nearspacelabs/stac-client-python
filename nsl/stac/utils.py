@@ -43,10 +43,10 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     :param blob_name: complete blob name of item (doesn't include bucket name)
     :return: Blob interface item
     """
-    if gcs_storage_client is None:
+    if gcs_storage_client.client is None:
         raise ValueError("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
 
-    bucket = gcs_storage_client.get_bucket(bucket)
+    bucket = gcs_storage_client.client.get_bucket(bucket)
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
 
@@ -72,7 +72,7 @@ def download_gcs_object(bucket: str,
     blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
 
     if file_obj is not None:
-        blob.download_to_file(file_obj=file_obj, client=gcs_storage_client)
+        blob.download_to_file(file_obj=file_obj, client=gcs_storage_client.client)
         if "name" in file_obj.__dict__:
             save_filename = file_obj.name
         else:

@@ -33,6 +33,14 @@ class NSLClient:
         self._stac_service = stac_singleton
         self._nsl_only = nsl_only
 
+    def set_credentials(self, nsl_id: str, nsl_secret: str):
+        """
+Set nsl_id and secret for use in querying metadata and downloading imagery
+        :param nsl_id:
+        :param nsl_secret:
+        """
+        bearer_auth.set_credentials(nsl_id=nsl_id, nsl_secret=nsl_secret)
+
     def update_service_url(self, stac_service_url):
         """
         update the stac service address
@@ -41,56 +49,64 @@ class NSLClient:
         """
         self._stac_service.update_service_url(stac_service_url=stac_service_url)
 
-    def insert_one(self, stac_item: stac_pb2.StacItem, timeout=15) -> stac_pb2.StacDbResponse:
+    def insert_one(self, stac_item: stac_pb2.StacItem, timeout=15, nsl_id: str = None) -> stac_pb2.StacDbResponse:
         """
         Insert on item into the stac service
+        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        set_credentials to set credentials
         :param timeout: timeout for request
         :param stac_item: item to insert
         :return: StacDbResponse, the response of the success of the insert
         """
-        metadata = (('authorization', bearer_auth.auth_header()),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
         return self._stac_service.stub.InsertOneItem(stac_item, timeout=timeout, metadata=metadata)
 
-    def search_one(self, stac_request: stac_pb2.StacRequest, timeout=15) -> stac_pb2.StacItem:
+    def search_one(self, stac_request: stac_pb2.StacRequest, timeout=15, nsl_id: str = None) -> stac_pb2.StacItem:
         """
         search for one item from the db that matches the stac request
         :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
+        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        set_credentials to set credentials
         :return: StacItem
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
             stac_request.mission_enum = stac_pb2.SWIFT
 
-        metadata = (('authorization', bearer_auth.auth_header()),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
         return self._stac_service.stub.SearchOneItem(stac_request, timeout=timeout, metadata=metadata)
 
-    def count(self, stac_request: stac_pb2.StacRequest, timeout=15) -> int:
+    def count(self, stac_request: stac_pb2.StacRequest, timeout=15, nsl_id: str = None) -> int:
         """
         count all the items in the database that match the stac request
         :param timeout: timeout for request
         :param stac_request: StacRequest query parameters to apply to count method (limit ignored)
+        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        set_credentials to set credentials
         :return: int
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
             stac_request.mission_enum = stac_pb2.SWIFT
 
-        metadata = (('authorization', bearer_auth.auth_header()),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
         db_result = self._stac_service.stub.CountItems(stac_request, timeout=timeout, metadata=metadata)
         return db_result.count
 
-    def search(self, stac_request: stac_pb2.StacRequest, timeout=15) -> Iterator[stac_pb2.StacItem]:
+    def search(self, stac_request: stac_pb2.StacRequest, timeout=15, nsl_id: str = None) -> Iterator[stac_pb2.StacItem]:
         """
         search for stac items by using StacRequest. return a stream of StacItems
         :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
+        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        set_credentials to set credentials
         :return: stream of StacItems
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
             stac_request.mission_enum = stac_pb2.SWIFT
 
-        metadata = (('authorization', bearer_auth.auth_header()),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
         results_generator = self._stac_service.stub.SearchItems(stac_request, timeout=timeout, metadata=metadata)
         return results_generator
