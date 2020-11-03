@@ -20,6 +20,7 @@ import os
 import re
 import http.client
 import json
+import math
 import sched
 import time
 import warnings
@@ -28,7 +29,7 @@ import logging
 import grpc
 
 from random import randint
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
 
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import storage as gcp_storage
@@ -77,7 +78,6 @@ MAX_GRPC_ATTEMPTS = int(os.getenv('MAX_ATTEMPTS', 4))
 INIT_BACKOFF_MS = int(os.getenv('INIT_BACKOFF_MS', 4))
 MAX_BACKOFF_MS = int(os.getenv('MAX_BACKOFF_MS', 4))
 MULTIPLIER = int(os.getenv('MULTIPLIER', 4))
-
 
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'api.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
@@ -155,13 +155,13 @@ class RetryOnRpcErrorClientInterceptor(grpc.UnaryUnaryClientInterceptor, grpc.St
 
 
 interceptors = (
-  RetryOnRpcErrorClientInterceptor(
-    max_attempts=MAX_GRPC_ATTEMPTS,
-    sleeping_policy=ExponentialBackoff(init_backoff_ms=INIT_BACKOFF_MS,
-                                       max_backoff_ms=MAX_BACKOFF_MS,
-                                       multiplier=MULTIPLIER),
-    status_for_retry=(grpc.StatusCode.UNAVAILABLE,),
-  ),
+    RetryOnRpcErrorClientInterceptor(
+        max_attempts=MAX_GRPC_ATTEMPTS,
+        sleeping_policy=ExponentialBackoff(init_backoff_ms=INIT_BACKOFF_MS,
+                                           max_backoff_ms=MAX_BACKOFF_MS,
+                                           multiplier=MULTIPLIER),
+        status_for_retry=(grpc.StatusCode.UNAVAILABLE,),
+    ),
 )
 
 
@@ -180,24 +180,30 @@ def url_to_channel(stac_service_url):
     return grpc.intercept_channel(channel, *interceptors)
 
 
-def _get_storage_client():
-    # TODO remove SERVICE_ACCOUNT_DETAILS
-    if SERVICE_ACCOUNT_DETAILS:
-        details = json.loads(SERVICE_ACCOUNT_DETAILS)
-        creds = service_account.Credentials.from_service_account_info(details)
-        client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
-    elif GOOGLE_APPLICATION_CREDENTIALS:
-        creds = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
-        client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
-    else:
-        try:
-            # https://github.com/googleapis/google-auth-library-python/issues/271#issuecomment-400186626
-            warnings.filterwarnings("ignore", "Your application has authenticated using end user credentials")
-            client = gcp_storage.Client(project="")
-        except DefaultCredentialsError:
-            client = None
+class __GCSStorageClient:
+    _client = None
 
-    return client
+    @property
+    def client(self):
+        if self._client is not None:
+            return self._client
+
+        if SERVICE_ACCOUNT_DETAILS:
+            details = json.loads(SERVICE_ACCOUNT_DETAILS)
+            creds = service_account.Credentials.from_service_account_info(details)
+            client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
+        elif GOOGLE_APPLICATION_CREDENTIALS:
+            creds = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
+            client = gcp_storage.Client(project=CLOUD_PROJECT, credentials=creds)
+        else:
+            try:
+                # https://github.com/googleapis/google-auth-library-python/issues/271#issuecomment-400186626
+                warnings.filterwarnings("ignore", "Your application has authenticated using end user credentials")
+                client = gcp_storage.Client(project="")
+            except DefaultCredentialsError:
+                client = None
+        self._client = client
+        return self._client
 
 
 def _generate_grpc_channel(stac_service_url=None):
@@ -242,24 +248,18 @@ class __StacServiceStub(object):
         self._channel, self._stub = _generate_grpc_channel(stac_service_url)
 
 
-class __BearerAuth:
-    retries = 0
-    _expiry = 0
-    _token = {}
+class AuthInfo:
+    nsl_id: str = None
+    nsl_secret: str = None
+    token: Dict = None
+    retries: int = 0
+    expiry: float = 0
 
-    def __init__(self, init=False):
-        if not NSL_ID or not NSL_SECRET:
-            warnings.warn("NSL_ID and NSL_SECRET should both be set")
-
-        if init:
-            self.authorize()
-
-    def auth_header(self):
-        if (self.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
-            self.authorize()
-            print("fetching new authorization in {0} seconds".format(
-                round(self.expiry - time.time() - TOKEN_REFRESH_THRESHOLD)))
-        return "Bearer {token}".format(token=self._token)
+    def __init__(self, nsl_id, nsl_secret):
+        if not nsl_id or not nsl_secret:
+            raise ValueError("nsl_id and nsl_secret must be non-zero length strings")
+        self.nsl_id = nsl_id
+        self.nsl_secret = nsl_secret
 
     def authorize(self, backoff: int = 0):
         if self.retries >= MAX_TOKEN_ATTEMPTS:
@@ -271,8 +271,8 @@ class __BearerAuth:
             conn = http.client.HTTPSConnection(AUTH0_TENANT)
             headers = {'content-type': 'application/json'}
             post_body = {
-                'client_id': NSL_ID,
-                'client_secret': NSL_SECRET,
+                'client_id': self.nsl_id,
+                'client_secret': self.nsl_secret,
                 'audience': API_AUDIENCE,
                 'grant_type': 'client_credentials'
             }
@@ -293,8 +293,8 @@ class __BearerAuth:
             res_json = json.loads(res_body.decode("utf-8"))
 
             self.retries = 0
-            self._expiry = now + int(res_json["expires_in"])
-            self._token = res_json["access_token"]
+            self.expiry = now + int(res_json["expires_in"])
+            self.token = res_json["access_token"]
         except json.JSONDecodeError as je:
             warnings.warn("failed to decode authentication json token with error: {}".format(je))
             self.retry(backoff)
@@ -304,10 +304,6 @@ class __BearerAuth:
             self.retry(backoff)
             return
 
-    @property
-    def expiry(self):
-        return self._expiry
-
     def retry(self, timeout: int = 0):
         """Retry authorization request, with exponential backoff"""
         self.retries += 1
@@ -316,7 +312,47 @@ class __BearerAuth:
         TOKEN_REFRESH_SCHEDULER.run()
 
 
+class __BearerAuth:
+    _auth_info_map: Dict[str, AuthInfo] = {}
+    _default_nsl_id = None
+
+    def __init__(self, init=False):
+        if not NSL_ID or not NSL_SECRET:
+            warnings.warn("NSL_ID and NSL_SECRET environment variables not set")
+            return
+
+        self._auth_info_map[NSL_ID] = AuthInfo(nsl_id=NSL_ID, nsl_secret=NSL_SECRET)
+        self._default_nsl_id = NSL_ID
+        if init:
+            self._auth_info_map[NSL_ID].authorize()
+
+    @property
+    def default_nsl_id(self):
+        return self._default_nsl_id
+
+    def set_credentials(self, nsl_id: str, nsl_secret: str):
+        if len(self._auth_info_map) == 0:
+            self._default_nsl_id = nsl_id
+        self._auth_info_map[nsl_id] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
+        self._auth_info_map[nsl_id].authorize()
+
+    def auth_header(self, nsl_id: str = None):
+        if nsl_id is None:
+            nsl_id = self._default_nsl_id
+
+        if nsl_id not in self._auth_info_map:
+            raise ValueError("credentials must be set by environment variables NSL_ID & NSL_SECRET or by using the "
+                             "set_credentials method")
+
+        if (self._auth_info_map[nsl_id].expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+            self._auth_info_map[nsl_id].authorize()
+            diff_seconds = self._auth_info_map[nsl_id].expiry - time.time()
+            print("fetching new authorization in {0} minutes".format(
+                round(int(math.ceil(float(diff_seconds/60)/10)*10))))
+        return "Bearer {token}".format(token=self._auth_info_map[nsl_id].token)
+
+
 time.sleep(NSL_NETWORK_DELAY)
 bearer_auth = __BearerAuth()
 stac_service = __StacServiceStub()
-gcs_storage_client = _get_storage_client()
+gcs_storage_client = __GCSStorageClient()

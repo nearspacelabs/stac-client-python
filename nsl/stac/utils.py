@@ -43,10 +43,10 @@ def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     :param blob_name: complete blob name of item (doesn't include bucket name)
     :return: Blob interface item
     """
-    if gcs_storage_client is None:
+    if gcs_storage_client.client is None:
         raise ValueError("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
 
-    bucket = gcs_storage_client.get_bucket(bucket)
+    bucket = gcs_storage_client.client.get_bucket(bucket)
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
 
@@ -72,7 +72,7 @@ def download_gcs_object(bucket: str,
     blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
 
     if file_obj is not None:
-        blob.download_to_file(file_obj=file_obj, client=gcs_storage_client)
+        blob.download_to_file(file_obj=file_obj, client=gcs_storage_client.client)
         if "name" in file_obj.__dict__:
             save_filename = file_obj.name
         else:
@@ -120,17 +120,20 @@ def download_s3_object(bucket: str,
             raise
 
 
-def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str = ""):
+def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str = "", nsl_id: str = None):
     """
     download the href of an asset
     :param asset: The asset to download
     :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory
     are set, then only file_obj is used
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        NSLClient object's set_credentials to set credentials
     :return: returns the save_filename. if BinaryIO is not a FileIO object type, save_filename returned is an
     empty string
     """
-    headers = {"authorization": bearer_auth.auth_header()}
+    headers = {"authorization": bearer_auth.auth_header(nsl_id=nsl_id)}
     if len(asset.type) > 0:
         headers["content-type"] = asset.type
 
@@ -167,7 +170,8 @@ def download_asset(asset: Asset,
                    file_obj: IO = None,
                    save_filename: str = "",
                    save_directory: str = "",
-                   requester_pays: bool = False):
+                   requester_pays: bool = False,
+                   nsl_id: str = None):
     """
     download an asset. Defaults to downloading from cloud storage. save the data to a BinaryIO file object, a filename
     on your filesystem, or to a directory on your filesystem (the filename will be chosen from the basename of the
@@ -181,6 +185,9 @@ def download_asset(asset: Asset,
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
     :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename
     is derived from the basename of the object_path or the href
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        NSLClient object's set_credentials to set credentials
     :return:
     """
     if len(save_directory) > 0 and file_obj is None and len(save_filename) == 0:
@@ -203,14 +210,19 @@ def download_asset(asset: Asset,
     else:
         return download_href_object(asset=asset,
                                     file_obj=file_obj,
-                                    save_filename=save_filename)
+                                    save_filename=save_filename,
+                                    nsl_id=nsl_id)
 
 
 def download_assets(stac_item: StacItem,
                     save_directory: str,
-                    from_bucket: bool = False) -> List[str]:
+                    from_bucket: bool = False,
+                    nsl_id: str = None) -> List[str]:
     """
     Download all the assets for a StacItem into a directory
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        NSLClient object's set_credentials to set credentials
     :param stac_item: StacItem containing assets to download
     :param save_directory: the directory where the files should be downloaded
     :param from_bucket: force download from bucket. if set to false downloads happen from href. defaults to False
@@ -221,7 +233,8 @@ def download_assets(stac_item: StacItem,
         asset = stac_item.assets[asset_key]
         filenames.append(download_asset(asset=asset,
                                         from_bucket=from_bucket,
-                                        save_directory=save_directory))
+                                        save_directory=save_directory,
+                                        nsl_id=nsl_id))
     return filenames
 
 

@@ -34,7 +34,7 @@ kwargs = {
     'author': 'David Raleigh',
     'author_email': 'david@nearspacelabs.com',
     'license': 'Apache 2.0',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'python_requires': '>3.6.0',
     'packages': [package_name],
     'install_requires': [
