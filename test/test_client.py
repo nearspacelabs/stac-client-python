@@ -586,13 +586,3 @@ class TestPerf(unittest.TestCase):
             if total % limit == 0:
                 print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
         self.assertEqual(total, 1000)
-
-
-class TestClient(unittest.TestCase):
-    def test_default_credentials(self):
-        default_nsl_id = client.default_nsl_id
-        client.default_nsl_id = default_nsl_id
-        with self.assertRaises(ValueError) as context:
-            client.default_nsl_id = "pancakes"
-
-        self.assertTrue("pancakes not set. Must call set_credentials" in str(context.exception))
