@@ -172,7 +172,7 @@ with tempfile.TemporaryDirectory() as d:
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
     attempting NSL authentication against api.nearspacelabs.net
-    fetching new authorization in 3540 seconds
+    fetching new authorization in 60 minutes
 ```
 
 

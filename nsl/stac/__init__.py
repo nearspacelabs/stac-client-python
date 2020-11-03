@@ -20,6 +20,7 @@ import os
 import re
 import http.client
 import json
+import math
 import sched
 import time
 import warnings
@@ -345,8 +346,9 @@ class __BearerAuth:
 
         if (self._auth_info_map[nsl_id].expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
             self._auth_info_map[nsl_id].authorize()
-            print("fetching new authorization in {0} seconds".format(
-                round(self._auth_info_map[nsl_id].expiry - time.time() - TOKEN_REFRESH_THRESHOLD)))
+            diff_seconds = self._auth_info_map[nsl_id].expiry - time.time()
+            print("fetching new authorization in {0} minutes".format(
+                round(int(math.ceil(float(diff_seconds/60)/10)*10))))
         return "Bearer {token}".format(token=self._auth_info_map[nsl_id].token)
 
 
