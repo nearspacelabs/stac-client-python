@@ -7,6 +7,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
 
 ## Sections
 - [Setup](#setup)
+- [Credentials](#credentials)
 - [First Code Example](#first-code-example)
 - [STAC metadata structure](#what-are-protobufs-grpc-and-spatio-temporal-asset-catalogs)
   - [Assets](#assets-images-to-download)
@@ -71,6 +72,31 @@ At this release our timeouts are default 15 seconds. If you use the `search` met
 If you are returning so many stac items that you are timing out then you may want to use a `limit` and `offset` variables in the `StacRequest`. For more details about `limit` and `offset` visit the [AdvancedExamples.md](./AdvancedExamples.md) doc.
 
 For our download API we've implemented a 4 requests per second limit. You may need implement a retry mechanism with an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) if you are overruning the rate limit.
+
+## Credentials
+There are two ways to set credentials. The first is to set them using environment variables `NSL_ID` and `NSL_SECRET`. An alternative to environment variable is tot use the `set_credentials` method on the `NSLClient` object. For example:
+```
+client = NSLClient()
+client.set_credentials(nsl_id='YOUR_NSL_ID', nsl_secret='YOUR_NSL_SECRET')
+```
+The `NSLClient()` call accesses a module initialized "singleton". gRPC prefers that only one TCP/IP connection be open and that's why the `NSLClient()` call accesses a single instance of the client. If a single instance of NSLClient is shared by multiple users with different `NSL_ID` and `NSL_SECRET`, those credentials can be added using `set_credentials`. After that, specifiying the `NSL_ID` in the calls to `search_one`, `search`, `count` and the download methods in the `nsl.stac.utils` module.
+```
+# ADVANCED EXAMPLE. 
+# only for users that have multiple credentials being used within one single instance
+import tempfile
+from nsl.stac import NSLClient, StacRequest
+from nsl.stac.utils import download_href_object
+client = NSLClient()
+# first credentials set
+client.set_credentials(nsl_id='YOUR_NSL_ID', nsl_secret='YOUR_NSL_SECRET')
+# second crerdentials set
+client.set_credentials(nsl_id='YOUR_NSL_ID_2', nsl_secret='YOUR_NSL_SECRET_2')
+stac_request = StacRequest()
+# request using first credential
+item = client.search_one(stac_request, nsl_id='YOUR_NSL_ID')
+# request using second credential
+item = client.search_one(stac_request, nsl_id='YOUR_NSL_ID_2')
+```
 
 
 ## First Code Example
@@ -450,8 +476,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20200703T182830Z_2048_POM1_ST2_P
-    STAC item id: 20200703T182828Z_2047_POM1_ST2_P
+    STAC item id: 20201001T211834Z_2012_POM1_ST2_P
+    STAC item id: 20201001T211832Z_2011_POM1_ST2_P
 ```
 
 
@@ -494,8 +520,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20200703T182830Z_2048_POM1_ST2_P from wkt filter intersects result from geojson filter: True
-    STAC item id: 20200703T182828Z_2047_POM1_ST2_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20201001T211834Z_2012_POM1_ST2_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20201001T211832Z_2011_POM1_ST2_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -548,8 +574,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2020-07-03T18:28:30+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2020-07-03T18:28:28+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-10-29T19:27:13+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-10-29T19:27:08+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 

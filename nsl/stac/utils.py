@@ -127,7 +127,8 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
     :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory
     are set, then only file_obj is used
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
-    :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
     :return: returns the save_filename. if BinaryIO is not a FileIO object type, save_filename returned is an
     empty string
@@ -184,7 +185,8 @@ def download_asset(asset: Asset,
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
     :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename
     is derived from the basename of the object_path or the href
-    :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
     :return:
     """
@@ -218,7 +220,8 @@ def download_assets(stac_item: StacItem,
                     nsl_id: str = None) -> List[str]:
     """
     Download all the assets for a StacItem into a directory
-    :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
     :param stac_item: StacItem containing assets to download
     :param save_directory: the directory where the files should be downloaded

@@ -329,12 +329,6 @@ class __BearerAuth:
     def default_nsl_id(self):
         return self._default_nsl_id
 
-    @default_nsl_id.setter
-    def default_nsl_id(self, value):
-        if value not in self._auth_info_map:
-            raise ValueError("{} not set. Must call set_credentials".format(value))
-        self._default_nsl_id = value
-
     def set_credentials(self, nsl_id: str, nsl_secret: str):
         if len(self._auth_info_map) == 0:
             self._default_nsl_id = nsl_id

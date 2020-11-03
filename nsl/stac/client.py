@@ -42,10 +42,6 @@ value you must make sure that the nsl_id has already been 'set' by calling `set_
         """
         return bearer_auth.default_nsl_id
 
-    @default_nsl_id.setter
-    def default_nsl_id(self, value):
-        bearer_auth.default_nsl_id = value
-
     def set_credentials(self, nsl_id: str, nsl_secret: str):
         """
 Set nsl_id and secret for use in querying metadata and downloading imagery
@@ -65,7 +61,8 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
     def insert_one(self, stac_item: stac_pb2.StacItem, timeout=15, nsl_id: str = None) -> stac_pb2.StacDbResponse:
         """
         Insert on item into the stac service
-        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+        set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
         :param timeout: timeout for request
         :param stac_item: item to insert
@@ -79,7 +76,8 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         search for one item from the db that matches the stac request
         :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
-        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+        set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
         :return: StacItem
         """
@@ -95,7 +93,8 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         count all the items in the database that match the stac request
         :param timeout: timeout for request
         :param stac_request: StacRequest query parameters to apply to count method (limit ignored)
-        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+        set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
         :return: int
         """
@@ -112,7 +111,8 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         search for stac items by using StacRequest. return a stream of StacItems
         :param timeout: timeout for request
         :param stac_request: StacRequest of query parameters to filter by
-        :param nsl_id: specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
+        :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
+        set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
         :return: stream of StacItems
         """
