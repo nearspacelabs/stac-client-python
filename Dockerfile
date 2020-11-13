@@ -5,5 +5,5 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update
 WORKDIR /opt/src/stac-client-python
 COPY ./ /opt/src/stac-client-python
 
-RUN RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade pip
 RUN pip3 install .
