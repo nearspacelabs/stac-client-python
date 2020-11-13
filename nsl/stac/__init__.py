@@ -28,6 +28,7 @@ import logging
 
 import grpc
 
+from pathlib import Path
 from random import randint
 from typing import Optional, Tuple, Dict
 
@@ -90,6 +91,7 @@ GRPC_CHANNEL_OPTIONS = [('grpc.max_message_length', MESSAGE_SIZE_MB * BYTES_IN_M
 IP_REGEX = re.compile(r"[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}\.[\d]{1,3}")
 # DEFAULT Insecure until we have a https service
 INSECURE = True
+NSL_CREDENTIALS = Path(Path.home(), '.nsl', 'credentials')
 
 logger = logging.getLogger()
 
@@ -314,17 +316,38 @@ class AuthInfo:
 
 class __BearerAuth:
     _auth_info_map: Dict[str, AuthInfo] = {}
+    _profile_map: Dict[str, str] = {}
     _default_nsl_id = None
 
     def __init__(self, init=False):
-        if not NSL_ID or not NSL_SECRET:
+        if (not NSL_ID or not NSL_SECRET) and not NSL_CREDENTIALS.exists():
             warnings.warn("NSL_ID and NSL_SECRET environment variables not set")
             return
+        if NSL_ID and NSL_SECRET:
+            self._auth_info_map[NSL_ID] = AuthInfo(nsl_id=NSL_ID, nsl_secret=NSL_SECRET)
+            self._default_nsl_id = NSL_ID
+        elif NSL_CREDENTIALS:
+            with NSL_CREDENTIALS.open('r') as file_obj:
+                lines = file_obj.readlines()
+                for i, line in enumerate(lines):
+                    if line.startswith('['):
+                        if not lines[i + 1].startswith('NSL_ID') or not lines[i + 2].startswith('NSL_SECRET'):
+                            raise ValueError("credentials should be of the format:\n[named profile]\nNSL_ID={your "
+                                             "nsl id}\nNSL_SECRET={your nsl secret}")
+                        # for id like 'NSL_ID = all_the_id_text\n', first strip remove front whitespace and newline
+                        # .strip(), now we now [6:] starts after 'NSL_ID' .strip()[6:], strip potential whitespace
+                        # between NSL_ID and '=' with .strip()[6:].strip(), start one after equal
+                        # .strip()[6:].strip()[1:], strip potential whitespace
+                        # after equal .strip()[6:].strip()[1:].strip()
+                        nsl_id = lines[i + 1].strip()[6:].strip()[1:].strip()
+                        nsl_secret = lines[i + 2].strip()[10:].strip()[1:].strip()
+                        self._auth_info_map[nsl_id] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
+                        if 'default' in line:
+                            self._default_nsl_id = nsl_id
+                        self._profile_map[line.strip().lstrip('[').rstrip(']')] = nsl_id
 
-        self._auth_info_map[NSL_ID] = AuthInfo(nsl_id=NSL_ID, nsl_secret=NSL_SECRET)
-        self._default_nsl_id = NSL_ID
         if init:
-            self._auth_info_map[NSL_ID].authorize()
+            self._auth_info_map[self._default_nsl_id].authorize()
 
     @property
     def default_nsl_id(self):
@@ -333,22 +356,27 @@ class __BearerAuth:
     def set_credentials(self, nsl_id: str, nsl_secret: str):
         if len(self._auth_info_map) == 0:
             self._default_nsl_id = nsl_id
+
         self._auth_info_map[nsl_id] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
         self._auth_info_map[nsl_id].authorize()
 
-    def auth_header(self, nsl_id: str = None):
-        if nsl_id is None:
+    def auth_header(self, nsl_id: str = None, profile_name: str = None):
+        if nsl_id is None and profile_name is None:
             nsl_id = self._default_nsl_id
 
-        if nsl_id not in self._auth_info_map:
+        if nsl_id not in self._auth_info_map and profile_name not in self._profile_map:
             raise ValueError("credentials must be set by environment variables NSL_ID & NSL_SECRET or by using the "
-                             "set_credentials method")
+                             "set_credentials method, or by setting a credentials file at ~/.nsl/credentials")
+
+        if profile_name is not None:
+            print('using profile name: {}'.format(profile_name))
+            nsl_id = self._profile_map[profile_name]
 
         if (self._auth_info_map[nsl_id].expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
             self._auth_info_map[nsl_id].authorize()
             diff_seconds = self._auth_info_map[nsl_id].expiry - time.time()
             print("fetching new authorization in {0} minutes".format(
-                round(int(math.ceil(float(diff_seconds/60)/10)*10))))
+                round(int(math.ceil(float(diff_seconds / 60) / 10) * 10))))
         return "Bearer {token}".format(token=self._auth_info_map[nsl_id].token)
 
 

@@ -58,7 +58,11 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         """
         self._stac_service.update_service_url(stac_service_url=stac_service_url)
 
-    def insert_one(self, stac_item: stac_pb2.StacItem, timeout=15, nsl_id: str = None) -> stac_pb2.StacDbResponse:
+    def insert_one(self,
+                   stac_item: stac_pb2.StacItem,
+                   timeout=15,
+                   nsl_id: str = None,
+                   profile_name: str = None) -> stac_pb2.StacDbResponse:
         """
         Insert on item into the stac service
         :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
@@ -66,12 +70,18 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         NSLClient object's set_credentials to set credentials
         :param timeout: timeout for request
         :param stac_item: item to insert
+        :param profile_name: if a ~/.nsl/credentials file exists, you can override the [default] credential usage, by
+        using a different profile name
         :return: StacDbResponse, the response of the success of the insert
         """
-        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)),)
         return self._stac_service.stub.InsertOneItem(stac_item, timeout=timeout, metadata=metadata)
 
-    def search_one(self, stac_request: stac_pb2.StacRequest, timeout=15, nsl_id: str = None) -> stac_pb2.StacItem:
+    def search_one(self,
+                   stac_request: stac_pb2.StacRequest,
+                   timeout=15,
+                   nsl_id: str = None,
+                   profile_name: str = None) -> stac_pb2.StacItem:
         """
         search for one item from the db that matches the stac request
         :param timeout: timeout for request
@@ -79,16 +89,22 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
         set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
+        :param profile_name: if a ~/.nsl/credentials file exists, you can override the [default] credential usage, by
+        using a different profile name
         :return: StacItem
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
             stac_request.mission_enum = stac_pb2.SWIFT
 
-        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)),)
         return self._stac_service.stub.SearchOneItem(stac_request, timeout=timeout, metadata=metadata)
 
-    def count(self, stac_request: stac_pb2.StacRequest, timeout=15, nsl_id: str = None) -> int:
+    def count(self,
+              stac_request: stac_pb2.StacRequest,
+              timeout=15,
+              nsl_id: str = None,
+              profile_name: str = None) -> int:
         """
         count all the items in the database that match the stac request
         :param timeout: timeout for request
@@ -96,17 +112,23 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
         set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
+        :param profile_name: if a ~/.nsl/credentials file exists, you can override the [default] credential usage, by
+        using a different profile name
         :return: int
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
             stac_request.mission_enum = stac_pb2.SWIFT
 
-        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)),)
         db_result = self._stac_service.stub.CountItems(stac_request, timeout=timeout, metadata=metadata)
         return db_result.count
 
-    def search(self, stac_request: stac_pb2.StacRequest, timeout=15, nsl_id: str = None) -> Iterator[stac_pb2.StacItem]:
+    def search(self,
+               stac_request: stac_pb2.StacRequest,
+               timeout=15,
+               nsl_id: str = None,
+               profile_name: str = None) -> Iterator[stac_pb2.StacItem]:
         """
         search for stac items by using StacRequest. return a stream of StacItems
         :param timeout: timeout for request
@@ -114,12 +136,14 @@ Set nsl_id and secret for use in querying metadata and downloading imagery
         :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
         set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
         NSLClient object's set_credentials to set credentials
+        :param profile_name: if a ~/.nsl/credentials file exists, you can override the [default] credential usage, by
+        using a different profile name
         :return: stream of StacItems
         """
         # limit to only search Near Space Labs SWIFT data
         if self._nsl_only:
             stac_request.mission_enum = stac_pb2.SWIFT
 
-        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id)),)
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)),)
         results_generator = self._stac_service.stub.SearchItems(stac_request, timeout=timeout, metadata=metadata)
         return results_generator
