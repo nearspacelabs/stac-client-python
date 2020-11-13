@@ -1,5 +1,4 @@
-auth0-python
-boto3==1.10.0
+boto3==1.16.10
 epl.protobuf.v1==1.0.0
 google-cloud-storage>=1.14.0
 grpcio-tools
