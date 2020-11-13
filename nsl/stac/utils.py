@@ -146,8 +146,14 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
     conn.request(method="GET", url=asset_url, headers=headers)
 
     res = conn.getresponse()
-    if res.status is not 200:
-        raise ValueError("{path} does not exist".format(path=asset.href))
+    if res.status == 404:
+        raise ValueError("not found error for {path}".format(path=asset.href))
+    elif res.status == 403:
+        raise ValueError("auth error for asset {asset}".format(asset=asset.href))
+    elif res.status == 402:
+        raise ValueError("not enough credits for downloading asset {asset}".format(asset=asset.href))
+    elif res.status is not 200:
+        raise ValueError("error code {code} for asset: {asset}".format(code=res.status, asset=asset.href))
 
     if len(save_filename) > 0:
         with open(save_filename, mode='wb') as f:
