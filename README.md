@@ -74,7 +74,15 @@ If you are returning so many stac items that you are timing out then you may wan
 For our download API we've implemented a 4 requests per second limit. You may need implement a retry mechanism with an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) if you are overruning the rate limit.
 
 ## Credentials
-There are two ways to set credentials. The first is to set them using environment variables `NSL_ID` and `NSL_SECRET`. An alternative to environment variable is tot use the `set_credentials` method on the `NSLClient` object. For example:
+There are three ways to set credentials. The first is to set them using environment variables `NSL_ID` and `NSL_SECRET`. You can also create a `.nsl` directory in your home directory and create a `credentials` file with a profile name in brackets and the `NSL_ID` and `NSL_SECRET` defined below that. For example the contents of the `~/.nsl/credentials` file would look like the below example: 
+
+```
+[default]
+NSL_ID=YOUR_NSL_ID
+NSL_SECRET=YOUR_NSL_SECRET
+```
+
+A second alternative to environment variables or the credentials file is to use the `set_credentials` method on the `NSLClient` object. For example:
 ```
 client = NSLClient()
 client.set_credentials(nsl_id='YOUR_NSL_ID', nsl_secret='YOUR_NSL_SECRET')
@@ -574,8 +582,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2020-10-29T19:27:13+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2020-10-29T19:27:08+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-11-10T20:28:35+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-11-10T20:28:33+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -934,7 +942,7 @@ For Comparison, here is the [JSON STAC Electro Optical field summary](https://gi
 Use this README.ipynb notebook to update the README.md. Do not directly edit the README.md. It will be overwritten by output from `ipynb2md.py`. `ipynb2md.py` can be downloaded from this [gist](https://gist.github.com/davidraleigh/a24f637ccb018610a87aaacb12281452).
 
 ```bash
-curl -o ipynb2md.py https://gist.githubusercontent.com/davidraleigh/a24f637ccb018610a87aaacb12281452/raw/20216b01987a2163b37f12b09596b5d322195e79/ipynb2md.py
+curl -o ipynb2md.py https://gist.githubusercontent.com/davidraleigh/a24f637ccb018610a87aaacb12281452/raw/009a50f29b920c7b00dcd4142c51bf6bf3c0cb3b/ipynb2md.py
 ```
 
 Make your edits to the README.ipynb, in *Kernel->Restart & Run All* to confirm your changes worked, Save and Checkpoint, then run the python script `python ipynb2md.py -i README.ipynb`.
