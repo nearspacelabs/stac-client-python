@@ -3,7 +3,8 @@ import re
 import boto3
 import botocore.exceptions
 
-from datetime import date, timezone, datetime
+from datetime import date, timezone
+from datetime import datetime as internal_datetime
 from typing import Union, Iterator, List, Tuple
 
 from epl.protobuf.v1.geometry_pb2 import ProjectionData
@@ -348,14 +349,14 @@ the enum describing the constellation
         self.stac_item.constellation_enum = value
 
     @property
-    def created(self) -> Union[datetime, None]:
+    def created(self) -> Union[internal_datetime, None]:
         if self.stac_item.HasField("created"):
-            return datetime.fromtimestamp(self.stac_item.created.seconds, tz=timezone.utc)
+            return internal_datetime.fromtimestamp(self.stac_item.created.seconds, tz=timezone.utc)
         else:
             return None
 
     @created.setter
-    def created(self, value: Union[datetime, date]):
+    def created(self, value: Union[internal_datetime, date]):
         self.stac_item.created.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     @property
@@ -363,7 +364,7 @@ the enum describing the constellation
         return self.observed
 
     @datetime.setter
-    def datetime(self, value: Union[datetime, date]):
+    def datetime(self, value: Union[internal_datetime, date]):
         self.observed = value
 
     @property
@@ -371,7 +372,7 @@ the enum describing the constellation
         return self.stac_item.end_observed
 
     @end_datetime.setter
-    def end_datetime(self, value: Union[datetime, date]):
+    def end_datetime(self, value: Union[internal_datetime, date]):
         self.end_observed = value
 
     @property
@@ -379,7 +380,7 @@ the enum describing the constellation
         return self.stac_item.end_observed
 
     @end_observed.setter
-    def end_observed(self, value: Union[datetime, date]):
+    def end_observed(self, value: Union[internal_datetime, date]):
         self.stac_item.end_observation.CopyFrom(utils.pb_timestamp(d_utc=value))
         self.stac_item.end_datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
 
@@ -472,16 +473,16 @@ For more details on the quad tree tiling for maps use `openstreetmaps docs
             self.stac_item.mosaic.quad_key = quad_key
 
     @property
-    def observed(self) -> datetime:
+    def observed(self) -> Union[internal_datetime, None]:
         if self.stac_item.HasField("datetime"):
-            return datetime.fromtimestamp(self.stac_item.datetime.seconds, tz=timezone.utc)
+            return internal_datetime.fromtimestamp(self.stac_item.datetime.seconds, tz=timezone.utc)
         elif self.stac_item.HasField("observed"):
-            return datetime.fromtimestamp(self.stac_item.observed.seconds, tz=timezone.utc)
+            return internal_datetime.fromtimestamp(self.stac_item.observed.seconds, tz=timezone.utc)
         else:
             return None
 
     @observed.setter
-    def observed(self, value: Union[datetime, date]):
+    def observed(self, value: Union[internal_datetime, date]):
         self.stac_item.datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
         self.stac_item.observed.CopyFrom(utils.pb_timestamp(d_utc=value))
 
@@ -541,14 +542,14 @@ then that supersedes this projection definition.
         return self._stac_data
 
     @property
-    def updated(self) -> Union[datetime, None]:
+    def updated(self) -> Union[internal_datetime, None]:
         if self.stac_item.HasField("updated"):
-            return datetime.fromtimestamp(self.stac_item.updated.seconds, tz=timezone.utc)
+            return internal_datetime.fromtimestamp(self.stac_item.updated.seconds, tz=timezone.utc)
         else:
             return None
 
     @updated.setter
-    def updated(self, value: Union[datetime, date]):
+    def updated(self, value: Union[internal_datetime, date]):
         self.stac_item.updated.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     def get_assets(self,
@@ -770,9 +771,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_observed(self,
                      rel_type: enum.FilterRelationship,
-                     value: Union[datetime, date] = None,
-                     start: Union[datetime, date] = None,
-                     end: Union[datetime, date] = None,
+                     value: Union[internal_datetime, date] = None,
+                     start: Union[internal_datetime, date] = None,
+                     end: Union[internal_datetime, date] = None,
                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                      tzinfo: timezone = timezone.utc):
         self._stac_data.observed.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -784,9 +785,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_created(self,
                     rel_type: enum.FilterRelationship,
-                    value: Union[datetime, date] = None,
-                    start: Union[datetime, date] = None,
-                    end: Union[datetime, date] = None,
+                    value: Union[internal_datetime, date] = None,
+                    start: Union[internal_datetime, date] = None,
+                    end: Union[internal_datetime, date] = None,
                     sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                     tzinfo: timezone = timezone.utc):
         self._stac_data.created.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -798,9 +799,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_updated(self,
                     rel_type: enum.FilterRelationship,
-                    value: Union[datetime, date] = None,
-                    start: Union[datetime, date] = None,
-                    end: Union[datetime, date] = None,
+                    value: Union[internal_datetime, date] = None,
+                    start: Union[internal_datetime, date] = None,
+                    end: Union[internal_datetime, date] = None,
                     sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                     tzinfo: timezone = timezone.utc):
         self._stac_data.updated.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
