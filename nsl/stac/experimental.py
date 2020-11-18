@@ -3,8 +3,7 @@ import re
 import boto3
 import botocore.exceptions
 
-from datetime import date, timezone
-from datetime import datetime as internal_datetime
+from datetime import date, timezone, datetime
 from typing import Union, Iterator, List, Tuple
 
 from epl.protobuf.v1.geometry_pb2 import ProjectionData
@@ -18,11 +17,12 @@ from nsl.stac.client import NSLClient
 from nsl.stac import stac_service as stac_singleton
 
 
-def set_properties(stac_data, properties, type_url_prefix):
+def _set_properties(stac_data, properties, type_url_prefix):
     """
      pack properties and then set the properties member value to the input.
      :param stac_data:
      :param properties:
+     :param type_url_prefix:
      :return:
      """
     if properties is None:
@@ -232,48 +232,48 @@ class _BaseWrap:
         return str(self._stac_data)
 
     def _set_properties(self, properties):
-        self._stac_data, self.properties = set_properties(self._stac_data, properties, self._type_url_prefix)
+        self._stac_data, self.properties = _set_properties(self._stac_data, properties, self._type_url_prefix)
 
-    def get_field(self, metadata_key: str, key: str):
+    def _get_field(self, metadata_key: str, key: str):
         if self.properties.HasField(metadata_key):
             return getattr(getattr(self.properties, metadata_key), key)
         return None
 
-    def get_wrapped_field(self, metadata_key: str, key: str):
+    def _get_wrapped_field(self, metadata_key: str, key: str):
         if self.properties.HasField(metadata_key):
             return getattr(getattr(getattr(self.properties, metadata_key), key), "value")
         return None
 
-    def set_internal_sub_object(self, metadata_key: str):
+    def _set_internal_sub_object(self, metadata_key: str):
         pass
 
-    def set_field(self, metadata_key: str, key: str, value):
-        self.set_internal_sub_object(metadata_key)
+    def _set_field(self, metadata_key: str, key: str, value):
+        self._set_internal_sub_object(metadata_key)
         setattr(getattr(self.properties, metadata_key), key, value)
 
-    def set_obj(self, metadata_key: str, key: str, value):
-        self.set_internal_sub_object(metadata_key)
+    def _set_obj(self, metadata_key: str, key: str, value):
+        self._set_internal_sub_object(metadata_key)
         getattr(getattr(self.properties, metadata_key), key).CopyFrom(value)
 
-    def set_nested_obj(self, metadata_key: str, object_key: str, value_key: str, value):
-        self.set_internal_sub_object(metadata_key)
+    def _set_nested_obj(self, metadata_key: str, object_key: str, value_key: str, value):
+        self._set_internal_sub_object(metadata_key)
         getattr(getattr(getattr(self.properties, metadata_key), object_key), value_key).CopyFrom(value)
 
-    def set_nested_field(self, metadata_key: str, object_key: str, value_key: str, value):
+    def _set_nested_field(self, metadata_key: str, object_key: str, value_key: str, value):
         setattr(getattr(getattr(self.properties, metadata_key), object_key), value_key, value)
 
-    def get_nested_field(self, metadata_key: str, object_key: str, value_key: str):
+    def _get_nested_field(self, metadata_key: str, object_key: str, value_key: str):
         if self.properties.HasField(metadata_key):
             return getattr(getattr(getattr(self.properties, metadata_key), object_key), value_key)
         return None
 
-    def get_nested_wrapped_field(self, metadata_key: str, object_key: str, value_key: str):
+    def _get_nested_wrapped_field(self, metadata_key: str, object_key: str, value_key: str):
         if self.properties.HasField(metadata_key):
             return getattr(getattr(getattr(getattr(self.properties, metadata_key), object_key), value_key), "value")
         return None
 
 
-class StacItemWrapper(_BaseWrap):
+class StacItemWrap(_BaseWrap):
     """
 Wrapper for StacItem protobuf
     """
@@ -348,14 +348,14 @@ the enum describing the constellation
         self.stac_item.constellation_enum = value
 
     @property
-    def created(self) -> Union[internal_datetime, None]:
+    def created(self) -> Union[datetime, None]:
         if self.stac_item.HasField("created"):
-            return internal_datetime.fromtimestamp(self.stac_item.created.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.created.seconds, tz=timezone.utc)
         else:
             return None
 
     @created.setter
-    def created(self, value: Union[internal_datetime, date]):
+    def created(self, value: Union[datetime, date]):
         self.stac_item.created.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     @property
@@ -363,7 +363,7 @@ the enum describing the constellation
         return self.observed
 
     @datetime.setter
-    def datetime(self, value: Union[internal_datetime, date]):
+    def datetime(self, value: Union[datetime, date]):
         self.observed = value
 
     @property
@@ -371,7 +371,7 @@ the enum describing the constellation
         return self.stac_item.end_observed
 
     @end_datetime.setter
-    def end_datetime(self, value: Union[internal_datetime, date]):
+    def end_datetime(self, value: Union[datetime, date]):
         self.end_observed = value
 
     @property
@@ -379,7 +379,7 @@ the enum describing the constellation
         return self.stac_item.end_observed
 
     @end_observed.setter
-    def end_observed(self, value: Union[internal_datetime, date]):
+    def end_observed(self, value: Union[datetime, date]):
         self.stac_item.end_observation.CopyFrom(utils.pb_timestamp(d_utc=value))
         self.stac_item.end_datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
 
@@ -447,7 +447,7 @@ the enum describing the constellation
             self.stac_item.mosaic.name = name
 
     @property
-    def mosaic_quad_key(self) -> str:
+    def mosaic_quad_key(self) -> Union[str, None]:
         """
 If the STAC item is a quad from a mosaic, then it has a quad key that defines the boundaries of the quad. The quad tree
 definition is assumed to be the convention defined by Google Maps, based off of there Pseudo-Web Mercator projection.
@@ -472,16 +472,16 @@ For more details on the quad tree tiling for maps use `openstreetmaps docs
             self.stac_item.mosaic.quad_key = quad_key
 
     @property
-    def observed(self) -> internal_datetime:
+    def observed(self) -> datetime:
         if self.stac_item.HasField("datetime"):
-            return internal_datetime.fromtimestamp(self.stac_item.datetime.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.datetime.seconds, tz=timezone.utc)
         elif self.stac_item.HasField("observed"):
-            return internal_datetime.fromtimestamp(self.stac_item.observed.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.observed.seconds, tz=timezone.utc)
         else:
             return None
 
     @observed.setter
-    def observed(self, value: Union[internal_datetime, date]):
+    def observed(self, value: Union[datetime, date]):
         self.stac_item.datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
         self.stac_item.observed.CopyFrom(utils.pb_timestamp(d_utc=value))
 
@@ -541,14 +541,14 @@ then that supersedes this projection definition.
         return self._stac_data
 
     @property
-    def updated(self) -> Union[internal_datetime, None]:
+    def updated(self) -> Union[datetime, None]:
         if self.stac_item.HasField("updated"):
-            return internal_datetime.fromtimestamp(self.stac_item.updated.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.updated.seconds, tz=timezone.utc)
         else:
             return None
 
     @updated.setter
-    def updated(self, value: Union[internal_datetime, date]):
+    def updated(self, value: Union[datetime, date]):
         self.stac_item.updated.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     def get_assets(self,
@@ -770,9 +770,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_observed(self,
                      rel_type: enum.FilterRelationship,
-                     value: Union[internal_datetime, date] = None,
-                     start: Union[internal_datetime, date] = None,
-                     end: Union[internal_datetime, date] = None,
+                     value: Union[datetime, date] = None,
+                     start: Union[datetime, date] = None,
+                     end: Union[datetime, date] = None,
                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                      tzinfo: timezone = timezone.utc):
         self._stac_data.observed.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -784,9 +784,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_created(self,
                     rel_type: enum.FilterRelationship,
-                    value: Union[internal_datetime, date] = None,
-                    start: Union[internal_datetime, date] = None,
-                    end: Union[internal_datetime, date] = None,
+                    value: Union[datetime, date] = None,
+                    start: Union[datetime, date] = None,
+                    end: Union[datetime, date] = None,
                     sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                     tzinfo: timezone = timezone.utc):
         self._stac_data.created.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -798,9 +798,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_updated(self,
                     rel_type: enum.FilterRelationship,
-                    value: Union[internal_datetime, date] = None,
-                    start: Union[internal_datetime, date] = None,
-                    end: Union[internal_datetime, date] = None,
+                    value: Union[datetime, date] = None,
+                    start: Union[datetime, date] = None,
+                    end: Union[datetime, date] = None,
                     sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                     tzinfo: timezone = timezone.utc):
         self._stac_data.updated.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -825,12 +825,12 @@ class NSLClientEx(NSLClient):
         super().update_service_url(stac_service_url)
         self._internal_stac_service.update_service_url(stac_service_url=stac_service_url)
 
-    def search_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> Iterator[StacItemWrapper]:
+    def search_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> Iterator[StacItemWrap]:
         for stac_item in self.search(stac_request_wrapped.stac_request, timeout=timeout):
-            yield StacItemWrapper(stac_item=stac_item)
+            yield StacItemWrap(stac_item=stac_item)
 
-    def search_one_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> StacItemWrapper:
-        return StacItemWrapper(self.search_one(stac_request=stac_request_wrapped.stac_request, timeout=timeout))
+    def search_one_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> StacItemWrap:
+        return StacItemWrap(self.search_one(stac_request=stac_request_wrapped.stac_request, timeout=timeout))
 
     def count_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> int:
         return self.count(stac_request=stac_request_wrapped.stac_request, timeout=timeout)

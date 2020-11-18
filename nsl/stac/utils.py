@@ -36,7 +36,7 @@ DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
 RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
 
 
-def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
+def get_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     """
     get metadata/interface for one asset in google cloud storage
     :param bucket: bucket name
@@ -69,7 +69,7 @@ def download_gcs_object(bucket: str,
         if not os.path.exists(path_to_create):
             os.makedirs(path_to_create, exist_ok=True)
 
-    blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
+    blob = get_blob_metadata(bucket=bucket, blob_name=blob_name)
 
     if file_obj is not None:
         blob.download_to_file(file_obj=file_obj, client=gcs_storage_client.client)
