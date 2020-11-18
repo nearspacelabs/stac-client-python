@@ -34,13 +34,14 @@ kwargs = {
     'author': 'David Raleigh',
     'author_email': 'david@nearspacelabs.com',
     'license': 'Apache 2.0',
-    'version': '1.0.2',
+    'version': '1.1.0',
     'python_requires': '>3.6.0',
     'packages': [package_name],
     'install_requires': [
         'grpcio-tools',
         'protobuf',
         'epl.protobuf.v1',
+        'epl.geometry',
         'boto3',
         'google-cloud-storage'
     ],

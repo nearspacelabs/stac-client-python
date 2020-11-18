@@ -28,8 +28,10 @@ from nsl.stac import StacItem, Asset, TimestampFilter, GeometryData, ProjectionD
 from nsl.stac import utils, enum
 from nsl.stac.enum import AssetType, Band, CloudPlatform, Mission, FilterRelationship
 from nsl.stac.client import NSLClient
+from nsl.stac.experimental import StacRequestWrap, NSLClientEx
 
 client = NSLClient(nsl_only=False)
+client_ex = NSLClientEx(nsl_only=False)
 
 
 class TestProtobufs(unittest.TestCase):
@@ -561,6 +563,23 @@ class TestHelpers(unittest.TestCase):
             data4 = b.read()
             self.assertEqual(data2, data4)
 
+    def test_download_aws_href(self):
+        stac_id = 'LC80270392015025LGN00'
+        stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
+        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL, cloud_platform=enum.CloudPlatform.AWS)
+        self.assertIsNotNone(asset)
+
+        with tempfile.TemporaryDirectory() as d:
+            file_path = utils.download_asset(asset=asset, save_directory=d)
+            with open(file_path, 'rb') as f:
+                data1 = f.read()
+
+            file_path = utils.download_asset(asset=asset, save_filename=file_path)
+            with open(file_path, 'rb') as f:
+                data2 = f.read()
+
+            self.assertEqual(data1, data2)
+
 
 class TestPerf(unittest.TestCase):
     def test_query_limits(self):
@@ -586,3 +605,26 @@ class TestPerf(unittest.TestCase):
             if total % limit == 0:
                 print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
         self.assertEqual(total, 1000)
+
+
+class TestWrap(unittest.TestCase):
+    def test_landsat(self):
+        stac_id = 'LO81120152015061LGN00'
+        request_wrapped = StacRequestWrap(id=stac_id)
+        for stac_wrapped in client_ex.search_ex(stac_request_wrapped=request_wrapped):
+            self.assertEqual(stac_wrapped.mission_enum, enum.Mission.LANDSAT)
+            self.assertLessEqual(stac_wrapped.gsd, 60)
+            self.assertEqual(stac_id, stac_wrapped.stac_item.id)
+
+        self.assertEqual(1, client_ex.count_ex(request_wrapped))
+
+    def test_platform_landsat(self):
+        request_wrap = StacRequestWrap()
+
+        request_wrap.mission_enum = enum.Mission.LANDSAT
+        request_wrap.platform_enum = enum.Platform.LANDSAT_8
+        request_wrap.set_cloud_cover(rel_type=enum.FilterRelationship.GTE, value=50)
+
+        item_wrapped = client_ex.search_one_ex(request_wrap)
+        self.assertEqual(item_wrapped.platform_enum, request_wrap.platform_enum)
+        self.assertEqual(item_wrapped.mission_enum, request_wrap.mission_enum)

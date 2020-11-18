@@ -133,16 +133,20 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
     :return: returns the save_filename. if BinaryIO is not a FileIO object type, save_filename returned is an
     empty string
     """
-    headers = {"authorization": bearer_auth.auth_header(nsl_id=nsl_id)}
-    if len(asset.type) > 0:
-        headers["content-type"] = asset.type
-
     if not asset.href:
         raise ValueError("no href on asset")
 
     host = urlparse(asset.href)
-    asset_url = "/download/{object}".format(object=asset.object_path)
     conn = http.client.HTTPConnection(host.netloc)
+
+    headers = {}
+    asset_url = host.path
+    if asset.bucket_manager == "Near Space Labs":
+        headers = {"authorization": bearer_auth.auth_header(nsl_id=nsl_id)}
+        asset_url = "/download/{object}".format(object=asset.object_path)
+
+    if len(asset.type) > 0:
+        headers["content-type"] = asset.type
     conn.request(method="GET", url=asset_url, headers=headers)
 
     res = conn.getresponse()
