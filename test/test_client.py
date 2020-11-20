@@ -20,6 +20,8 @@ import unittest
 import io
 import os
 
+from epl.geometry import Polygon
+from epl.protobuf.v1.geometry_pb2 import EnvelopeData
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
@@ -628,3 +630,108 @@ class TestWrap(unittest.TestCase):
         item_wrapped = client_ex.search_one_ex(request_wrap)
         self.assertEqual(item_wrapped.platform_enum, request_wrap.platform_enum)
         self.assertEqual(item_wrapped.mission_enum, request_wrap.mission_enum)
+
+    def test_code_example_ex(self):
+        # create our request. this interface allows us to set fields in our protobuf object
+        request = StacRequestWrap()
+
+        # our area of interest will be the coordinates of the UT Stadium in Austin Texas
+        # the order of coordinates here is longitude then latitude (x, y). The results of our query
+        # will be returned only if they intersect this point geometry we've defined (other geometry
+        # types besides points are supported)
+        # This string format, POINT(float, float) is the well-known-text geometry format:
+        # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
+        # the epsg # defines the WGS-84 elispsoid (`epsg=4326`) spatial reference
+        # (the latitude longitude  spatial reference most commonly used)
+        # the epl.geometry Polygon class is an extension of shapely's Polygon class that supports
+        # the protobuf definitions we use with STAC
+        request.intersects = Polygon.import_wkt(wkt="POINT(-97.7323317 30.2830764)", epsg=4326)
+
+        # `set_observed` allows for making sql-like queries for information
+        # LTE is an enum that means less than or equal to the value in the query field
+        # Query data from August 25, 2019
+        request.set_observed(rel_type=enum.FilterRelationship.LTE, value=date(2019, 8, 25))
+
+        # search_one_ex method requests only one item be returned that meets the query filters in the StacRequest
+        # the item returned is a wrapper of the protobuf message; StacItemWrap. search_one_ex, will only return the most
+        # recently observed results that matches the time filter and spatial filter
+        stac_item = client_ex.search_one_ex(request)
+
+        # get the thumbnail asset from the assets map. The other option would be a Geotiff,
+        # with asset key 'GEOTIFF_RGB'
+        asset = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL)
+
+        with tempfile.TemporaryDirectory() as d:
+            filename = utils.download_asset(asset=asset, save_directory=d)
+            self.assertTrue(os.path.exists(filename))
+
+    def test_set_intersects_without_proj(self):
+        neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
+        envelope_data = EnvelopeData(xmin=neighborhood_box[0],
+                                     ymin=neighborhood_box[1],
+                                     xmax=neighborhood_box[2],
+                                     ymax=neighborhood_box[3],
+                                     proj=ProjectionData(epsg=0))
+        r = StacRequestWrap()
+        b_hit = False
+        try:
+            r.bbox = envelope_data
+        except BaseException as _:
+            b_hit = True
+        self.assertTrue(b_hit)
+
+        b_hit = False
+        try:
+            r.set_bounds(bounds=neighborhood_box, epsg=0)
+        except BaseException as _:
+            b_hit = True
+        self.assertTrue(b_hit)
+
+    def test_projection_error(self):
+        # request wrapper
+        request = StacRequestWrap()
+
+        # define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on
+        # the WGS-84 ellipsoid
+        neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
+        # setting the bounds tests for intersection (not contains)
+        request.set_bounds(neighborhood_box, epsg=4326)
+
+        self.assertEquals(request.bbox.xmin, neighborhood_box[0])
+        self.assertEquals(request.intersects.proj.epsg, 4326)
+
+    def test_date_vs_datetime(self):
+        r = StacRequestWrap()
+
+        d = date(2010, 1, 1)
+        d_min = datetime.combine(d, time=datetime.min.time(), tzinfo=timezone.utc)
+        r.set_observed(rel_type=enum.FilterRelationship.GTE, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_min)
+
+        r.set_observed(rel_type=enum.FilterRelationship.LT, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_min)
+
+        d_max = datetime.combine(d, time=datetime.max.time(), tzinfo=timezone.utc)
+        r.set_observed(rel_type=enum.FilterRelationship.GT, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_max)
+
+        r.set_observed(rel_type=enum.FilterRelationship.LTE, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_max)
+
+        d2 = date(2010, 1, 3)
+        d_max = datetime.combine(d2, time=datetime.max.time(), tzinfo=timezone.utc)
+        r.set_observed(rel_type=enum.FilterRelationship.BETWEEN, start=d_min, end=d_max)
+        time_stamp_start = r.stac_request.observed.start.seconds + r.stac_request.observed.start.nanos / 1000000000.0
+        time_stamp_end = r.stac_request.observed.end.seconds + r.stac_request.observed.end.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp_start, tz=timezone.utc), d_min)
+        self.assertEquals(datetime.fromtimestamp(time_stamp_end, tz=timezone.utc), d_max)
+
+        r.set_observed(rel_type=enum.FilterRelationship.NOT_BETWEEN, start=d_min, end=d_max)
+        time_stamp_start = r.stac_request.observed.start.seconds + r.stac_request.observed.start.nanos / 1000000000.0
+        time_stamp_end = r.stac_request.observed.end.seconds + r.stac_request.observed.end.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp_start, tz=timezone.utc), d_min)
+        self.assertEquals(datetime.fromtimestamp(time_stamp_end, tz=timezone.utc), d_max)

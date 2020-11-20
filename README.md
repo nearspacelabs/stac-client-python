@@ -17,6 +17,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
   - [Spatial](#spatial-queries)
   - [Temporal](#temporal-queries)
   - [Advanced Examples](./AdvancedExamples.md)
+  - [Experimental](./Experimental.md)
 - [Downloading](#downloading)
   - [Thumbnails](#thumbnails)
   - [Geotiffs](#geotiffs)
@@ -540,7 +541,7 @@ for stac_item in client.search(stac_request):
 ### Temporal Queries
 When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with an `int64` for seconds and an `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
 
-So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
+So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `created`, and `processed` all use the Timestamp Protobuf object.
 
 When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampFilter](https://geo-grpc.github.io/api/#epl.protobuf.v1.TimestampFilter), where we define the value using the `value` field or the `start`&`end` fields. And then we define a relationship type using the `rel_type` field and the [FilterRelationship](https://geo-grpc.github.io/api/#epl.protobuf.v1.FilterRelationship) enum values of `EQ`, `LTE`, `GTE`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NEQ`.
 

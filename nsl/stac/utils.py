@@ -34,6 +34,10 @@ from nsl.stac.enum import Band, CloudPlatform, FilterRelationship, SortDirection
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
 RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
+UNSUPPORTED_TIME_FILTERS = [FilterRelationship.IN,
+                            FilterRelationship.NOT_IN,
+                            FilterRelationship.LIKE,
+                            FilterRelationship.NOT_LIKE]
 
 
 def get_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
@@ -438,12 +442,28 @@ def pb_timestampfield(rel_type: FilterRelationship,
     :param tzinfo: timezone info, defaults to UTC
     :return: TimestampFilter
     """
-    if value is not None and rel_type != FilterRelationship.EQ:
+    if rel_type in UNSUPPORTED_TIME_FILTERS:
+        raise ValueError("unsupported relationship type: {}".format(rel_type.name))
+
+    if value is not None and rel_type != FilterRelationship.EQ and rel_type != FilterRelationship.NEQ:
+        if not isinstance(value, datetime.datetime):
+            if rel_type == FilterRelationship.GTE or rel_type == FilterRelationship.LT:
+                return TimestampFilter(value=pb_timestamp(value, tzinfo, b_force_min=True),
+                                       rel_type=rel_type,
+                                       sort_direction=sort_direction)
+            elif rel_type == FilterRelationship.LTE or rel_type == FilterRelationship.GT:
+                return TimestampFilter(value=pb_timestamp(value, tzinfo, b_force_min=False),
+                                       rel_type=rel_type,
+                                       sort_direction=sort_direction)
         return TimestampFilter(value=pb_timestamp(value, tzinfo), rel_type=rel_type, sort_direction=sort_direction)
-    elif value is not None and rel_type == FilterRelationship.EQ and not isinstance(value, datetime.datetime):
+    elif value is not None and not isinstance(value, datetime.datetime) and \
+            (rel_type == FilterRelationship.EQ or rel_type == FilterRelationship.NEQ):
         start = datetime.datetime.combine(value, datetime.datetime.min.time(), tzinfo=tzinfo)
         end = datetime.datetime.combine(value, datetime.datetime.max.time(), tzinfo=tzinfo)
-        rel_type = FilterRelationship.BETWEEN
+        if rel_type == FilterRelationship.EQ:
+            rel_type = FilterRelationship.BETWEEN
+        else:
+            rel_type = FilterRelationship.NOT_BETWEEN
 
     return TimestampFilter(start=pb_timestamp(start, tzinfo),
                            end=pb_timestamp(end, tzinfo),
@@ -452,7 +472,8 @@ def pb_timestampfield(rel_type: FilterRelationship,
 
 
 def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
-                 tzinfo: datetime.timezone = datetime.timezone.utc) -> timestamp_pb2.Timestamp:
+                 tzinfo: datetime.timezone = datetime.timezone.utc,
+                 b_force_min=True) -> timestamp_pb2.Timestamp:
     """
     create a google.protobuf.Timestamp from a python datetime
     :param d_utc: python datetime or date
@@ -460,12 +481,13 @@ def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
     :return:
     """
     ts = timestamp_pb2.Timestamp()
-    ts.FromDatetime(timezoned(d_utc, tzinfo))
+    ts.FromDatetime(timezoned(d_utc, tzinfo, b_force_min))
     return ts
 
 
 def timezoned(d_utc: Union[datetime.datetime, datetime.date],
-              tzinfo: datetime.timezone = datetime.timezone.utc):
+              tzinfo: datetime.timezone = datetime.timezone.utc,
+              b_force_min=True):
     # datetime is child to datetime.date, so if we reverse the order of this instance of we fail
     if isinstance(d_utc, datetime.datetime) and d_utc.tzinfo is None:
         # TODO add warning here:
@@ -480,7 +502,10 @@ def timezoned(d_utc: Union[datetime.datetime, datetime.date],
                                   tzinfo=tzinfo)
     elif not isinstance(d_utc, datetime.datetime):
         # print("warning, no timezone provided with date, so UTC is assumed")
-        d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=tzinfo)
+        if b_force_min:
+            d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=tzinfo)
+        else:
+            d_utc = datetime.datetime.combine(d_utc, datetime.datetime.max.time(), tzinfo=tzinfo)
     return d_utc
 
 

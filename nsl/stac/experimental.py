@@ -10,7 +10,7 @@ from typing import Union, Iterator, List, Tuple
 from epl.protobuf.v1.geometry_pb2 import ProjectionData
 from google.protobuf.any_pb2 import Any
 from google.protobuf.wrappers_pb2 import FloatValue
-from epl.geometry import Polygon
+from epl.geometry import BaseGeometry, Polygon
 
 from nsl.stac import StacItem, StacRequest, View, ViewRequest, \
     Mosaic, MosaicRequest, Eo, EoRequest, EnvelopeData, FloatFilter, Asset, enum, utils
@@ -89,7 +89,6 @@ class AssetWrap:
         if asset is None:
             href_type = self.asset_type_details(asset_type=asset_type,
                                                 b_thumbnail_png=asset_type == enum.AssetType.THUMBNAIL)
-
             self._asset = Asset(href=href,
                                 type=href_type,
                                 eo_bands=eo_bands,
@@ -99,8 +98,16 @@ class AssetWrap:
                                 bucket_region=bucket_region,
                                 bucket=bucket,
                                 object_path=object_path)
+        else:
+            href_type = self.asset_type_details(asset_type=asset.asset_type,
+                                                b_thumbnail_png=asset.asset_type == enum.AssetType.THUMBNAIL)
 
+        self._ext = href_type[0]
+        self._type = href_type[1]
         self._asset = asset
+
+    def __str__(self):
+        return str("{0}extension: {1}".format(self._asset, self._ext))
 
     @property
     def asset_type(self) -> enum.AssetType:
@@ -119,6 +126,14 @@ bucket where data stored. may be private
         return self._asset.bucket
 
     @property
+    def bucket_manager(self) -> str:
+        return self._asset.bucket_manager
+
+    @property
+    def bucket_region(self) -> str:
+        return self._asset.bucket_region
+
+    @property
     def cloud_platform(self) -> enum.CloudPlatform:
         """
 cloud platform where data stored. Google Cloud, AWS and Azure are current options (or unknown)
@@ -135,6 +150,10 @@ electro optical bands included in data. if data is not electro optical, then thi
         return self._asset.eo_bands
 
     @property
+    def ext(self) -> str:
+        return self._ext
+
+    @property
     def href(self) -> str:
         """
 the href for downloading data
@@ -149,6 +168,10 @@ the object path to use with the bucket if access is available
         :return:
         """
         return self._asset.object_path
+
+    @property
+    def type(self) -> str:
+        return self._type
 
     def equals(self, other: Asset):
         """
@@ -222,7 +245,7 @@ class _BaseWrap:
         self._properties_func = properties_func
         self._type_url_prefix = type_url_prefix
 
-        if stac_data is not None and stac_data.HasField("properties"):
+        if stac_data is not None and stac_data.HasField("properties") and properties_func is not None:
             self.properties = properties_func()
             self._stac_data.properties.Unpack(self.properties)
         elif properties_func is not None:
@@ -278,6 +301,7 @@ class StacItemWrap(_BaseWrap):
     """
 Wrapper for StacItem protobuf
     """
+
     def __init__(self, stac_item: StacItem = None, properties_constructor=None):
         self._assets = {}
         if stac_item is None:
@@ -385,16 +409,16 @@ the enum describing the constellation
         self.stac_item.end_datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     @property
-    def geometry(self) -> Polygon:
+    def geometry(self) -> BaseGeometry:
         if self.stac_item.HasField("geometry"):
-            return Polygon.import_protobuf(self.stac_item.geometry)
+            return BaseGeometry.import_protobuf(self.stac_item.geometry)
         elif self.stac_item.HasField("bbox"):
             return Polygon.from_envelope_data(self.stac_item.bbox)
 
     @geometry.setter
-    def geometry(self, polygon: Polygon):
-        self.stac_item.geometry.CopyFrom(polygon.geometry_data)
-        self.stac_item.bbox.CopyFrom(polygon.envelope_data)
+    def geometry(self, geometry: BaseGeometry):
+        self.stac_item.geometry.CopyFrom(geometry.geometry_data)
+        self.stac_item.bbox.CopyFrom(geometry.envelope_data)
 
     @property
     def gsd(self):
@@ -616,6 +640,8 @@ class StacRequestWrap(_BaseWrap):
 
     @bbox.setter
     def bbox(self, value: EnvelopeData):
+        # this tests the spatial reference (it would be better to have a dedicated method)
+        value = Polygon.from_envelope_data(envelope_data=value).envelope_data
         self.stac_request.bbox.CopyFrom(value)
         self.stac_request.ClearField("intersects")
 
@@ -638,14 +664,14 @@ class StacRequestWrap(_BaseWrap):
     @property
     def intersects(self):
         if self.stac_request.HasField("intersects"):
-            return Polygon.import_protobuf(self.stac_request.intersects)
+            return BaseGeometry.import_protobuf(self.stac_request.intersects)
         elif self.stac_request.HasField("bbox"):
             return Polygon.from_envelope_data(self.bbox)
         return None
 
     @intersects.setter
-    def intersects(self, polygon: Polygon):
-        self.stac_request.intersects.CopyFrom(polygon.geometry_data)
+    def intersects(self, geometry: BaseGeometry):
+        self.stac_request.intersects.CopyFrom(geometry.geometry_data)
         self.stac_request.ClearField("bbox")
 
     @property
@@ -737,14 +763,61 @@ other quad STAC items that are contained by '02313012030' are returned.
     def stac_request(self):
         return self._stac_data
 
-    def set_off_nadir(self, value: float,
-                      rel_type: enum.FilterRelationship,
-                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
-        off_nadir_value = FloatFilter(value=value, rel_type=rel_type, sort_direction=sort_direction)
+    def set_bounds(self, bounds: Tuple[float, float, float, float], epsg: int = 0, proj4: str = ""):
+        proj = ProjectionData(proj4=proj4)
+        if epsg > 0:
+            proj = ProjectionData(epsg=epsg)
+
+        bbox = EnvelopeData(xmin=bounds[0], ymin=bounds[1], xmax=bounds[2], ymax=bounds[3], proj=proj)
+        self.bbox = bbox
+
+    def set_azimuth(self,
+                    rel_type: enum.FilterRelationship,
+                    value: float,
+                    start: float = None,
+                    end: float = None,
+                    sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
         if not self.stac_request.HasField("view"):
-            self.stac_request.view.CopyFrom(ViewRequest(off_nadir=off_nadir_value))
-        else:
-            self.stac_request.view.off_nadir.CopyFrom(off_nadir_value)
+            self.stac_request.view.CopyFrom(ViewRequest())
+
+        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        self.stac_request.view.azimuth.CopyFrom(float_filter)
+
+    def set_off_nadir(self,
+                      rel_type: enum.FilterRelationship,
+                      value: float,
+                      start: float = None,
+                      end: float = None,
+                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
+        if not self.stac_request.HasField("view"):
+            self.stac_request.view.CopyFrom(ViewRequest())
+
+        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        self.stac_request.view.off_nadir.CopyFrom(float_filter)
+
+    def set_sun_azimuth(self,
+                        rel_type: enum.FilterRelationship,
+                        value: float,
+                        start: float = None,
+                        end: float = None,
+                        sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
+        if not self.stac_request.HasField("view"):
+            self.stac_request.view.CopyFrom(ViewRequest())
+
+        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        self.stac_request.view.sun_azimuth.CopyFrom(float_filter)
+
+    def set_sun_elevation(self,
+                          rel_type: enum.FilterRelationship,
+                          value: float,
+                          start: float = None,
+                          end: float = None,
+                          sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
+        if not self.stac_request.HasField("view"):
+            self.stac_request.view.CopyFrom(ViewRequest())
+
+        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        self.stac_request.view.sun_elevation.CopyFrom(float_filter)
 
     def set_cloud_cover(self,
                         rel_type: enum.FilterRelationship,
@@ -754,20 +827,18 @@ other quad STAC items that are contained by '02313012030' are returned.
                         sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
         if not self.stac_request.HasField("eo"):
             self.stac_request.eo.CopyFrom(EoRequest())
-            self.set_cloud_cover(rel_type=rel_type, value=value, start=start, end=end, sort_direction=sort_direction)
-        float_filter = FloatFilter(rel_type=rel_type,
-                                   value=value,
-                                   start=start,
-                                   end=end,
-                                   sort_direction=sort_direction)
+
+        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.eo.cloud_cover.CopyFrom(float_filter)
 
     def set_gsd(self,
-                value: float,
                 rel_type: enum.FilterRelationship,
+                value: float,
+                start: float = None,
+                end: float = None,
                 sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
-        gsd_value = FloatFilter(value=value, rel_type=rel_type, sort_direction=sort_direction)
-        self.stac_request.gsd.CopyFrom(gsd_value)
+        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        self.stac_request.gsd.CopyFrom(float_filter)
 
     def set_observed(self,
                      rel_type: enum.FilterRelationship,
@@ -811,6 +882,32 @@ other quad STAC items that are contained by '02313012030' are returned.
                                                                  sort_direction=sort_direction,
                                                                  tzinfo=tzinfo))
 
+    def _float_filter(self,
+                      rel_type: enum.FilterRelationship,
+                      value: float = None,
+                      start: float = None,
+                      end: float = None,
+                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
+        if value is not None:
+            if start is not None or end is not None:
+                raise ValueError("if value is defined, start and end cannot be used")
+            elif rel_type == enum.FilterRelationship.BETWEEN or rel_type == enum.FilterRelationship.NOT_BETWEEN:
+                raise ValueError("BETWEEN and NOT_BETWEEN cannot be used with value")
+        else:
+            if start is None or end is None:
+                raise ValueError("if start is defined, end must be defined and vice versa")
+            elif rel_type != enum.FilterRelationship.BETWEEN and rel_type != enum.FilterRelationship.NOT_BETWEEN:
+                raise ValueError("start + end must be used with BETWEEN or NOT_BETWEEN")
+        if rel_type in utils.UNSUPPORTED_TIME_FILTERS:
+            raise ValueError("currently not supporting filter {}".format(rel_type.name))
+
+        float_filter = FloatFilter(rel_type=rel_type,
+                                   value=value,
+                                   start=start,
+                                   end=end,
+                                   sort_direction=sort_direction)
+        return float_filter
+
 
 class NSLClientEx(NSLClient):
     def __init__(self, nsl_only=False):
@@ -828,10 +925,16 @@ class NSLClientEx(NSLClient):
 
     def search_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> Iterator[StacItemWrap]:
         for stac_item in self.search(stac_request_wrapped.stac_request, timeout=timeout):
-            yield StacItemWrap(stac_item=stac_item)
+            if not stac_item.id:
+                yield None
+            else:
+                yield StacItemWrap(stac_item=stac_item)
 
-    def search_one_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> StacItemWrap:
-        return StacItemWrap(self.search_one(stac_request=stac_request_wrapped.stac_request, timeout=timeout))
+    def search_one_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> Union[StacItemWrap, None]:
+        stac_item = self.search_one(stac_request=stac_request_wrapped.stac_request, timeout=timeout)
+        if not stac_item.id:
+            return None
+        return StacItemWrap(stac_item=stac_item)
 
     def count_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> int:
         return self.count(stac_request=stac_request_wrapped.stac_request, timeout=timeout)
