@@ -152,7 +152,7 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
         raise ValueError("auth error for asset {asset}".format(asset=asset.href))
     elif res.status == 402:
         raise ValueError("not enough credits for downloading asset {asset}".format(asset=asset.href))
-    elif res.status is not 200:
+    elif res.status != 200:
         raise ValueError("error code {code} for asset: {asset}".format(code=res.status, asset=asset.href))
 
     if len(save_filename) > 0:
