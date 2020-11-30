@@ -189,9 +189,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
 
-    
 ![png](README_files/README_1_1.png)
-    
 
 
 In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) holds spatial and temporal query parameters for searching for [StacItems](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). The `client.search_one` method makes requests to the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method. In this case you can see that we've connected to the `eap.nearspacelabs.net` STAC service. In the next section we go into more detail about Protobufs, gRPC, and STAC.
@@ -339,22 +337,22 @@ print(stac_item)
     mission_enum: SWIFT
     mission: "SWIFT"
     gsd {
-      value: 0.2
+      value: 0.20000000298023224
     }
     eo {
     }
     view {
       off_nadir {
-        value: 9.423268
+        value: 9.42326831817627
       }
       azimuth {
-        value: -74.85271
+        value: -74.85270690917969
       }
       sun_azimuth {
-        value: 181.26959
+        value: 181.26959228515625
       }
       sun_elevation {
-        value: 71.41289
+        value: 71.41288757324219
       }
     }
     
@@ -584,8 +582,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2020-11-16T22:52:50+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2020-11-16T22:52:45+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-11-25T18:04:00+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-11-25T18:03:58+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -756,21 +754,15 @@ for stac_item in client.search(stac_request):
 
 
 
-    
 ![png](README_files/README_18_0.png)
-    
 
 
 
-    
 ![png](README_files/README_18_1.png)
-    
 
 
 
-    
 ![png](README_files/README_18_2.png)
-    
 
 
 ### Geotiffs
