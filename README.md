@@ -41,7 +41,7 @@ python setup.py install
 There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
 
 - `NSL_ID` and `NSL_SECRET`, if you're downloading Near Space Labs data you'll need credentials.
-- `STAC_SERVICE`, (not required) If left unset it defaults to defaults to "eap.nearspacelabs.net:9090". This is the address of the STAC metadata service.
+- `STAC_SERVICE`, (not required) If left unset it defaults to "api.nearspacelabs.net:9090". This is the address of the STAC metadata service.
 
 ### Running Included Jupyter Notebooks
 If you are using a virtual environment, but the jupyter you use is outside that virtual env, then you'll have to add your virtual environment to jupyter using something like `python -m ipykernel install --user --name=myenv` (more [here](https://janakiev.com/blog/jupyter-virtual-envs/)). Your best python life is no packages installed globally and always living virtual environment to virtual environment.
@@ -67,7 +67,7 @@ If you're on windows you'll need to set your environment variables using the `SE
 ### Rate Limiting and Timeouts
 To keep our services available to may simulataneous customers, we've implemented rate limiting for API requests and timeouts for long-standing requests. 
 
-At this release our timeouts are default 15 seconds. If you use the `search` method, you're maintaining an open connection with the server while retrieving STAC items. If you have a sub-routine that is taking longer than 15 seconds, then you might want to circumvent the timeout by collecting all the STAC items in an `list` and then execute your sub-routine. An example of this can be seen in the [Handling Deadlines](#handling-deadlines) docs for downloads.
+At this release our timeouts are 15 seconds. If you use the `search` method, you're maintaining an open connection with the server while retrieving STAC items. If you have a sub-routine that is taking longer than 15 seconds, then you might want to circumvent the timeout by collecting all the STAC items in a `list` and then executing your sub-routine. An example of this can be seen in the [Handling Deadlines](#handling-deadlines) docs for downloads.
 
 If you are returning so many stac items that you are timing out then you may want to use a `limit` and `offset` variables in the `StacRequest`. For more details about `limit` and `offset` visit the [AdvancedExamples.md](./AdvancedExamples.md) doc.
 
@@ -131,26 +131,26 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the UT Stadium in Austin Texas
+# our area of interest will be the coordinates of the UT Stadium in Austin, Texas
 # the order of coordinates here is longitude then latitude (x, y). The results of our query 
 # will be returned only if they intersect this point geometry we've defined (other geometry 
 # types besides points are supported)
 # This string format, POINT(float, float) is the well-known-text geometry format:
 # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
 ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
-# GeometryData is a protobuf container for GIS geometry information, the wkid in the spatial 
-# reference defines the WGS-84 elispsoid (`epsg=4326`) spatial reference (the latitude longitude 
+# GeometryData is a protobuf container for GIS geometry information, the epsg in the spatial 
+# reference defines the WGS-84 ellipsoid (`epsg=4326`) spatial reference (the latitude longitude 
 # spatial reference most commonly used)
 geometry_data = GeometryData(wkt=ut_stadium_wkt, proj=ProjectionData(epsg=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
-# LT_OR_EQ is an enum that means less than or equal to the value in the query field
+# LTE is an enum that means less than or equal to the value in the query field
 # Query data from August 25, 2019
 time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
 
 # the StacRequest is a protobuf message for making filter queries for data
 # This search looks for any type of imagery hosted in the STAC service that intersects the austin 
-# capital area of interest and was observed on or after the 1st of August
+# capital area of interest and was observed on or before August 25, 2019
 stac_request = StacRequest(datetime=time_filter, intersects=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
@@ -209,7 +209,7 @@ Definitions of Protocol Buffers (protobuf) from https://developers.google.com/pr
 > Protocol buffers are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data – think XML, but smaller, faster, and simpler. You define how you want your data to be structured once, then you can use special generated source code to easily write and read your structured data to and from a variety of data streams and using a variety of languages.
 
 In other words:
-- You can think of Protobuf as strict a data format like xml or JSON + linting, except Protobuf is a compact binary message with strongly typed fields
+- You can think of Protobuf as a strict data format like xml or JSON + linting, except Protobuf is a compact binary message with strongly typed fields
 - gRPC is similar to REST + OpenAPI, except gRPC is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) framework that supports bi-directional streaming
 - STAC is a specification that helps remove repeated efforts for searching geospatial datasets (like WFS for specific data types)
 
@@ -364,17 +364,17 @@ print(stac_item)
 
 
 The above print out for the stac item is quite lengthy. Although `stac_item` is a protobuf object, it's `__str__` method prints out a JSON-like object. You can see in the below example that this `StacItem` contains the following:
-- [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) which is defined with a WGS-84 well-known binary geometry
-- [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.EnvelopeData) which is also WGS-84
+- [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.v1.GeometryData) which is defined with a WGS-84 well-known binary geometry
+- [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.v1.EnvelopeData) which is also WGS-84
 - [Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) Google's protobuf unix time format
-- [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo) for electro-optical sensor details
-- [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.Landsat) for Landsat sepcific details
-- an array map of [StacItem.AssetsEntry](https://geo-grpc.github.io/api/#epl.protobuf.StacItem.AssetsEntry) with each [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) containing details about [AssetType](https://geo-grpc.github.io/api/#epl.protobuf.AssetType), Electro Optical [Band enums](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Band) (if applicable), and other details for downloading and interpreting data
+- [Eo](https://geo-grpc.github.io/api/#epl.protobuf.v1.Eo) for electro-optical sensor details
+- [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.v1.Landsat) for Landsat specific details
+- an array map of [StacItem.AssetsEntry](https://geo-grpc.github.io/api/#epl.protobuf.v1.StacItem.AssetsEntry) with each [Asset](https://geo-grpc.github.io/api/#epl.protobuf.v1.Asset) containing details about [AssetType](https://geo-grpc.github.io/api/#epl.protobuf.v1.AssetType), Electro Optical [Band enums](https://geo-grpc.github.io/api/#epl.protobuf.v1.Eo.Band) (if applicable), and other details for downloading and interpreting data
 
-You may have notice that the [Asset](https://geo-grpc.github.io/api/#epl.protobuf.Asset) in the above python print out has a number of additional parameters not included in the JSON STAC specification. 
+You may have noticed that the [Asset](https://geo-grpc.github.io/api/#epl.protobuf.v1.Asset) in the above python print out has a number of additional parameters not included in the JSON STAC specification. 
 
 ### Spatial Queries
-The STAC specification has a bounding box `bbox` specification for STAC items. Here we make a STAC request using a bounding box. One slight difference from JSON STAC, is that we define an [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.EnvelopeData) protobuf object. This allows us to use other projections besides WGS84
+The STAC specification has a bounding box `bbox` specification for STAC items. Here we make a STAC request using a bounding box. One slight difference from JSON STAC, is that we define an [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.v1.EnvelopeData) protobuf object. This allows us to use other projections besides WGS84
 
 
 
@@ -392,7 +392,7 @@ client = NSLClient()
 # define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on 
 # the WGS-84 ellipsoid
 neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
-# here we define our envelope_data protobuf with bounds and a WGS-84 (`wkid=4326`) spatial reference
+# here we define our envelope_data protobuf with bounds and a WGS-84 (`epsg=4326`) spatial reference
 envelope_data = EnvelopeData(xmin=neighborhood_box[0], 
                              ymin=neighborhood_box[1], 
                              xmax=neighborhood_box[2], 
@@ -437,7 +437,7 @@ Above should be printed the STAC ids of 10 items (10 is the default limit for th
 
 #### Query By GeoJSON
 
-Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esrishape:
+Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.v1.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esri_shape:
 
 
 
@@ -454,11 +454,11 @@ from nsl.stac import StacRequest, GeometryData, ProjectionData
 from nsl.stac.client import NSLClient
 client = NSLClient()
 
-# request the geojson foot print of Travis County, Texas
+# request the geojson footprint of Travis County, Texas
 url = "http://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json"
 r = requests.get(url)
 travis_geojson = json.dumps(r.json()['features'][0]['geometry'])
-# create our GeometryData protobuf from geojson string and WGS-84 SpatialReferenceData protobuf
+# create our GeometryData protobuf from geojson string and WGS-84 ProjectionData protobuf
 geometry_data = GeometryData(geojson=travis_geojson, 
                              proj=ProjectionData(epsg=4326))
 # Search for data that intersects the geojson geometry and limit results 
@@ -538,13 +538,13 @@ for stac_item in client.search(stac_request):
 
 
 ### Temporal Queries
-When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with a `int64` for seconds and a `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
+When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with an `int64` for seconds and an `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
 
 So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `updated`, and `processed` all use the Timestamp Protobuf object.
 
-When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampField](https://geo-grpc.github.io/api/#epl.protobuf.TimestampField), where we define the value using the `value` field or the `start`&`stop` fields. And then we define a relationship type using the `rel_type` field and the [FilterRelationship](https://geo-grpc.github.io/api/#epl.protobuf.FilterRelationship) enum values of `EQ`, `LT_OR_EQ`, `GT_OR_EQ`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NOT_EQ`.
+When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampFilter](https://geo-grpc.github.io/api/#epl.protobuf.v1.TimestampFilter), where we define the value using the `value` field or the `start`&`end` fields. And then we define a relationship type using the `rel_type` field and the [FilterRelationship](https://geo-grpc.github.io/api/#epl.protobuf.v1.FilterRelationship) enum values of `EQ`, `LTE`, `GTE`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NEQ`.
 
-#### Everything After A Secific Date
+#### Everything After A Specific Date
 
 
 
@@ -582,8 +582,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2020-11-10T20:28:35+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2020-11-10T20:28:33+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-11-25T18:04:00+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-11-25T18:03:58+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -595,7 +595,7 @@ The above result shows the datetime of the STAC item, the datetime of the query 
 
 #### Everything Between Two Dates
 
-Now we're going to do a range request and select data between two dates using the `start` and `stop` parameters instead of the `value` parameter:
+Now we're going to do a range request and select data between two dates using the `start` and `end` parameters instead of the `value` parameter:
 
 
 
@@ -611,8 +611,8 @@ from nsl.stac import utils, enum, StacRequest
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
-stop = start + timedelta(days=9)
-time_filter = utils.pb_timestampfield(start=start, end=stop, rel_type=enum.FilterRelationship.BETWEEN)
+end = start + timedelta(days=9)
+time_filter = utils.pb_timestampfield(start=start, end=end, rel_type=enum.FilterRelationship.BETWEEN)
 
 stac_request = StacRequest(datetime=time_filter, limit=2)
 
@@ -648,7 +648,7 @@ In the above print out we are returned STAC items that are between the dates of 
 
 #### Select Data for One Day
 
-No we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
+Now we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
 
 
 
@@ -896,46 +896,39 @@ JSON is naturally a flexible format and with linters you can force it to adhere 
 ### JSON STAC Compared with Protobuf STAC
 
 #### STAC Item Comparison
-For Comparison, here is the [JSON STAC item field summary](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#item-fields) and the [Protobuf STAC item field summary](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). Below is a table comparing the two:
+For Comparison, here is the [JSON STAC item field summary](https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md#item-fields) and the [Protobuf STAC item field summary](https://geo-grpc.github.io/api/#epl.protobuf.v1.StacItem). Below is a table comparing the two:
 
 
-|  Field Name 	| STAC Protobuf Type                                                                                                       	| STAC JSON Type                                                             	|
-|-------------	|--------------------------------------------------------------------------------------------------------------------------	|----------------------------------------------------------------------------	|
-| id          	| [string](https://geo-grpc.github.io/api/#string)                                                                         	| string                                                                     	|
-| type        	| NA                                                                                                                       	| string                                                                     	|
-| geometry    	| [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.GeometryData)                                                	| [GeoJSON Geometry Object](https://tools.ietf.org/html/rfc7946#section-3.1) 	|
-| bbox        	| [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.EnvelopeData)                                                	| [number]                                                                   	|
-| properties  	| [google.protobuf.Any](https://developers.google.com/protocol-buffers/docs/proto3#any)                                               	| Properties Object                                                          	|
-| links       	| NA                                                                                                                       	| [Link Object]                                                              	|
-| assets      	| [StacItem.AssetsEntry](https://geo-grpc.github.io/api/#epl.protobuf.StacItem.AssetsEntry)                                	| Map                                                                        	|
-| collection  	| [string](https://geo-grpc.github.io/api/#string)                                                                         	| string                                                                     	|
-| title       	| [string](https://geo-grpc.github.io/api/#string)                                                                         	| Inside Properties                                                          	|
-| datetime    	| [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) 	| Inside Properties                                                          	|
-| observed 	| [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) 	| Inside Properties                                                          	|
-| processed   	| [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) 	| Inside Properties                                                          	|
-| updated     	| [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) 	| Inside Properties                                                          	|
-| duration    	| [google.protobuf.Duration](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/duration.proto)   	| Inside Properties                                                          	|
-| eo          	| [Eo](https://geo-grpc.github.io/api/#epl.protobuf.Eo)                                                                    	| Inside Properties                                                          	|
-| sar         	| [Sar](https://geo-grpc.github.io/api/#epl.protobuf.Sar)                                                                  	| Inside Properties                                                          	|
-| landsat     	| [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.Landsat)                                                          	| Inside Properties                                                          	|
+| Field Name | STAC Protobuf Type                                                                                                       | STAC JSON Type                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| id         | [string](https://geo-grpc.github.io/api/#string)                                                                         | string                                                                     |
+| type       | NA                                                                                                                       | string                                                                     |
+| geometry   | [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.v1.GeometryData)                                             | [GeoJSON Geometry Object](https://tools.ietf.org/html/rfc7946#section-3.1) |
+| bbox       | [EnvelopeData](https://geo-grpc.github.io/api/#epl.protobuf.v1.EnvelopeData)                                             | [number]                                                                   |
+| properties | [google.protobuf.Any](https://developers.google.com/protocol-buffers/docs/proto3#any)                                    | Properties Object                                                          |
+| links      | NA                                                                                                                       | [Link Object]                                                              |
+| assets     | [StacItem.AssetsEntry](https://geo-grpc.github.io/api/#epl.protobuf.v1.StacItem.AssetsEntry)                             | Map                                                                        |
+| collection | [string](https://geo-grpc.github.io/api/#string)                                                                         | string                                                                     |
+| title      | [string](https://geo-grpc.github.io/api/#string)                                                                         | Inside Properties                                                          |
+| datetime   | [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) | Inside Properties                                                          |
+| observed   | [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) | Inside Properties                                                          |
+| processed  | [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) | Inside Properties                                                          |
+| updated    | [google.protobuf.Timestamp](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) | Inside Properties                                                          |
+| duration   | [google.protobuf.Duration](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/duration.proto)   | Inside Properties                                                          |
+| eo         | [Eo](https://geo-grpc.github.io/api/#epl.protobuf.v1.Eo)                                                                 | Inside Properties                                                          |
+| sar        | [Sar](https://geo-grpc.github.io/api/#epl.protobuf.v1.Sar)                                                               | Inside Properties                                                          |
+| landsat    | [Landsat](https://geo-grpc.github.io/api/#epl.protobuf.v1.Landsat)                                                       | Inside Properties                                                          |
+
 
 
 #### Eo Comparison
-For Comparison, here is the [JSON STAC Electro Optical field summary](https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#item-fields) and the [Protobuf STAC Electro Optical field summary](https://geo-grpc.github.io/api/#epl.protobuf.Eo). Below is a table comparing the two:
+For Comparison, here is the [JSON STAC Electro Optical field summary](https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#item-fields) and the [Protobuf STAC Electro Optical field summary](https://geo-grpc.github.io/api/#epl.protobuf.v1.Eo). Below is a table comparing the two:
 
-| JSON Field Name  	| JSON Data Type 	| Protobuf Field Name 	| Protobuf Data Type                  	|
-|------------------	|----------------	|---------------------	|-------------------------------------	|
-| eo:gsd           	| number         	| gsd                 	| [google.protobuf.wrappers.FloatValue](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto) 	|
-| eo:platform      	| string         	| platform            	| [Eo.Platform](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Platform)                         	|
-| eo:instrument    	| string         	| instrument          	| [Eo.Instrument](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Instrument)                       	|
-| eo:constellation 	| string         	| constellation       	| [Eo.Constellation](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Platform)                    	|
-| eo:bands         	| [Band Object](https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#band-object)  	| bands               	| [Eo.Band](https://geo-grpc.github.io/api/#epl.protobuf.Eo.Band)                             	|
-| eo:epsg          	| integer        	| epsg                	| uint32                              	|
-| eo:cloud_cover   	| number         	| cloud_cover         	| [google.protobuf.wrappers.FloatValue](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto) 	|
-| eo:off_nadir     	| number         	| off_nadir           	| [google.protobuf.wrappers.FloatValue](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto) 	|
-| eo:azimuth       	| number         	| azimuth             	| [google.protobuf.wrappers.FloatValue](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto) 	|
-| eo:sun_azimuth   	| number         	| sun_azimuth         	| [google.protobuf.wrappers.FloatValue](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto) 	|
-| eo:sun_elevation 	| number         	| sun_elevation       	| [google.protobuf.wrappers.FloatValue](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto) 	|
+| JSON Field Name | JSON Data Type                                                                                 | Protobuf Field Name | Protobuf Data Type                                                                                                                |
+| --------------- | ---------------------------------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| eo:bands        | [Band Object](https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#band-object) | bands               | [Eo.Band](https://geo-grpc.github.io/api/#epl.protobuf.v1.Eo.Band)                                                                |
+| eo:cloud_cover  | number                                                                                         | cloud_cover         | [google.protobuf.wrappers.FloatValue](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/wrappers.proto) |
+
 
 
 ### Updating the samples in this README
