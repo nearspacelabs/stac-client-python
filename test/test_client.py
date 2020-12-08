@@ -14,11 +14,12 @@
 #
 # for additional information, contact:
 #   info@nearspacelabs.com
-
+import pathlib
 import tempfile
 import unittest
 import io
 import os
+import pickle
 
 from epl.geometry import Polygon
 from epl.protobuf.v1.geometry_pb2 import EnvelopeData
@@ -30,7 +31,7 @@ from nsl.stac import StacItem, Asset, TimestampFilter, GeometryData, ProjectionD
 from nsl.stac import utils, enum
 from nsl.stac.enum import AssetType, Band, CloudPlatform, Mission, FilterRelationship
 from nsl.stac.client import NSLClient
-from nsl.stac.experimental import StacRequestWrap, NSLClientEx
+from nsl.stac.experimental import StacRequestWrap, NSLClientEx, AssetWrap, StacItemWrap
 
 client = NSLClient(nsl_only=False)
 client_ex = NSLClientEx(nsl_only=False)
@@ -618,7 +619,60 @@ class TestWrap(unittest.TestCase):
             self.assertLessEqual(stac_wrapped.gsd, 60)
             self.assertEqual(stac_id, stac_wrapped.stac_item.id)
 
+            asset_wrapped_keys = []
+            for asset_wrap in stac_wrapped.get_assets():
+                asset_wrapped_keys.append(asset_wrap.asset_key)
+            for asset_key in stac_wrapped.stac_item.assets:
+                self.assertTrue(asset_key in asset_wrapped_keys)
+
         self.assertEqual(1, client_ex.count_ex(request_wrapped))
+
+    def test_constructor(self):
+        asset_wrap = AssetWrap(bucket='bucky',
+                               object_path="jebidiah/springfield.tif",
+                               asset_type=enum.AssetType.GEOTIFF,
+                               href='https://bubbles.monkey.io/jebidiah/springfield.tif',
+                               cloud_platform=enum.CloudPlatform.AZURE,
+                               bucket_manager='Smithers',
+                               bucket_region='azores')
+
+        asset_clone = AssetWrap(bucket=asset_wrap.bucket,
+                                object_path=str(pathlib.Path(asset_wrap.object_path).with_suffix('.jpg')),
+                                asset_type=enum.AssetType.THUMBNAIL,
+                                href=str(pathlib.Path(asset_wrap.href).with_suffix('.jpg')),
+                                cloud_platform=asset_wrap.cloud_platform,
+                                bucket_manager=asset_wrap.bucket_manager,
+                                bucket_region=asset_wrap.bucket_region)
+
+        self.assertEqual(asset_wrap.bucket_region, asset_clone.bucket_region)
+        self.assertEqual(asset_clone.ext, '.jpg')
+
+    def test_deep_copy(self):
+        asset_wrap = AssetWrap()
+
+        asset_wrap.cloud_platform = enum.CloudPlatform.GCP
+        pickled = pickle.dumps(asset_wrap)
+        asset_wrap_deep = pickle.loads(pickled)
+        self.assertEqual(asset_wrap.cloud_platform, asset_wrap_deep.cloud_platform)
+        self.assertEqual(asset_wrap, asset_wrap_deep)
+        asset_wrap_shallow = asset_wrap
+        self.assertEqual(asset_wrap.cloud_platform, asset_wrap_shallow.cloud_platform)
+        self.assertEqual(asset_wrap, asset_wrap_shallow)
+        asset_wrap.cloud_platform = enum.CloudPlatform.AWS
+        self.assertEqual(asset_wrap.cloud_platform, asset_wrap_shallow.cloud_platform)
+        self.assertNotEqual(asset_wrap.cloud_platform, asset_wrap_deep.cloud_platform)
+
+        stac_item = StacItemWrap()
+        print(stac_item.stac_item.ListFields())
+        stac_item.id = "pancakes"
+        pickled = pickle.dumps(stac_item)
+        stac_item_deep = pickle.loads(pickled)
+        self.assertEqual(stac_item.id, stac_item_deep.id)
+        self.assertEqual(stac_item, stac_item_deep)
+        stac_item_shallow = stac_item
+        self.assertEqual(stac_item.id, stac_item_shallow.id)
+        stac_item_deep.id = 'waffles'
+        self.assertNotEqual(stac_item_deep.id, stac_item)
 
     def test_platform_landsat(self):
         request_wrap = StacRequestWrap()
@@ -659,11 +713,30 @@ class TestWrap(unittest.TestCase):
 
         # get the thumbnail asset from the assets map. The other option would be a Geotiff,
         # with asset key 'GEOTIFF_RGB'
-        asset = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL)
+        asset = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL, cloud_platform=enum.CloudPlatform.GCP)
+        self.assertIsNotNone(asset)
 
-        with tempfile.TemporaryDirectory() as d:
-            filename = utils.download_asset(asset=asset, save_directory=d)
-            self.assertTrue(os.path.exists(filename))
+        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB_GCP")
+        asset.asset_key_suffix = "PANCAKES"
+        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB_GCP_PANCAKES")
+
+        self.assertTrue(asset.exists())
+
+    def test_3744_bounds(self):
+        # request wrapper
+        request = StacRequestWrap()
+        request.mission_enum = enum.Mission.SWIFT
+
+        # HARN UTM
+        neighborhood_box = (621636.1875228449, 3349964.520449501, 623157.4212553708, 3351095.8075163467)
+        # setting the bounds tests for intersection (not contains)
+        request.set_bounds(neighborhood_box, epsg=3744)
+        request.limit = 3
+        found = 0
+        # Search for data that intersects the bounding box
+        for stac_item in client_ex.search_ex(request):
+            found += 1
+        self.assertEqual(3, found)
 
     def test_set_intersects_without_proj(self):
         neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
@@ -686,6 +759,14 @@ class TestWrap(unittest.TestCase):
         except BaseException as _:
             b_hit = True
         self.assertTrue(b_hit)
+
+        b_hit = False
+        try:
+            r.set_bounds(bounds=neighborhood_box, epsg=4326)
+        except BaseException as _:
+            b_hit = True
+
+        self.assertFalse(b_hit)
 
     def test_projection_error(self):
         # request wrapper

@@ -1,4 +1,6 @@
+import pathlib
 import re
+from copy import deepcopy
 
 import boto3
 import botocore.exceptions
@@ -11,6 +13,7 @@ from epl.protobuf.v1.geometry_pb2 import ProjectionData
 from google.protobuf.any_pb2 import Any
 from google.protobuf.wrappers_pb2 import FloatValue
 from epl.geometry import BaseGeometry, Polygon
+from typing.io import BinaryIO
 
 from nsl.stac import StacItem, StacRequest, View, ViewRequest, \
     Mosaic, MosaicRequest, Eo, EoRequest, EnvelopeData, FloatFilter, Asset, enum, utils
@@ -75,7 +78,7 @@ def _check_aws_asset_exists(asset: Asset) -> bool:
     return True
 
 
-class AssetWrap:
+class AssetWrap(object):
     def __init__(self,
                  asset: Asset = None,
                  bucket: str = None,
@@ -85,29 +88,83 @@ class AssetWrap:
                  href="",
                  cloud_platform: enum.CloudPlatform = enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
                  bucket_manager: str = "",
-                 bucket_region: str = ""):
+                 bucket_region: str = "",
+                 key_suffix: str = "",
+                 asset_key: str = ""):
+        self._asset_key = asset_key
         if asset is None:
-            href_type = self.asset_type_details(asset_type=asset_type,
-                                                b_thumbnail_png=asset_type == enum.AssetType.THUMBNAIL)
-            self._asset = Asset(href=href,
-                                type=href_type,
-                                eo_bands=eo_bands,
-                                asset_type=asset_type,
-                                cloud_platform=cloud_platform,
-                                bucket_manager=bucket_manager,
-                                bucket_region=bucket_region,
-                                bucket=bucket,
-                                object_path=object_path)
-        else:
-            href_type = self.asset_type_details(asset_type=asset.asset_type,
-                                                b_thumbnail_png=asset.asset_type == enum.AssetType.THUMBNAIL)
+            asset = Asset(href=href,
+                          eo_bands=eo_bands,
+                          asset_type=asset_type,
+                          cloud_platform=cloud_platform,
+                          bucket_manager=bucket_manager,
+                          bucket_region=bucket_region,
+                          bucket=bucket,
+                          object_path=object_path)
 
-        self._ext = href_type[0]
-        self._type = href_type[1]
         self._asset = asset
 
+        if self._asset.bucket is None or self._asset.object_path is None:
+            raise ValueError("bucket and object path must be set in valid asset")
+
+        self._ext = pathlib.Path(self._asset.object_path).suffix
+
+        b_thumbnail_png = self._asset.asset_type == enum.AssetType.THUMBNAIL and self._ext == '.png'
+        _, href_type = self.asset_type_details(asset_type=self._asset.asset_type, b_thumbnail_png=b_thumbnail_png)
+        self._asset.type = href_type
+        self._type = href_type
+        self._key_suffix = key_suffix
+
+    def __eq__(self, other):
+        if not isinstance(other, AssetWrap):
+            return False
+
+        if self.asset_key != other.asset_key:
+            return False
+
+        return self.equals(other._asset)
+
     def __str__(self):
-        return str("{0}extension: {1}".format(self._asset, self._ext))
+        return str("{0}extension: {1}\nasset_key: {2}".format(self._asset, self._ext, self.asset_key))
+
+    def __copy__(self):
+        pass
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k == '_asset':
+                value = Asset()
+                v.CopyFrom(value)
+                setattr(result, k, value)
+            else:
+                setattr(result, k, deepcopy(v))
+        return result
+
+    def _asset_key_prefix(self) -> str:
+        if self.eo_bands == enum.Band.UNKNOWN_BAND:
+            return "{0}_{1}".format(self.asset_type.name, self.cloud_platform.name)
+        return "{0}_{1}_{2}".format(self.asset_type.name, self.eo_bands.name, self.cloud_platform.name)
+
+    @property
+    def asset_key(self):
+        if self._asset_key:
+            return self._asset_key
+
+        asset_key = self._asset_key_prefix()
+        if self._key_suffix:
+            asset_key += "_{}".format(self._key_suffix)
+        return asset_key
+
+    @property
+    def asset_key_suffix(self):
+        return self._key_suffix
+
+    @asset_key_suffix.setter
+    def asset_key_suffix(self, value: str):
+        self._key_suffix = value
 
     @property
     def asset_type(self) -> enum.AssetType:
@@ -115,7 +172,7 @@ class AssetWrap:
 type of asset
         :return:
         """
-        return self._asset.asset_type
+        return enum.AssetType(self._asset.asset_type)
 
     @property
     def bucket(self) -> str:
@@ -139,7 +196,11 @@ bucket where data stored. may be private
 cloud platform where data stored. Google Cloud, AWS and Azure are current options (or unknown)
         :return:
         """
-        return self._asset.cloud_platform
+        return enum.CloudPlatform(self._asset.cloud_platform)
+
+    @cloud_platform.setter
+    def cloud_platform(self, value: enum.CloudPlatform):
+        self._asset.cloud_platform = value
 
     @property
     def eo_bands(self) -> enum.Band:
@@ -147,7 +208,7 @@ cloud platform where data stored. Google Cloud, AWS and Azure are current option
 electro optical bands included in data. if data is not electro optical, then this is set to Unknown
         :return:
         """
-        return self._asset.eo_bands
+        return enum.Band(self._asset.eo_bands)
 
     @property
     def ext(self) -> str:
@@ -161,6 +222,10 @@ the href for downloading data
         """
         return self._asset.href
 
+    @href.setter
+    def href(self, value):
+        self._asset.href = value
+
     @property
     def object_path(self) -> str:
         """
@@ -168,6 +233,10 @@ the object path to use with the bucket if access is available
         :return:
         """
         return self._asset.object_path
+
+    @object_path.setter
+    def object_path(self, value):
+        self._asset.object_path = value
 
     @property
     def type(self) -> str:
@@ -180,23 +249,25 @@ does the AssetWrap equal a protobuf Asset
         :return:
         """
         return self._asset.href == other.href and \
-            self._asset.type == other.type and \
-            self._asset.eo_bands == other.eo_bands and \
-            self._asset.asset_type == other.asset_type and \
-            self._asset.cloud_platform == other.cloud_platform and \
-            self._asset.bucket_manager == other.bucket_manager and \
-            self._asset.bucket_region == other.bucket_region and \
-            self._asset.bucket == other.bucket and \
-            self._asset.object_path == other.object_path
+               self._asset.type == other.type and \
+               self._asset.eo_bands == other.eo_bands and \
+               self._asset.asset_type == other.asset_type and \
+               self._asset.cloud_platform == other.cloud_platform and \
+               self._asset.bucket_manager == other.bucket_manager and \
+               self._asset.bucket_region == other.bucket_region and \
+               self._asset.bucket == other.bucket and \
+               self._asset.object_path == other.object_path
 
     def exists(self) -> bool:
         return _check_asset_exists(self._asset)
 
-    def __eq__(self, other):
-        if not isinstance(other, AssetWrap):
-            return False
-
-        return self.equals(other._asset)
+    def download(self, from_bucket: bool = False, file_obj: BinaryIO = None, save_filename: str = '',
+                 save_directory: str = '') -> str:
+        return utils.download_asset(asset=self._asset,
+                                    from_bucket=from_bucket,
+                                    file_obj=file_obj,
+                                    save_filename=save_filename,
+                                    save_directory=save_directory)
 
     @staticmethod
     def asset_type_details(asset_type: enum.AssetType, b_thumbnail_png: bool = True) -> (str, str):
@@ -311,9 +382,25 @@ Wrapper for StacItem protobuf
             stac_data.CopyFrom(stac_item)
 
             for asset_key in stac_data.assets:
-                self._assets[asset_key] = AssetWrap(stac_data.assets[asset_key])
+                self._assets[asset_key] = AssetWrap(stac_data.assets[asset_key], asset_key=asset_key)
 
         super().__init__(stac_data, properties_constructor)
+
+    def __copy__(self):
+        pass
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k == '_stac_data':
+                value = StacItem()
+                v.CopyFrom(value)
+                setattr(result, k, value)
+            else:
+                setattr(result, k, deepcopy(v))
+        return result
 
     @property
     def bounds(self) -> Tuple[float]:
@@ -416,9 +503,9 @@ the enum describing the constellation
             return Polygon.from_envelope_data(self.stac_item.bbox)
 
     @geometry.setter
-    def geometry(self, geometry: BaseGeometry):
-        self.stac_item.geometry.CopyFrom(geometry.geometry_data)
-        self.stac_item.bbox.CopyFrom(geometry.envelope_data)
+    def geometry(self, value: BaseGeometry):
+        self.stac_item.geometry.CopyFrom(value.geometry_data)
+        self.stac_item.bbox.CopyFrom(value.envelope_data)
 
     @property
     def gsd(self):
@@ -576,6 +663,27 @@ then that supersedes this projection definition.
     def updated(self, value: Union[internal_datetime, date]):
         self.stac_item.updated.CopyFrom(utils.pb_timestamp(d_utc=value))
 
+    def download_asset(self,
+                       asset_key: str = "",
+                       asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
+                       cloud_platform: enum.CloudPlatform = enum.CloudPlatform.GCP,
+                       band: enum.Band = enum.Band.UNKNOWN_BAND,
+                       asset_key_regex: str = None,
+                       from_bucket: bool = False,
+                       file_obj: BinaryIO = None,
+                       save_filename: str = "",
+                       save_directory: str = ""):
+        asset_wrap = self.get_asset(asset_key=asset_key,
+                                    asset_type=asset_type,
+                                    cloud_platform=cloud_platform,
+                                    eo_bands=band,
+                                    asset_key_regex=asset_key_regex)
+
+        return asset_wrap.download(from_bucket=from_bucket,
+                                   file_obj=file_obj,
+                                   save_filename=save_filename,
+                                   save_directory=save_directory)
+
     def get_assets(self,
                    asset_key: str = None,
                    asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
@@ -584,6 +692,8 @@ then that supersedes this projection definition.
                    asset_key_regex: str = None) -> List[AssetWrap]:
         if asset_key is not None and asset_key in self._assets:
             return [self._assets[asset_key]]
+        elif asset_key is not None and asset_key not in self._assets:
+            raise ValueError("asset_key {} not found".format(asset_key))
 
         results = []
         for asset_key in self._assets:
