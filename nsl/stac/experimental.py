@@ -122,7 +122,7 @@ class AssetWrap(object):
         if self.asset_key != other.asset_key:
             return False
 
-        return self.equals(other._asset)
+        return self.equals_pb(other._asset)
 
     def __str__(self):
         return str("{0}extension: {1}\nasset_key: {2}".format(self._asset, self._ext, self.asset_key))
@@ -242,21 +242,13 @@ the object path to use with the bucket if access is available
     def type(self) -> str:
         return self._type
 
-    def equals(self, other: Asset):
+    def equals_pb(self, other: Asset):
         """
 does the AssetWrap equal a protobuf Asset
         :param other:
         :return:
         """
-        return self._asset.href == other.href and \
-               self._asset.type == other.type and \
-               self._asset.eo_bands == other.eo_bands and \
-               self._asset.asset_type == other.asset_type and \
-               self._asset.cloud_platform == other.cloud_platform and \
-               self._asset.bucket_manager == other.bucket_manager and \
-               self._asset.bucket_region == other.bucket_region and \
-               self._asset.bucket == other.bucket and \
-               self._asset.object_path == other.object_path
+        return self._asset.SerializeToString() == other.SerializeToString()
 
     def exists(self) -> bool:
         return _check_asset_exists(self._asset)
@@ -374,7 +366,10 @@ Wrapper for StacItem protobuf
     """
 
     def __eq__(self, other):
-        return True
+        if not isinstance(other, StacItemWrap):
+            return False
+
+        return self.equals_pb(other.stac_item)
 
     def __init__(self, stac_item: StacItem = None, properties_constructor=None):
         self._assets = {}
@@ -687,6 +682,14 @@ then that supersedes this projection definition.
                                    save_filename=save_filename,
                                    save_directory=save_directory)
 
+    def equals_pb(self, other: StacItem):
+        """
+does the StacItemWrap equal a protobuf StacItem
+        :param other:
+        :return:
+        """
+        return self.stac_item.SerializeToString() == other.SerializeToString()
+
     def get_assets(self,
                    asset_key: str = None,
                    asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
@@ -712,7 +715,7 @@ then that supersedes this projection definition.
 
             # check that asset hasn't changed between protobuf and asset_map
             pb_asset = self.stac_item.assets[asset_key]
-            if not current.equals(pb_asset):
+            if not current.equals_pb(pb_asset):
                 raise ValueError("corrupted protobuf. Asset and AssetWrap have differing underlying protobuf")
 
             results.append(current)
