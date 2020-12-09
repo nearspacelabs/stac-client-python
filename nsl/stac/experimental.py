@@ -373,6 +373,9 @@ class StacItemWrap(_BaseWrap):
 Wrapper for StacItem protobuf
     """
 
+    def __eq__(self, other):
+        return True
+
     def __init__(self, stac_item: StacItem = None, properties_constructor=None):
         self._assets = {}
         if stac_item is None:

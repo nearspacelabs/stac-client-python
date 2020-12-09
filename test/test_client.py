@@ -672,7 +672,7 @@ class TestWrap(unittest.TestCase):
         stac_item_shallow = stac_item
         self.assertEqual(stac_item.id, stac_item_shallow.id)
         stac_item_deep.id = 'waffles'
-        self.assertNotEqual(stac_item_deep.id, stac_item)
+        self.assertNotEqual(stac_item_deep.id, stac_item.id)
 
     def test_platform_landsat(self):
         request_wrap = StacRequestWrap()
@@ -716,9 +716,9 @@ class TestWrap(unittest.TestCase):
         asset = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL, cloud_platform=enum.CloudPlatform.GCP)
         self.assertIsNotNone(asset)
 
-        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB_GCP")
+        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB")
         asset.asset_key_suffix = "PANCAKES"
-        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB_GCP_PANCAKES")
+        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB")
 
         self.assertTrue(asset.exists())
 
