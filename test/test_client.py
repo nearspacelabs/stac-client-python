@@ -772,21 +772,21 @@ class TestWrap(unittest.TestCase):
         b_hit = False
         try:
             r.bbox = envelope_data
-        except BaseException as _:
+        except BaseException:
             b_hit = True
         self.assertTrue(b_hit)
 
         b_hit = False
         try:
             r.set_bounds(bounds=neighborhood_box, epsg=0)
-        except BaseException as _:
+        except BaseException:
             b_hit = True
         self.assertTrue(b_hit)
 
         b_hit = False
         try:
             r.set_bounds(bounds=neighborhood_box, epsg=4326)
-        except BaseException as _:
+        except BaseException:
             b_hit = True
 
         self.assertFalse(b_hit)
