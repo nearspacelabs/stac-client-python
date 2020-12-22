@@ -132,19 +132,23 @@ class TestLandsat(unittest.TestCase):
         stac_id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, band=Band.BLUE, cloud_platform=CloudPlatform.GCP)
+        asset = utils.get_asset(stac_item, eo_bands=Band.BLUE, cloud_platform=CloudPlatform.GCP)
         self.assertIsNotNone(asset)
-        asset = utils.get_asset(stac_item, band=Band.BLUE, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item,
+                                eo_bands=Band.BLUE,
+                                asset_type=enum.AssetType.GEOTIFF,
+                                cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
-        asset = utils.get_asset(stac_item, band=Band.LWIR_1, cloud_platform=CloudPlatform.GCP)
+        asset = utils.get_asset(stac_item, eo_bands=Band.LWIR_1, cloud_platform=CloudPlatform.GCP)
         self.assertIsNone(asset)
-        asset = utils.get_asset(stac_item, band=Band.LWIR_1, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item, eo_bands=Band.LWIR_1, cloud_platform=CloudPlatform.AWS)
         self.assertIsNone(asset)
 
-        asset = utils.get_asset(stac_item, band=Band.CIRRUS, cloud_platform=CloudPlatform.GCP)
+        asset = utils.get_asset(stac_item, eo_bands=Band.CIRRUS, cloud_platform=CloudPlatform.GCP)
         self.assertIsNotNone(asset)
-        asset = utils.get_asset(stac_item, band=Band.CIRRUS, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item, eo_bands=Band.CIRRUS, cloud_platform=CloudPlatform.AWS,
+                                asset_type=enum.AssetType.GEOTIFF)
         self.assertIsNotNone(asset)
 
         aws_count, gcp_count = 0, 0
@@ -159,18 +163,21 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(12, gcp_count)
 
     def test_basename(self):
-        asset_name = 'LO81120152015061LGN00_B2.TIF'
+        asset_name = r'.*LO81120152015061LGN00_B2\.TIF$'
         stac_id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, asset_basename=asset_name)
+        asset = utils.get_asset(stac_item, asset_regex={'object_path': asset_name}, cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
     def test_thumbnail(self):
         stac_id = 'LO81120152015061LGN00'
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item,
+                                asset_type=AssetType.THUMBNAIL,
+                                cloud_platform=CloudPlatform.AWS,
+                                asset_regex={"asset_key": ".*_2$"})
         self.assertIsNotNone(asset)
 
     def test_aws(self):
@@ -483,7 +490,7 @@ class TestHelpers(unittest.TestCase):
         asset = utils.get_asset(stac_item,
                                 asset_type=AssetType.TXT,
                                 cloud_platform=CloudPlatform.GCP,
-                                asset_basename='LO81120152015061LGN00_MTL.txt')
+                                asset_regex={'href': r'.*LO81120152015061LGN00_MTL\.txt$'})
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
@@ -569,7 +576,10 @@ class TestHelpers(unittest.TestCase):
     def test_download_aws_href(self):
         stac_id = 'LC80270392015025LGN00'
         stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
-        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL, cloud_platform=enum.CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item,
+                                asset_type=AssetType.THUMBNAIL,
+                                asset_regex={"asset_key": ".*_2$"},
+                                cloud_platform=enum.CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
         with tempfile.TemporaryDirectory() as d:
@@ -615,7 +625,15 @@ class TestWrap(unittest.TestCase):
         stac_id = 'LO81120152015061LGN00'
         request_wrapped = StacRequestWrap(id=stac_id)
         for stac_wrapped in client_ex.search_ex(stac_request_wrapped=request_wrapped):
-            self.assertEqual(stac_wrapped.mission_enum, enum.Mission.LANDSAT)
+            self.assertEqual(stac_wrapped.mission, enum.Mission.LANDSAT)
+            self.assertEqual(stac_wrapped.mission.name, enum.Mission.LANDSAT.name)
+            self.assertEqual(stac_wrapped.stac_item.mission, enum.Mission.LANDSAT.name)
+            self.assertEqual(stac_wrapped.platform, enum.Platform.LANDSAT_8)
+            self.assertEqual(stac_wrapped.platform.name, enum.Platform.LANDSAT_8.name)
+            self.assertEqual(stac_wrapped.stac_item.platform, enum.Platform.LANDSAT_8.name)
+            self.assertEqual(stac_wrapped.instrument, enum.Instrument.OLI)
+            self.assertEqual(stac_wrapped.instrument.name, enum.Instrument.OLI.name)
+            self.assertEqual(stac_wrapped.stac_item.instrument, enum.Instrument.OLI.name)
             self.assertLessEqual(stac_wrapped.gsd, 60)
             self.assertEqual(stac_id, stac_wrapped.stac_item.id)
 
@@ -668,22 +686,24 @@ class TestWrap(unittest.TestCase):
         pickled = pickle.dumps(stac_item)
         stac_item_deep = pickle.loads(pickled)
         self.assertEqual(stac_item.id, stac_item_deep.id)
+        self.assertEqual("pancakes", stac_item.id)
         self.assertEqual(stac_item, stac_item_deep)
         stac_item_shallow = stac_item
         self.assertEqual(stac_item.id, stac_item_shallow.id)
         stac_item_deep.id = 'waffles'
         self.assertNotEqual(stac_item_deep.id, stac_item.id)
+        self.assertEqual("waffles", stac_item_deep.id)
 
     def test_platform_landsat(self):
         request_wrap = StacRequestWrap()
 
-        request_wrap.mission_enum = enum.Mission.LANDSAT
-        request_wrap.platform_enum = enum.Platform.LANDSAT_8
+        request_wrap.mission = enum.Mission.LANDSAT
+        request_wrap.platform = enum.Platform.LANDSAT_8
         request_wrap.set_cloud_cover(rel_type=enum.FilterRelationship.GTE, value=50)
 
         item_wrapped = client_ex.search_one_ex(request_wrap)
-        self.assertEqual(item_wrapped.platform_enum, request_wrap.platform_enum)
-        self.assertEqual(item_wrapped.mission_enum, request_wrap.mission_enum)
+        self.assertEqual(item_wrapped.platform, request_wrap.platform)
+        self.assertEqual(item_wrapped.mission, request_wrap.mission)
 
     def test_code_example_ex(self):
         # create our request. this interface allows us to set fields in our protobuf object
@@ -706,6 +726,7 @@ class TestWrap(unittest.TestCase):
         # Query data from August 25, 2019
         request.set_observed(rel_type=enum.FilterRelationship.LTE, value=date(2019, 8, 25))
 
+        request.instrument = enum.Instrument.OLI
         # search_one_ex method requests only one item be returned that meets the query filters in the StacRequest
         # the item returned is a wrapper of the protobuf message; StacItemWrap. search_one_ex, will only return the most
         # recently observed results that matches the time filter and spatial filter
@@ -713,12 +734,14 @@ class TestWrap(unittest.TestCase):
 
         # get the thumbnail asset from the assets map. The other option would be a Geotiff,
         # with asset key 'GEOTIFF_RGB'
-        asset = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL, cloud_platform=enum.CloudPlatform.GCP)
+        asset = stac_item.get_asset(asset_type=enum.AssetType.GEOTIFF,
+                                    eo_bands=enum.Band.SWIR_1,
+                                    cloud_platform=enum.CloudPlatform.GCP)
         self.assertIsNotNone(asset)
 
-        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB")
+        self.assertEqual(asset.asset_key, "GEOTIFF_GCP_SWIR_1")
         asset.asset_key_suffix = "PANCAKES"
-        self.assertEqual(asset.asset_key, "THUMBNAIL_RGB")
+        self.assertEqual(asset.asset_key, "GEOTIFF_GCP_SWIR_1")
 
         self.assertTrue(asset.exists())
 
@@ -816,3 +839,22 @@ class TestWrap(unittest.TestCase):
         time_stamp_end = r.stac_request.observed.end.seconds + r.stac_request.observed.end.nanos / 1000000000.0
         self.assertEquals(datetime.fromtimestamp(time_stamp_start, tz=timezone.utc), d_min)
         self.assertEquals(datetime.fromtimestamp(time_stamp_end, tz=timezone.utc), d_max)
+
+    def test_update_asset(self):
+        r = StacRequestWrap()
+        r.mission = enum.Mission.LANDSAT
+        r.platform = enum.Platform.LANDSAT_8
+        r.set_observed(rel_type=enum.FilterRelationship.GTE, value=date(2016, 1, 1))
+
+        item = StacItemWrap(client_ex.search_one_ex(r).stac_item)
+
+        asset_key = 'THUMBNAIL_AWS'
+        asset_wrap = item.get_asset(asset_key=asset_key)
+        self.assertEqual(asset_wrap.cloud_platform, enum.CloudPlatform.AWS)
+        self.assertEqual(asset_wrap.cloud_platform, item.stac_item.assets[asset_key].cloud_platform)
+
+        self.assertEqual(enum.CloudPlatform.AWS, item.stac_item.assets[asset_key].cloud_platform)
+        asset_wrap.cloud_platform = enum.CloudPlatform.GCP
+        self.assertEqual(asset_wrap.cloud_platform.value, item.stac_item.assets[asset_key].cloud_platform)
+        self.assertEqual(asset_wrap.cloud_platform, enum.CloudPlatform.GCP)
+        self.assertEqual(enum.CloudPlatform.GCP.value, item.stac_item.assets[asset_key].cloud_platform)

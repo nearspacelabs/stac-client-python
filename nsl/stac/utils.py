@@ -18,8 +18,9 @@
 import os
 import datetime
 import http.client
+import re
 from urllib.parse import urlparse
-from typing import List, Iterator, IO, Union
+from typing import List, Iterator, IO, Union, Dict, Any
 
 import boto3
 import botocore
@@ -29,7 +30,7 @@ from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth, \
-    StacItem, Asset, TimestampFilter, Eo, DatetimeRange
+    StacItem, Asset, TimestampFilter, Eo, DatetimeRange, enum
 from nsl.stac.enum import Band, CloudPlatform, FilterRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
@@ -181,7 +182,7 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
 
 def download_asset(asset: Asset,
                    from_bucket: bool = False,
-                   file_obj: IO = None,
+                   file_obj: IO[Union[Union[str, bytes], Any]] = None,
                    save_filename: str = "",
                    save_directory: str = "",
                    requester_pays: bool = False,
@@ -255,8 +256,10 @@ def download_assets(stac_item: StacItem,
 def get_asset(stac_item: StacItem,
               asset_type: AssetType = None,
               cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-              band: Eo.Band = Eo.UNKNOWN_BAND,
-              asset_basename: str = "") -> Asset:
+              eo_bands: Eo.Band = Eo.UNKNOWN_BAND,
+              asset_regex: Dict = None,
+              asset_key: str = None,
+              b_relaxed_types: bool = False) -> Asset:
     """
     get a protobuf object(pb) asset from a stac item pb. If your parameters are broad (say, if you used all defaults)
     this function would only return you the first asset that matches the parameters. use
@@ -270,18 +273,43 @@ def get_asset(stac_item: StacItem,
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    return next(get_assets(stac_item,
-                           asset_types=[asset_type],
-                           cloud_platform=cloud_platform,
-                           band=band,
-                           asset_basename=asset_basename), None)
+    results = get_assets(stac_item, asset_type, cloud_platform, eo_bands, asset_regex, asset_key, b_relaxed_types)
+    if len(results) > 1:
+        raise ValueError("must be more specific in selecting your asset. if all enums are used, try using "
+                         "asset_key_regex")
+    elif len(results) == 1:
+        return results[0]
+    return None
+
+
+def _asset_types_match(desired_type: enum.AssetType, asset_type: enum.AssetType, b_relaxed_types: bool = False) -> bool:
+    if not b_relaxed_types:
+        return desired_type == asset_type
+    elif desired_type == enum.AssetType.TIFF:
+        return asset_type == desired_type or \
+               asset_type == enum.AssetType.GEOTIFF or \
+               asset_type == enum.AssetType.CO_GEOTIFF
+    elif desired_type == enum.AssetType.GEOTIFF:
+        return asset_type == desired_type or asset_type == enum.AssetType.CO_GEOTIFF
+    return asset_type == desired_type
+
+
+def equals_pb(left: Asset, right: Asset):
+    """
+does the AssetWrap equal a protobuf Asset
+    :param other:
+    :return:
+    """
+    return left.SerializeToString() == right.SerializeToString()
 
 
 def get_assets(stac_item: StacItem,
-               asset_types: List = None,
+               asset_type: enum.AssetType = None,
                cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-               band: Eo.Band = Eo.UNKNOWN_BAND,
-               asset_basename: str = "") -> Iterator[Asset]:
+               eo_bands: Eo.Band = Eo.UNKNOWN_BAND,
+               asset_regex: Dict = None,
+               asset_key: str = None,
+               b_relaxed_types: bool = False) -> List[Asset]:
     """
     get a generator of assets from a stac item, filtered by the parameters.
     :param stac_item: stac item whose assets we want to search by parameters
@@ -293,66 +321,92 @@ def get_assets(stac_item: StacItem,
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    # if no asset_types defined, create a list of all available assets from the protobuf definition file
-    if asset_types is None or asset_types[0] is None:
-        asset_types = [asset_type for asset_type in AssetType]
+    if asset_key is not None and asset_key in stac_item.assets:
+        return [stac_item.assets[asset_key]]
+    elif asset_key is not None and asset_key and asset_key not in stac_item.assets:
+        raise ValueError("asset_key {} not found".format(asset_key))
 
-    for asset_type in asset_types:
-        for key in stac_item.assets:
-            asset = stac_item.assets[key]
-            if asset.asset_type != asset_type:
+    results = []
+    for asset_key in stac_item.assets:
+        current = stac_item.assets[asset_key]
+        b_asset_type_match = _asset_types_match(desired_type=asset_type,
+                                                asset_type=current.asset_type,
+                                                b_relaxed_types=b_relaxed_types)
+        if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and current.eo_bands != eo_bands:
+            continue
+        if (cloud_platform is not None and cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM) and \
+                current.cloud_platform != cloud_platform:
+            continue
+        if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and not b_asset_type_match:
+            continue
+        if asset_regex is not None and len(asset_regex) > 0:
+            b_continue = False
+            for key, regex_value in asset_regex.items():
+                if key == 'asset_key':
+                    if not re.match(regex_value, asset_key):
+                        b_continue = True
+                        break
+                else:
+                    if not hasattr(current, key):
+                        raise AttributeError("no key {0} in asset {1}".format(key, current))
+                    elif not re.match(regex_value, getattr(current, key)):
+                        b_continue = True
+                        break
+
+            if b_continue:
                 continue
-            if asset.eo_bands == band or band == Eo.UNKNOWN_BAND:
-                if asset.cloud_platform == cloud_platform or cloud_platform == CloudPlatform.UNKNOWN_CLOUD_PLATFORM:
-                    if asset_basename and not _asset_has_filename(asset=asset, asset_basename=asset_basename):
-                        continue
-                    yield asset
 
-    return
+        # check that asset hasn't changed between protobuf and asset_map
+        pb_asset = stac_item.assets[asset_key]
+        if not equals_pb(current, pb_asset):
+            raise ValueError("corrupted protobuf. Asset and AssetWrap have differing underlying protobuf")
+
+        results.append(current)
+    return results
 
 
-def get_eo_assets(stac_item: StacItem,
-                  cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-                  bands: List = None,
-                  asset_types: List = None) -> Iterator[Asset]:
-    """
-    get generator of electro optical assets that match the query restrictions. if no restrictions are set,
-    then the default is any cloud platform, RGB for the bands, and all raster types.
-    :param stac_item: stac item to search for electro optical assets
-    :param cloud_platform: cloud platform (if an asset has both GCP and AWS but you prefer AWS, set this)
-    :param bands: the tuple of any of the bands you'd like to return
-    :param asset_types: the tuple of any of the asset types you'd like to return
-    :return: List of Assets
-    """
-
-    if asset_types is None:
-        asset_types = RASTER_TYPES
-
-    if bands is None:
-        bands = DEFAULT_RGB
-
-    if cloud_platform is None:
-        cloud_platform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM
-
-    assets = []
-    for band in bands:
-        if band == Eo.RGB or band == Eo.RGBIR:
-            yield get_eo_assets(stac_item=stac_item,
-                                bands=DEFAULT_RGB,
-                                cloud_platform=cloud_platform,
-                                asset_types=asset_types)
-            if band == Eo.RGBIR:
-                yield get_assets(stac_item=stac_item,
-                                 band=Eo.NIR,
-                                 cloud_platform=cloud_platform,
-                                 asset_types=asset_types)
-        else:
-            yield get_assets(stac_item=stac_item,
-                             band=band,
-                             cloud_platform=cloud_platform,
-                             asset_types=asset_types)
-
-    return assets
+# def get_eo_assets(stac_item: StacItem,
+#                   cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+#                   bands: List = None,
+#                   asset_types: List = None) -> Iterator[Asset]:
+#     """
+#     get generator of electro optical assets that match the query restrictions. if no restrictions are set,
+#     then the default is any cloud platform, RGB for the bands, and all raster types.
+#     :param stac_item: stac item to search for electro optical assets
+#     :param cloud_platform: cloud platform (if an asset has both GCP and AWS but you prefer AWS, set this)
+#     :param bands: the tuple of any of the bands you'd like to return
+#     :param asset_types: the tuple of any of the asset types you'd like to return
+#     :return: List of Assets
+#     """
+#
+#     if asset_types is None:
+#         asset_types = RASTER_TYPES
+#
+#     if bands is None:
+#         bands = DEFAULT_RGB
+#
+#     if cloud_platform is None:
+#         cloud_platform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM
+#
+#     assets = []
+#     for band in bands:
+#         if band == Eo.RGB or band == Eo.RGBIR:
+#             yield get_eo_assets(stac_item=stac_item,
+#                                 bands=DEFAULT_RGB,
+#                                 cloud_platform=cloud_platform,
+#                                 asset_types=asset_types)
+#             if band == Eo.RGBIR:
+#                 yield get_assets(stac_item=stac_item,
+#                                  band=Eo.NIR,
+#                                  cloud_platform=cloud_platform,
+#                                  asset_types=asset_types)
+#         else:
+#             yield get_assets(stac_item=stac_item,
+#                              band=band,
+#                              cloud_platform=cloud_platform,
+#                              asset_types=asset_types)
+#
+#     return assets
 
 
 def _asset_has_filename(asset: Asset, asset_basename):

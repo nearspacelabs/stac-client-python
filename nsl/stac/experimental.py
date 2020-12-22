@@ -5,15 +5,14 @@ from copy import deepcopy
 import boto3
 import botocore.exceptions
 
-from datetime import date, timezone
-from datetime import datetime as internal_datetime
-from typing import Union, Iterator, List, Tuple
+from datetime import date, datetime, timezone
+from typing import Union, Iterator, List, Optional, Tuple, Dict
 
 from epl.protobuf.v1.geometry_pb2 import ProjectionData
 from google.protobuf.any_pb2 import Any
 from google.protobuf.wrappers_pb2 import FloatValue
 from epl.geometry import BaseGeometry, Polygon
-from typing.io import BinaryIO
+from typing.io import BinaryIO, IO
 
 from nsl.stac import StacItem, StacRequest, View, ViewRequest, \
     Mosaic, MosaicRequest, Eo, EoRequest, EnvelopeData, FloatFilter, Asset, enum, utils
@@ -43,7 +42,7 @@ def _set_properties(stac_data, properties, type_url_prefix):
     return stac_data, properties
 
 
-def _check_assets_exist(stac_item: StacItem, b_raise=True):
+def _check_assets_exist(stac_item: StacItem, b_raise=True) -> List[str]:
     results = []
     for asset_key in stac_item.assets:
         asset = stac_item.assets[asset_key]
@@ -110,7 +109,7 @@ class AssetWrap(object):
         self._ext = pathlib.Path(self._asset.object_path).suffix
 
         b_thumbnail_png = self._asset.asset_type == enum.AssetType.THUMBNAIL and self._ext == '.png'
-        _, href_type = self.asset_type_details(asset_type=self._asset.asset_type, b_thumbnail_png=b_thumbnail_png)
+        _, href_type = self._asset_type_details(asset_type=self._asset.asset_type, b_thumbnail_png=b_thumbnail_png)
         self._asset.type = href_type
         self._type = href_type
         self._key_suffix = key_suffix
@@ -137,7 +136,7 @@ class AssetWrap(object):
         for k, v in self.__dict__.items():
             if k == '_asset':
                 value = Asset()
-                v.CopyFrom(value)
+                value.CopyFrom(v)
                 setattr(result, k, value)
             else:
                 setattr(result, k, deepcopy(v))
@@ -149,7 +148,7 @@ class AssetWrap(object):
         return "{0}_{1}_{2}".format(self.asset_type.name, self.eo_bands.name, self.cloud_platform.name)
 
     @property
-    def asset_key(self):
+    def asset_key(self) -> str:
         if self._asset_key:
             return self._asset_key
 
@@ -159,7 +158,7 @@ class AssetWrap(object):
         return asset_key
 
     @property
-    def asset_key_suffix(self):
+    def asset_key_suffix(self) -> str:
         return self._key_suffix
 
     @asset_key_suffix.setter
@@ -223,7 +222,7 @@ the href for downloading data
         return self._asset.href
 
     @href.setter
-    def href(self, value):
+    def href(self, value: str):
         self._asset.href = value
 
     @property
@@ -235,7 +234,7 @@ the object path to use with the bucket if access is available
         return self._asset.object_path
 
     @object_path.setter
-    def object_path(self, value):
+    def object_path(self, value: str):
         self._asset.object_path = value
 
     @property
@@ -253,16 +252,23 @@ does the AssetWrap equal a protobuf Asset
     def exists(self) -> bool:
         return _check_asset_exists(self._asset)
 
-    def download(self, from_bucket: bool = False, file_obj: BinaryIO = None, save_filename: str = '',
-                 save_directory: str = '') -> str:
+    def download(self,
+                 from_bucket: bool = False,
+                 file_obj: IO[Union[Union[str, bytes], Any]] = None,
+                 save_filename: str = '',
+                 save_directory: str = '',
+                 requester_pays: bool = False,
+                 nsl_id: str = None) -> str:
         return utils.download_asset(asset=self._asset,
                                     from_bucket=from_bucket,
                                     file_obj=file_obj,
                                     save_filename=save_filename,
-                                    save_directory=save_directory)
+                                    save_directory=save_directory,
+                                    requester_pays=requester_pays,
+                                    nsl_id=nsl_id)
 
     @staticmethod
-    def asset_type_details(asset_type: enum.AssetType, b_thumbnail_png: bool = True) -> (str, str):
+    def _asset_type_details(asset_type: enum.AssetType, b_thumbnail_png: bool = True) -> (str, str):
         """
 for asset type and bool, get the extension and href type
         :param asset_type:
@@ -383,6 +389,8 @@ Wrapper for StacItem protobuf
                 self._assets[asset_key] = AssetWrap(stac_data.assets[asset_key], asset_key=asset_key)
 
         super().__init__(stac_data, properties_constructor)
+        if self.created is None:
+            self.created = datetime.now(tz=timezone.utc)
 
     def __copy__(self):
         pass
@@ -394,19 +402,11 @@ Wrapper for StacItem protobuf
         for k, v in self.__dict__.items():
             if k == '_stac_data':
                 value = StacItem()
-                v.CopyFrom(value)
+                value.CopyFrom(v)
                 setattr(result, k, value)
             else:
                 setattr(result, k, deepcopy(v))
         return result
-
-    @property
-    def bounds(self) -> Tuple[float]:
-        """
-Returns a (minx, miny, maxx, maxy)
-        :return: tuple (float values)
-        """
-        return self.geometry.bounds
 
     @property
     def bbox(self) -> EnvelopeData:
@@ -417,7 +417,7 @@ bounding box of data. In form of EnvelopeData
         return self.stac_item.bbox
 
     @property
-    def cloud_cover(self) -> Union[float, None]:
+    def cloud_cover(self) -> Optional[float]:
         """
 get cloud cover value
         :return: float or None
@@ -446,50 +446,35 @@ the collection id for the stac item
         self.stac_item.collection = value
 
     @property
-    def constellation_enum(self):
+    def constellation(self) -> enum.Constellation:
         """
 the enum describing the constellation
         :return:
         """
-        return self.stac_item.constellation_enum
+        return enum.Constellation(self.stac_item.constellation_enum)
 
-    @constellation_enum.setter
-    def constellation_enum(self, value: enum.Constellation):
+    @constellation.setter
+    def constellation(self, value: enum.Constellation):
         self.stac_item.constellation_enum = value
+        self.stac_item.constellation = self.constellation.name
 
     @property
-    def created(self) -> Union[internal_datetime, None]:
+    def created(self) -> Optional[datetime]:
         if self.stac_item.HasField("created"):
-            return internal_datetime.fromtimestamp(self.stac_item.created.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.created.seconds, tz=timezone.utc)
         else:
             return None
 
     @created.setter
-    def created(self, value: Union[internal_datetime, date]):
+    def created(self, value: Union[datetime, date]):
         self.stac_item.created.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     @property
-    def datetime(self):
-        return self.observed
-
-    @datetime.setter
-    def datetime(self, value: Union[internal_datetime, date]):
-        self.observed = value
-
-    @property
-    def end_datetime(self):
-        return self.stac_item.end_observed
-
-    @end_datetime.setter
-    def end_datetime(self, value: Union[internal_datetime, date]):
-        self.end_observed = value
-
-    @property
-    def end_observed(self):
+    def end_observed(self) -> Optional[datetime]:
         return self.stac_item.end_observed
 
     @end_observed.setter
-    def end_observed(self, value: Union[internal_datetime, date]):
+    def end_observed(self, value: Union[datetime, date]):
         self.stac_item.end_observation.CopyFrom(utils.pb_timestamp(d_utc=value))
         self.stac_item.end_datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
 
@@ -506,7 +491,7 @@ the enum describing the constellation
         self.stac_item.bbox.CopyFrom(value.envelope_data)
 
     @property
-    def gsd(self):
+    def gsd(self) -> Optional[float]:
         """
         get cloud cover value
         :return: float or None
@@ -520,7 +505,7 @@ the enum describing the constellation
         self.stac_item.gsd.CopyFrom(FloatValue(value=value))
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.stac_item.id
 
     @id.setter
@@ -528,23 +513,25 @@ the enum describing the constellation
         self.stac_item.id = value
 
     @property
-    def instrument_enum(self):
-        return self.stac_item.instrument_enum
+    def instrument(self) -> enum.Instrument:
+        return enum.Instrument(self.stac_item.instrument_enum)
 
-    @instrument_enum.setter
-    def instrument_enum(self, value: enum.Instrument):
+    @instrument.setter
+    def instrument(self, value: enum.Instrument):
         self.stac_item.instrument_enum = value
+        self.stac_item.instrument = self.instrument.name
 
     @property
-    def mission_enum(self):
-        return self.stac_item.mission_enum
+    def mission(self) -> enum.Mission:
+        return enum.Mission(self.stac_item.mission_enum)
 
-    @mission_enum.setter
-    def mission_enum(self, value: enum.Mission):
+    @mission.setter
+    def mission(self, value: enum.Mission):
         self.stac_item.mission_enum = value
+        self.stac_item.mission = self.mission.name
 
     @property
-    def mosaic_name(self):
+    def mosaic_name(self) -> Optional[str]:
         if self.stac_item.HasField("mosaic"):
             return self.stac_item.mosaic.name
         return None
@@ -557,7 +544,7 @@ the enum describing the constellation
             self.stac_item.mosaic.name = name
 
     @property
-    def mosaic_quad_key(self) -> Union[str, None]:
+    def mosaic_quad_key(self) -> Optional[str]:
         """
 If the STAC item is a quad from a mosaic, then it has a quad key that defines the boundaries of the quad. The quad tree
 definition is assumed to be the convention defined by Google Maps, based off of there Pseudo-Web Mercator projection.
@@ -582,21 +569,21 @@ For more details on the quad tree tiling for maps use `openstreetmaps docs
             self.stac_item.mosaic.quad_key = quad_key
 
     @property
-    def observed(self) -> Union[internal_datetime, None]:
+    def observed(self) -> Optional[datetime]:
         if self.stac_item.HasField("datetime"):
-            return internal_datetime.fromtimestamp(self.stac_item.datetime.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.datetime.seconds, tz=timezone.utc)
         elif self.stac_item.HasField("observed"):
-            return internal_datetime.fromtimestamp(self.stac_item.observed.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.observed.seconds, tz=timezone.utc)
         else:
             return None
 
     @observed.setter
-    def observed(self, value: Union[internal_datetime, date]):
+    def observed(self, value: Union[datetime, date]):
         self.stac_item.datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
         self.stac_item.observed.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     @property
-    def off_nadir(self) -> Union[float, None]:
+    def off_nadir(self) -> Optional[float]:
         """
         get cloud cover value
         :return: float or None
@@ -613,15 +600,16 @@ For more details on the quad tree tiling for maps use `openstreetmaps docs
             self.stac_item.view.off_nadir.CopyFrom(FloatValue(value=value))
 
     @property
-    def platform_enum(self):
-        return self.stac_item.platform_enum
+    def platform(self) -> enum.Platform:
+        return enum.Platform(self.stac_item.platform_enum)
 
-    @platform_enum.setter
-    def platform_enum(self, value: enum.Platform):
+    @platform.setter
+    def platform(self, value: enum.Platform):
         self.stac_item.platform_enum = value
+        self.stac_item.platform = self.platform.name
 
     @property
-    def provenance_ids(self):
+    def provenance_ids(self) -> List[str]:
         """
 The stac_ids that went into creating the current mosaic. They are in the array in the order which they were used in
 the mosaic
@@ -643,7 +631,7 @@ then that supersedes this projection definition.
         self.stac_item.proj.CopyFrom(value)
 
     @property
-    def stac_item(self):
+    def stac_item(self) -> StacItem:
         """
         get stac_item
         :return: StacItem
@@ -651,30 +639,30 @@ then that supersedes this projection definition.
         return self._stac_data
 
     @property
-    def updated(self) -> Union[internal_datetime, None]:
+    def updated(self) -> Optional[datetime]:
         if self.stac_item.HasField("updated"):
-            return internal_datetime.fromtimestamp(self.stac_item.updated.seconds, tz=timezone.utc)
+            return datetime.fromtimestamp(self.stac_item.updated.seconds, tz=timezone.utc)
         else:
             return None
 
     @updated.setter
-    def updated(self, value: Union[internal_datetime, date]):
+    def updated(self, value: Union[datetime, date]):
         self.stac_item.updated.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     def download_asset(self,
                        asset_key: str = "",
                        asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
                        cloud_platform: enum.CloudPlatform = enum.CloudPlatform.GCP,
-                       band: enum.Band = enum.Band.UNKNOWN_BAND,
+                       eo_bands: enum.Band = enum.Band.UNKNOWN_BAND,
                        asset_key_regex: str = None,
                        from_bucket: bool = False,
                        file_obj: BinaryIO = None,
                        save_filename: str = "",
-                       save_directory: str = ""):
+                       save_directory: str = "") -> str:
         asset_wrap = self.get_asset(asset_key=asset_key,
                                     asset_type=asset_type,
                                     cloud_platform=cloud_platform,
-                                    eo_bands=band,
+                                    eo_bands=eo_bands,
                                     asset_key_regex=asset_key_regex)
 
         return asset_wrap.download(from_bucket=from_bucket,
@@ -690,28 +678,60 @@ does the StacItemWrap equal a protobuf StacItem
         """
         return self.stac_item.SerializeToString() == other.SerializeToString()
 
+    @staticmethod
+    def _asset_types_match(desired_type: enum.AssetType, asset_type: enum.AssetType,
+                           b_relaxed_types: bool = False) -> bool:
+        if not b_relaxed_types:
+            return desired_type == asset_type
+        elif desired_type == enum.AssetType.TIFF:
+            return asset_type == desired_type or \
+                   asset_type == enum.AssetType.GEOTIFF or \
+                   asset_type == enum.AssetType.CO_GEOTIFF
+        elif desired_type == enum.AssetType.GEOTIFF:
+            return asset_type == desired_type or asset_type == enum.AssetType.CO_GEOTIFF
+        return asset_type == desired_type
+
     def get_assets(self,
                    asset_key: str = None,
                    asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
                    cloud_platform: enum.CloudPlatform = enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
                    eo_bands: enum.Band = enum.Band.UNKNOWN_BAND,
-                   asset_key_regex: str = None) -> List[AssetWrap]:
+                   asset_regex: Dict = None,
+                   b_relaxed_types: bool = False) -> List[AssetWrap]:
         if asset_key is not None and asset_key in self._assets:
             return [self._assets[asset_key]]
-        elif asset_key is not None and asset_key not in self._assets:
+        elif asset_key is not None and asset_key and asset_key not in self._assets:
             raise ValueError("asset_key {} not found".format(asset_key))
 
         results = []
         for asset_key in self._assets:
             current = self._assets[asset_key]
-            if asset_key_regex is not None and not re.match(asset_key_regex, asset_key):
+            b_asset_type_match = self._asset_types_match(desired_type=asset_type,
+                                                         asset_type=current.asset_type,
+                                                         b_relaxed_types=b_relaxed_types)
+            if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and current.eo_bands != eo_bands:
                 continue
-            if eo_bands != enum.Band.UNKNOWN_BAND and current.eo_bands != eo_bands:
+            if (cloud_platform is not None and cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM) and \
+                    current.cloud_platform != cloud_platform:
                 continue
-            if cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM and current.cloud_platform != cloud_platform:
+            if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and not b_asset_type_match:
                 continue
-            if asset_type != enum.AssetType.UNKNOWN_ASSET and current.asset_type != asset_type:
-                continue
+            if asset_regex is not None and len(asset_regex) > 0:
+                b_continue = False
+                for key, regex_value in asset_regex.items():
+                    if key == 'asset_key':
+                        if not re.match(regex_value, asset_key):
+                            b_continue = True
+                            break
+                    else:
+                        if not hasattr(current, key):
+                            raise AttributeError("no key {0} in asset {1}".format(key, current))
+                        elif not re.match(regex_value, getattr(current, key)):
+                            b_continue = True
+                            break
+
+                if b_continue:
+                    continue
 
             # check that asset hasn't changed between protobuf and asset_map
             pb_asset = self.stac_item.assets[asset_key]
@@ -725,9 +745,10 @@ does the StacItemWrap equal a protobuf StacItem
                   asset_key: str = None,
                   asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
                   cloud_platform: enum.CloudPlatform = enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-                  eo_bands: enum.Band = enum.Band.UNKNOWN_BAND,
-                  asset_key_regex: str = None) -> Union[AssetWrap, None]:
-        results = self.get_assets(asset_key, asset_type, cloud_platform, eo_bands, asset_key_regex)
+                  eo_bands: Eo.Band = Eo.UNKNOWN_BAND,
+                  asset_regex: Dict = None,
+                  b_relaxed_types: bool = False) -> Optional[AssetWrap]:
+        results = self.get_assets(asset_key, asset_type, cloud_platform, eo_bands, asset_regex, b_relaxed_types)
         if len(results) > 1:
             raise ValueError("must be more specific in selecting your asset. if all enums are used, try using "
                              "asset_key_regex")
@@ -735,7 +756,7 @@ does the StacItemWrap equal a protobuf StacItem
             return results[0]
         return None
 
-    def check_assets_exist(self, b_raise):
+    def check_assets_exist(self, b_raise) -> List[str]:
         return _check_assets_exist(self.stac_item, b_raise=b_raise)
 
 
@@ -770,15 +791,31 @@ class StacRequestWrap(_BaseWrap):
         self.stac_request.collection = value
 
     @property
-    def constellation_enum(self):
-        return self.stac_request.constellation_enum
+    def constellation(self) -> enum.Constellation:
+        return enum.Constellation(self.stac_request.constellation_enum)
 
-    @constellation_enum.setter
-    def constellation_enum(self, value: enum.Constellation):
+    @constellation.setter
+    def constellation(self, value: enum.Constellation):
         self.stac_request.constellation_enum = value
 
     @property
-    def intersects(self):
+    def id(self) -> str:
+        return self.stac_request.id
+
+    @id.setter
+    def id(self, value: str):
+        self.stac_request.id = value
+
+    @property
+    def instrument(self) -> enum.Instrument:
+        return enum.Instrument(self.stac_request.instrument_enum)
+
+    @instrument.setter
+    def instrument(self, value: enum.Instrument):
+        self.stac_request.instrument_enum = value
+
+    @property
+    def intersects(self) -> Optional[BaseGeometry]:
         if self.stac_request.HasField("intersects"):
             return BaseGeometry.import_protobuf(self.stac_request.intersects)
         elif self.stac_request.HasField("bbox"):
@@ -791,23 +828,7 @@ class StacRequestWrap(_BaseWrap):
         self.stac_request.ClearField("bbox")
 
     @property
-    def id(self):
-        return self.stac_request.id
-
-    @id.setter
-    def id(self, value):
-        self.stac_request.id = value
-
-    @property
-    def instrument_enum(self):
-        return self.stac_request.instrument_enum
-
-    @instrument_enum.setter
-    def instrument_enum(self, value: enum.Instrument):
-        self.stac_request.instrument_enum = value
-
-    @property
-    def limit(self):
+    def limit(self) -> int:
         return self.stac_request.limit
 
     @limit.setter
@@ -815,44 +836,28 @@ class StacRequestWrap(_BaseWrap):
         self.stac_request.limit = value
 
     @property
-    def mission_enum(self):
-        return self.stac_request.mission_enum
+    def mission(self) -> enum.Mission:
+        return enum.Mission(self.stac_request.mission_enum)
 
-    @mission_enum.setter
-    def mission_enum(self, value: enum.Mission):
+    @mission.setter
+    def mission(self, value: enum.Mission):
         self.stac_request.mission_enum = value
 
     @property
-    def mosaic_name(self):
+    def mosaic_name(self) -> Optional[str]:
         if self.stac_request.HasField("mosaic"):
             return self.stac_request.mosaic.name
         return None
 
     @mosaic_name.setter
-    def mosaic_name(self, value):
+    def mosaic_name(self, value: str):
         if not self.stac_request.HasField("mosaic"):
             self.stac_request.mosaic.CopyFrom(MosaicRequest(name=value))
         else:
             self.stac_request.mosaic.name = value
 
     @property
-    def offset(self):
-        return self.stac_request.offset
-
-    @offset.setter
-    def offset(self, value: int):
-        self.stac_request.offset = value
-
-    @property
-    def platform_enum(self):
-        return self.stac_request.platform_enum
-
-    @platform_enum.setter
-    def platform_enum(self, value: enum.Platform):
-        self.stac_request.platform_enum = value
-
-    @property
-    def mosaic_quad_key(self):
+    def mosaic_quad_key(self) -> Optional[str]:
         """
 Overview of :func:`~StacItemWrap.mosaic_quad_key`
 
@@ -869,14 +874,30 @@ other quad STAC items that are contained by '02313012030' are returned.
         return None
 
     @mosaic_quad_key.setter
-    def mosaic_quad_key(self, value):
+    def mosaic_quad_key(self, value: str):
         if not self.stac_request.HasField("mosaic"):
             self.stac_request.mosaic.CopyFrom(MosaicRequest(quad_key=value))
         else:
             self.stac_request.mosaic.quad_key = value
 
     @property
-    def stac_request(self):
+    def offset(self) -> int:
+        return self.stac_request.offset
+
+    @offset.setter
+    def offset(self, value: int):
+        self.stac_request.offset = value
+
+    @property
+    def platform(self) -> enum.Platform:
+        return enum.Platform(self.stac_request.platform_enum)
+
+    @platform.setter
+    def platform(self, value: enum.Platform):
+        self.stac_request.platform_enum = value
+
+    @property
+    def stac_request(self) -> StacRequest:
         return self._stac_data
 
     def set_bounds(self, bounds: Tuple[float, float, float, float], epsg: int = 0, proj4: str = ""):
@@ -958,9 +979,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_observed(self,
                      rel_type: enum.FilterRelationship,
-                     value: Union[internal_datetime, date] = None,
-                     start: Union[internal_datetime, date] = None,
-                     end: Union[internal_datetime, date] = None,
+                     value: Union[datetime, date] = None,
+                     start: Union[datetime, date] = None,
+                     end: Union[datetime, date] = None,
                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                      tzinfo: timezone = timezone.utc):
         self._stac_data.observed.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -972,9 +993,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_created(self,
                     rel_type: enum.FilterRelationship,
-                    value: Union[internal_datetime, date] = None,
-                    start: Union[internal_datetime, date] = None,
-                    end: Union[internal_datetime, date] = None,
+                    value: Union[datetime, date] = None,
+                    start: Union[datetime, date] = None,
+                    end: Union[datetime, date] = None,
                     sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                     tzinfo: timezone = timezone.utc):
         self._stac_data.created.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -986,9 +1007,9 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_updated(self,
                     rel_type: enum.FilterRelationship,
-                    value: Union[internal_datetime, date] = None,
-                    start: Union[internal_datetime, date] = None,
-                    end: Union[internal_datetime, date] = None,
+                    value: Union[datetime, date] = None,
+                    start: Union[datetime, date] = None,
+                    end: Union[datetime, date] = None,
                     sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
                     tzinfo: timezone = timezone.utc):
         self._stac_data.updated.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
@@ -1039,18 +1060,33 @@ class NSLClientEx(NSLClient):
         super().update_service_url(stac_service_url)
         self._internal_stac_service.update_service_url(stac_service_url=stac_service_url)
 
-    def search_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> Iterator[StacItemWrap]:
-        for stac_item in self.search(stac_request_wrapped.stac_request, timeout=timeout):
+    def search_ex(self,
+                  stac_request_wrapped: StacRequestWrap,
+                  timeout=15,
+                  nsl_id: str = None,
+                  profile_name: str = None) -> Iterator[StacItemWrap]:
+        for stac_item in self.search(stac_request_wrapped.stac_request,
+                                     timeout=timeout, nsl_id=nsl_id, profile_name=profile_name):
             if not stac_item.id:
                 yield None
             else:
                 yield StacItemWrap(stac_item=stac_item)
 
-    def search_one_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> Union[StacItemWrap, None]:
-        stac_item = self.search_one(stac_request=stac_request_wrapped.stac_request, timeout=timeout)
+    def search_one_ex(self,
+                      stac_request_wrapped: StacRequestWrap,
+                      timeout=15,
+                      nsl_id: str = None,
+                      profile_name: str = None) -> Optional[StacItemWrap]:
+        stac_item = self.search_one(stac_request=stac_request_wrapped.stac_request,
+                                    timeout=timeout, nsl_id=nsl_id, profile_name=profile_name)
         if not stac_item.id:
             return None
         return StacItemWrap(stac_item=stac_item)
 
-    def count_ex(self, stac_request_wrapped: StacRequestWrap, timeout=15) -> int:
-        return self.count(stac_request=stac_request_wrapped.stac_request, timeout=timeout)
+    def count_ex(self,
+                 stac_request_wrapped: StacRequestWrap,
+                 timeout=15,
+                 nsl_id: str = None,
+                 profile_name: str = None) -> int:
+        return self.count(stac_request=stac_request_wrapped.stac_request,
+                          timeout=timeout, nsl_id=nsl_id, profile_name=profile_name)

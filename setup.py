@@ -34,9 +34,9 @@ kwargs = {
     'author': 'David Raleigh',
     'author_email': 'david@nearspacelabs.com',
     'license': 'Apache 2.0',
-    'version': '1.1.0',
+    'version': '1.1.1',
     'python_requires': '>3.6.0',
-    'packages': [package_name],
+    'packages': ['nsl.stac'],
     'install_requires': [
         'grpcio-tools',
         'protobuf',
