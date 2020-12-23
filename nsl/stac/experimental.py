@@ -148,6 +148,10 @@ class AssetWrap(object):
         return "{0}_{1}_{2}".format(self.asset_type.name, self.eo_bands.name, self.cloud_platform.name)
 
     @property
+    def asset(self) -> Asset:
+        return self._asset
+
+    @property
     def asset_key(self) -> str:
         if self._asset_key:
             return self._asset_key
@@ -488,8 +492,40 @@ geojson feature with geometry being only aspect defined
             'type': 'Feature',
             'geometry': self.geometry.__geo_interface__,
             'id': self.id,
-            'collection': self.collection
+            'collection': self.collection,
+            'properties': self._feature_properties(),
+            'assets': self._feature_assets()
         }
+
+    @staticmethod
+    def _append_prop(props: Dict, prop_name: str, prop_value):
+        if prop_value is None:
+            return props
+        if props is None:
+            props = {}
+        props[prop_name] = prop_value
+        return props
+
+    def _feature_properties(self) -> Dict:
+        props = {}
+        props = StacItemWrap._append_prop(props, 'datetime', self.observed.replace(microsecond=0).isoformat())
+        props = StacItemWrap._append_prop(props, 'observed', self.observed.replace(microsecond=0).isoformat())
+        props = StacItemWrap._append_prop(props, 'mission', self.mission.name)
+        props = StacItemWrap._append_prop(props, 'platform', self.platform.name)
+        props = StacItemWrap._append_prop(props, 'instrument', self.instrument.name)
+        props = StacItemWrap._append_prop(props, 'gsd', self.gsd)
+        props = StacItemWrap._append_prop(props, 'eo:cloud_cover', self.cloud_cover)
+        props = StacItemWrap._append_prop(props, 'view:off_nadir', self.off_nadir)
+        return props
+
+    def _feature_assets(self) -> Dict:
+        feature_assets = {}
+        for asset_wrap in self.get_assets():
+            feature_assets[asset_wrap.asset_key] = {
+                'href': asset_wrap.href,
+                'type': asset_wrap.type,
+            }
+        return feature_assets
 
     @property
     def geometry(self) -> BaseGeometry:
@@ -1077,27 +1113,61 @@ class NSLClientEx(NSLClient):
                   stac_request_wrapped: StacRequestWrap,
                   timeout=15,
                   nsl_id: str = None,
-                  profile_name: str = None) -> Iterator[StacItemWrap]:
-        for stac_item in self.search(stac_request_wrapped.stac_request,
-                                     timeout=timeout, nsl_id=nsl_id, profile_name=profile_name):
-            if not stac_item.id:
-                yield None
-            else:
-                yield StacItemWrap(stac_item=stac_item)
+                  profile_name: str = None,
+                  increment_search: Optional[int] = None) -> Iterator[StacItemWrap]:
+        if increment_search is not None and increment_search > 0 and stac_request_wrapped.offset > 0:
+            raise ValueError("can't use offset and increment_search. offset should be paired with limit, "
+                             "and increment_search should be set to None")
+
+        if increment_search is not None and increment_search > stac_request_wrapped.limit:
+            raise ValueError("if using increment search, do not use a value larger than the limit.")
+
+        if increment_search is None or increment_search <= 0:
+            for stac_item in list(self.search(stac_request_wrapped.stac_request,
+                                              timeout=timeout,
+                                              nsl_id=nsl_id,
+                                              profile_name=profile_name)):
+                if not stac_item.id:
+                    return
+                else:
+                    yield StacItemWrap(stac_item=stac_item)
+        else:
+            expected_total = stac_request_wrapped.limit
+            total = 0
+            stac_request_wrapped.limit = increment_search
+            stac_request_wrapped.offset = 0
+            items = list(self.search(stac_request_wrapped.stac_request,
+                                     timeout=timeout,
+                                     nsl_id=nsl_id,
+                                     profile_name=profile_name))
+            while len(items) > 0:
+                for stac_item in items:
+                    total += 1
+                    yield StacItemWrap(stac_item=stac_item)
+                    if total >= expected_total:
+                        return
+
+                stac_request_wrapped.offset += stac_request_wrapped.limit
+                items = list(self.search(stac_request_wrapped.stac_request,
+                                         timeout=timeout,
+                                         nsl_id=nsl_id,
+                                         profile_name=profile_name))
 
     def feature_collection_ex(self,
                               stac_request_wrapped: StacRequestWrap,
                               timeout=15,
                               nsl_id: str = None,
                               profile_name: str = None,
+                              increment_search: int = None,
                               feature_collection: Dict = None) -> Dict:
         if feature_collection is None:
             feature_collection = {'type': 'FeatureCollection', 'features': []}
 
-        items = list(self.search_ex(stac_request_wrapped,
-                                    timeout=timeout,
-                                    nsl_id=nsl_id,
-                                    profile_name=profile_name))
+        items = self.search_ex(stac_request_wrapped,
+                               timeout=timeout,
+                               nsl_id=nsl_id,
+                               profile_name=profile_name,
+                               increment_search=increment_search)
         for item in items:
             feature_collection['features'].append(item.feature)
 
