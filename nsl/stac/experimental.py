@@ -1120,7 +1120,8 @@ class NSLClientEx(NSLClient):
                              "and increment_search should be set to None")
 
         if increment_search is not None and increment_search > stac_request_wrapped.limit:
-            raise ValueError("if using increment search, do not use a value larger than the limit.")
+            # TODO put a warning here?
+            increment_search = None
 
         if increment_search is None or increment_search <= 0:
             for stac_item in list(self.search(stac_request_wrapped.stac_request,
