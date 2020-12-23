@@ -479,6 +479,19 @@ the enum describing the constellation
         self.stac_item.end_datetime.CopyFrom(utils.pb_timestamp(d_utc=value))
 
     @property
+    def feature(self):
+        """
+geojson feature with geometry being only aspect defined
+        :return:
+        """
+        return {
+            'type': 'Feature',
+            'geometry': self.geometry.__geo_interface__,
+            'id': self.id,
+            'collection': self.collection
+        }
+
+    @property
     def geometry(self) -> BaseGeometry:
         if self.stac_item.HasField("geometry"):
             return BaseGeometry.import_protobuf(self.stac_item.geometry)
@@ -1071,6 +1084,24 @@ class NSLClientEx(NSLClient):
                 yield None
             else:
                 yield StacItemWrap(stac_item=stac_item)
+
+    def feature_collection_ex(self,
+                              stac_request_wrapped: StacRequestWrap,
+                              timeout=15,
+                              nsl_id: str = None,
+                              profile_name: str = None,
+                              feature_collection: Dict = None) -> Dict:
+        if feature_collection is None:
+            feature_collection = {'type': 'FeatureCollection', 'features': []}
+
+        items = list(self.search_ex(stac_request_wrapped,
+                                    timeout=timeout,
+                                    nsl_id=nsl_id,
+                                    profile_name=profile_name))
+        for item in items:
+            feature_collection['features'].append(item.feature)
+
+        return feature_collection
 
     def search_one_ex(self,
                       stac_request_wrapped: StacRequestWrap,

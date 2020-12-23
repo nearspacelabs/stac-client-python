@@ -21,6 +21,7 @@ import io
 import os
 import pickle
 
+from epl import geometry as epl_geometry
 from epl.geometry import Polygon
 from epl.protobuf.v1.geometry_pb2 import EnvelopeData
 from google.protobuf import timestamp_pb2
@@ -858,3 +859,31 @@ class TestWrap(unittest.TestCase):
         self.assertEqual(asset_wrap.cloud_platform.value, item.stac_item.assets[asset_key].cloud_platform)
         self.assertEqual(asset_wrap.cloud_platform, enum.CloudPlatform.GCP)
         self.assertEqual(enum.CloudPlatform.GCP.value, item.stac_item.assets[asset_key].cloud_platform)
+
+    def test_feature_collection(self):
+        r = StacRequestWrap()
+        r.mission = enum.Mission.NAIP
+        r.limit = 3
+        travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 " \
+                     "30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, " \
+                     "-97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, " \
+                     "-98.0503 30.6251, -97.9736 30.6251)) "
+        r.intersects = Polygon.import_wkt(wkt=travis_wkt, epsg=4326)
+        feature_collection = client_ex.feature_collection_ex(r)
+        items = list(client_ex.search_ex(r))
+        r.offset = 3
+        feature_collection = client_ex.feature_collection_ex(r, feature_collection=feature_collection)
+        self.assertEqual(len(feature_collection['features']), 6)
+        items.extend(list(client_ex.search_ex(r)))
+        r.limit = 6
+        r.offset = 0
+
+        id_list = [item.id for item in items]
+        features = feature_collection['features']
+        for feature in features:
+            self.assertTrue(feature['id'] in id_list)
+        self.assertEquals(6, len(items))
+        union1 = Polygon.s_cascaded_union([item.geometry for item in items])
+        union2 = Polygon.s_cascaded_union([epl_geometry.shape(feature['geometry'], epsg=4326) for feature in features])
+        diff = union1.s_difference(union2)
+        self.assertTrue(union1.s_equals(union2), diff)
