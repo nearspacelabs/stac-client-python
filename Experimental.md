@@ -1,5 +1,5 @@
 # Experimental Features
-Here are some examples of experimental features we're planning to add to our API to replace some methods that seem a bit more cumbersome.
+Here are some examples of experimental features we're planning to add to our API. These wrappers abstract away some parts of the protobuf structs, and provide easier access to geometries and `datetime`.
 
 ## First Code Example
 This is an alternative to the original version [here](./README.md#first-code-example). This simplifies the setting of the `observed` field and hides the use of more verbose protobuf classes for both time filter (`observed`) and spatial filter (`intersects`).
@@ -88,7 +88,8 @@ print(asset_wrap)
     bucket_region: "us-central1"
     bucket: "swiftera-processed-data"
     object_path: "20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183518Z_746_POM1_ST2_P.png"
-    extension: png
+    extension: .png
+    asset_key: THUMBNAIL_RGB
 ```
 
 
@@ -272,7 +273,7 @@ epsg_4326_ids = []
 for stac_item in client_ex.search_ex(request):
     print("STAC item id: {}".format(stac_item.id))
     print("bounds:")
-    print(stac_item.bounds)
+    print(stac_item.geometry.bounds)
     print("bbox (EnvelopeData protobuf):")
     print(stac_item.bbox)
     print("geometry:")
@@ -373,7 +374,7 @@ request.limit = 3
 for stac_item in client_ex.search_ex(request):
     print("STAC item id: {}".format(stac_item.id))
     print("bounds:")
-    print(stac_item.bounds)
+    print(stac_item.geometry.bounds)
     print("bbox (EnvelopeData protobuf):")
     print(stac_item.bbox)
     print("geometry:")
@@ -475,10 +476,8 @@ client_ex = NSLClientEx()
 request = StacRequestWrap()
 
 # retrieve a coarse geojson foot print of Travis County, Texas
-url = "http://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json"
-r = requests.get(url)
-travis_features = r.json()
-travis_shape = epl_shape(travis_features['features'][0]['geometry'], epsg=4326)
+r = requests.get("http://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json")
+travis_shape = epl_shape(r.json()['features'][0]['geometry'], epsg=4326)
 
 # search for any data that intersects the travis county geometry
 request.intersects = travis_shape
@@ -615,14 +614,18 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item date, 2020-11-16 22:52:50+00:00, is after 2019-08-21 00:00:00: True
-    STAC item date, 2020-11-16 22:52:45+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2020-12-08 17:48:48+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2020-12-08 17:48:46+00:00, is after 2019-08-21 00:00:00: True
 ```
 
 
 </details>
 
 
+
+#### Everything Between Two Dates
+
+Now we're going to do a range request and select data between two dates using the `start` and `end` parameters instead of the `value` parameter:
 
 
 
@@ -635,6 +638,7 @@ for stac_item in client_ex.search_ex(request):
 from datetime import datetime, timezone, timedelta
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, enum, StacRequest
+
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
@@ -645,7 +649,6 @@ request.limit = 2
 
 # get a client interface to the gRPC channel
 client_ex = NSLClientEx()
-request_start = datetime.combine(start, datetime.min.time())
 
 for stac_item in client_ex.search_ex(request):
     print("STAC item date, {0}, is between {1} and {2}".format(
@@ -672,6 +675,12 @@ for stac_item in client_ex.search_ex(request):
 </details>
 
 
+
+In the above print out we are returned STAC items that are between the dates of Aug 1 2019 and Aug 10 2019. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
+
+#### Select Data for One Day
+
+Now we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
 
 
 
@@ -721,6 +730,8 @@ for stac_item in client.search_ex(request):
 
 
 
+## Downloading from AssetWrap
+
 
 
 
@@ -747,20 +758,33 @@ client_ex = NSLClientEx()
 
 for stac_item in client_ex.search_ex(request):
     # get the thumbnail asset from the assets map
-    asset_wrap = stac_item.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
+    asset_wrap = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL)
     print(asset_wrap)
     print()
-    # uncommend to display
-    # (side-note delete=False in NamedTemporaryFile is only required for windows.)
-    #     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as file_obj:
-    #         utils.download_asset(asset=asset, file_obj=file_obj)
-    #         display(Image(filename=file_obj.name))
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
 ```
 
 
 </details>
 
+text
+    # (side-note delete=False in NamedTemporaryFile is only required for windows.)
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as file_obj:
+        asset_wrap.download(file_obj=file_obj)
+        print("downloaded file {}".format(file_obj.name))
+        print()
+        # uncomment to display            
+        # display(Image(filename=file_obj.name))
+```
 
+
+</details>
+
+```
 
 
 <details><summary>Expand Python Print-out</summary>
@@ -776,7 +800,10 @@ for stac_item in client_ex.search_ex(request):
     bucket_region: "us-central1"
     bucket: "swiftera-processed-data"
     object_path: "20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183418Z_716_POM1_ST2_P.png"
-    extension: png
+    extension: .png
+    asset_key: THUMBNAIL_RGB
+    
+    downloaded file /tmp/tmp4m20rvwk.png
     
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
     type: "image/png"
@@ -787,7 +814,10 @@ for stac_item in client_ex.search_ex(request):
     bucket_region: "us-central1"
     bucket: "swiftera-processed-data"
     object_path: "20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
-    extension: png
+    extension: .png
+    asset_key: THUMBNAIL_RGB
+    
+    downloaded file /tmp/tmp4qv0260d.png
     
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
     type: "image/png"
@@ -798,7 +828,10 @@ for stac_item in client_ex.search_ex(request):
     bucket_region: "us-central1"
     bucket: "swiftera-processed-data"
     object_path: "20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
-    extension: png
+    extension: .png
+    asset_key: THUMBNAIL_RGB
+    
+    downloaded file /tmp/tmpc1vbqqcs.png
     
 ```
 
@@ -806,6 +839,11 @@ for stac_item in client_ex.search_ex(request):
 </details>
 
 
+
+## View
+For our ground sampling distance query we're using another query filter; this time it's the [FloatFilter](https://geo-grpc.github.io/api/#epl.protobuf.v1.FloatFilter). It behaves just as the TimestampFilter, but with floats for `value` or for `start` + `end`.
+
+In order to make our off nadir query we need to insert it inside of an [ViewRequest](https://geo-grpc.github.io/api/#epl.protobuf.v1.ViewRequest) container and set that to the `view` field of the `StacRequest`.
 
 
 
@@ -824,27 +862,34 @@ request = StacRequestWrap()
 
 # create our off_nadir query to only return data captured with an angle of less than or 
 # equal to 10 degrees
-request.set_off_nadir(rel_type=FilterRelationship.LTE, value=10.0)
+request.set_off_nadir(rel_type=FilterRelationship.GTE, value=30.0)
+
+request.set_gsd(rel_type=FilterRelationship.LT, value=1.0)
 
 # define ourselves a point in Texas
 request.intersects = Point.import_wkt("POINT(621920.1090935947 3350833.389847579)", epsg=26914)
 # the above could also be defined using longitude and latitude as follows:
 # request.intersects = Point.import_wkt("POINT(-97.7323317 30.2830764)", epsg=4326)
 
-# create a StacRequest with geometry, eo_request and a limit of 20
-request.limit = 20
+# create a StacRequest with geometry, gsd, and off nadir and a limit of 4
+request.limit = 4
 
 # get a client interface to the gRPC channel
 client_ex = NSLClientEx()
 for stac_item in client_ex.search_ex(request):
-    print("{0} STAC item '{1}' from {2}\nhas a off_nadir {3:.3f}, which should be less than or "
-          "equal to requested off_nadir {4}: confirmed {5}".format(
-        enum.Mission(stac_item.mission_enum).name,
+    print("{0} STAC item '{1}' from {2}\nhas a off_nadir\t{3:.2f}, which should be greater than or "
+          "equal to requested off_nadir\t{4:.3f} (confirmed {5})".format(
+        stac_item.mission.name,
         stac_item.id,
         stac_item.observed,
-        request.stac_request.view.off_nadir.value,
         stac_item.off_nadir,
-        True))
+        request.stac_request.view.off_nadir.value,
+        request.stac_request.view.off_nadir.value < stac_item.off_nadir))
+    print("has a gsd\t{0:.3f}, which should be less than "
+          "the requested\t\t  gsd\t\t{1:.3f} (confirmed {2})".format(
+        stac_item.gsd,              
+        request.stac_request.gsd.value,
+        request.stac_request.gsd.value < stac_item.gsd))
 ```
 
 
@@ -857,36 +902,27 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    SWIFT STAC item '20200703T174443Z_650_POM1_ST2_P' from 2020-07-03 17:44:43+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 1.9802557229995728: confirmed True
-    SWIFT STAC item '20200703T174028Z_513_POM1_ST2_P' from 2020-07-03 17:40:28+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 9.309691429138184: confirmed True
-    SWIFT STAC item '20200703T174021Z_509_POM1_ST2_P' from 2020-07-03 17:40:21+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 8.052145004272461: confirmed True
-    SWIFT STAC item '20190822T183518Z_746_POM1_ST2_P' from 2019-08-22 18:35:18+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 9.42326831817627: confirmed True
-    SWIFT STAC item '20190822T183510Z_742_POM1_ST2_P' from 2019-08-22 18:35:10+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 9.349417686462402: confirmed True
-    SWIFT STAC item '20190821T180042Z_568_POM1_ST2_P' from 2019-08-21 18:00:42+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 9.684642791748047: confirmed True
-    SWIFT STAC item '20190821T180028Z_561_POM1_ST2_P' from 2019-08-21 18:00:28+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 8.97806167602539: confirmed True
-    SWIFT STAC item '20190821T180002Z_548_POM1_ST2_P' from 2019-08-21 18:00:02+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 9.28233528137207: confirmed True
-    SWIFT STAC item '20190821T175954Z_544_POM1_ST2_P' from 2019-08-21 17:59:54+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 8.855295181274414: confirmed True
-    SWIFT STAC item '20190821T175943Z_539_POM1_ST2_P' from 2019-08-21 17:59:43+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 8.956001281738281: confirmed True
-    SWIFT STAC item '20190818T174304Z_205_POM1_ST2_P' from 2019-08-18 17:43:04+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 7.014802932739258: confirmed True
-    SWIFT STAC item '20190818T174227Z_181_POM1_ST2_P' from 2019-08-18 17:42:27+00:00
-    has a off_nadir 10.000, which should be less than or equal to requested off_nadir 8.237471580505371: confirmed True
+    SWIFT STAC item '20190806T202221Z_9007_POM1_ST2_P' from 2019-08-06 20:22:21+00:00
 ```
 
 
 </details>
 
+    has a off_nadir	34.28, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
+    SWIFT STAC item '20190806T202219Z_9006_POM1_ST2_P' from 2019-08-06 20:22:19+00:00
+    has a off_nadir	34.51, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
+    SWIFT STAC item '20190806T202153Z_8993_POM1_ST2_P' from 2019-08-06 20:21:53+00:00
+    has a off_nadir	32.85, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
+    SWIFT STAC item '20190806T202151Z_8992_POM1_ST2_P' from 2019-08-06 20:21:51+00:00
+    has a off_nadir	33.23, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
 
+
+## Shapely Geometry
+In order to extract a shapely geometry from the STAC item geometry use the `shapely_dump` method.
 
 
 
@@ -910,15 +946,15 @@ request.limit = 10
 
 client_ex = NSLClientEx()
 
-union = None
+unioned = None
 for stac_item in client_ex.search_ex(request):
-    if union is None:
-        union = stac_item.geometry.shapely_dump
+    if unioned is None:
+        unioned = stac_item.geometry.shapely_dump
     else:
         # execute shapely union
-        union = union.union(stac_item.geometry.shapely_dump)
+        unioned = unioned.union(stac_item.geometry.shapely_dump)
 
-print(union)
+print(unioned)
 ```
 
 
@@ -932,6 +968,225 @@ print(union)
 
 ```text
     POLYGON ((-97.73904613302376 30.28558379365554, -97.7391983503974 30.2875173500651, -97.72321588821087 30.28827923391159, -97.72318191531373 30.28782344215122, -97.71713732528039 30.28831646331542, -97.71693109816546 30.28666272574028, -97.70874633971988 30.28734610398103, -97.70818071127752 30.28287053252838, -97.70808905472636 30.28287930690277, -97.70677365314802 30.27386748307901, -97.7170478085542 30.27277749017812, -97.71706056512183 30.27243547076341, -97.71909405701686 30.27256040213442, -97.7213917618061 30.27231663689927, -97.7211668184693 30.27047840774788, -97.73716286590115 30.26897383853585, -97.73753540641121 30.27221456038255, -97.74030883925472 30.27238987412984, -97.7401564450095 30.27643992828877, -97.74061099516257 30.27646759248412, -97.74006387853352 30.28564189160005, -97.73904613302376 30.28558379365554))
+```
+
+
+</details>
+
+
+
+## Enum Classes
+There are a number of different enum classes used for both STAC requests and STAC items.
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+from nsl.stac import enum
+import inspect
+[m for m in inspect.getmembers(enum) if not m[0].startswith('_') and m[0][0].isupper() and m[0] != 'IntFlag']
+```
+
+
+</details>
+
+
+
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    [('AssetType', <enum 'AssetType'>),
+     ('Band', <enum 'Band'>),
+     ('CloudPlatform', <enum 'CloudPlatform'>),
+     ('Constellation', <enum 'Constellation'>),
+     ('FilterRelationship', <enum 'FilterRelationship'>),
+     ('Instrument', <enum 'Instrument'>),
+     ('Mission', <enum 'Mission'>),
+     ('Platform', <enum 'Platform'>),
+     ('SortDirection', <enum 'SortDirection'>)]
+```
+
+
+</details>
+
+
+
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+# Specific to Queries
+print("for defining the sort direction of a query")
+for s in enum.SortDirection:
+    print(s.name)
+print("for defining the query relationship with a value (EQ, LTE, GTE, LT, GT, NEQ), a start-end range \n(BETWEEN, NOT_BETWEEN), a set (IN, NOT_IN) or a string (LIKE, NOT_LIKE). To be noted, EQ is the default relationship type")
+for f in enum.FilterRelationship:
+    print(f.name)
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    for defining the sort direction of a query
+    NOT_SORTED
+    DESC
+    ASC
+    for defining the query relationship with a value (EQ, LTE, GTE, LT, GT, NEQ), a start-end range 
+    (BETWEEN, NOT_BETWEEN), a set (IN, NOT_IN) or a string (LIKE, NOT_LIKE). To be noted, EQ is the default relationship type
+    EQ
+    LTE
+    GTE
+    LT
+    GT
+    BETWEEN
+    NOT_BETWEEN
+    NEQ
+    IN
+    NOT_IN
+    LIKE
+    NOT_LIKE
+```
+
+
+</details>
+
+
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+# Specific to Assets
+print("these can be useful when getting a specific Asset from a STAC item by the type of Asset")
+for a in enum.AssetType:
+    print(a.name)
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    these can be useful when getting a specific Asset from a STAC item by the type of Asset
+    UNKNOWN_ASSET
+    JPEG
+    GEOTIFF
+    LERC
+    MRF
+    MRF_IDX
+    MRF_XML
+    CO_GEOTIFF
+    RAW
+    THUMBNAIL
+    TIFF
+    JPEG_2000
+    XML
+    TXT
+    PNG
+    OVERVIEW
+    JSON
+    HTML
+    WEBP
+```
+
+
+</details>
+
+
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+# STAC Item details
+print("Mission, Platform and Instrument are aspects of data that can be used in queries.\nBut as NSL currently only has one platform and one instrument, these may not be useful")
+print("missions:")
+for a in enum.Mission:
+    print(a.name)
+print("\nplatforms:")
+for a in enum.Platform:
+    print(a.name)
+print("\ninstruments:")
+for a in enum.Instrument:
+    print(a.name)
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    Mission, Platform and Instrument are aspects of data that can be used in queries.
+    But as NSL currently only has one platform and one instrument, these may not be useful
+    missions:
+    UNKNOWN_MISSION
+    LANDSAT
+    NAIP
+    SWIFT
+    PNOA
+    
+    platforms:
+    UNKNOWN_PLATFORM
+    LANDSAT_1
+    LANDSAT_2
+    LANDSAT_3
+    LANDSAT_123
+    LANDSAT_4
+    LANDSAT_5
+    LANDSAT_45
+    LANDSAT_7
+    LANDSAT_8
+    SWIFT_2
+    
+    instruments:
+    UNKNOWN_INSTRUMENT
+    OLI
+    TIRS
+    OLI_TIRS
+    POM_1
+    TM
+    ETM
+    MSS
+    POM_2
 ```
 
 

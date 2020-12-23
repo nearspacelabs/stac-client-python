@@ -541,7 +541,7 @@ for stac_item in client.search(stac_request):
 ### Temporal Queries
 When it comes to Temporal queries there are a few things to note. One is that we are using Google's [Timestamp proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/timestamp.proto) to define the temporal aspect of STAC items. This means time is stored with an `int64` for seconds and an `int32` for nanoseconds relative to an epoch at UTC midnight on January 1, 1970.
 
-So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.StacItem), you'll notice that `datetime`, `observed`, `created`, and `processed` all use the Timestamp Protobuf object.
+So when you read the time fields on a [StacItem](https://geo-grpc.github.io/api/#epl.protobuf.v1.StacItem), you'll notice that `datetime`, `observed`, `created`, and `processed` all use the Timestamp Protobuf object.
 
 When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using a [TimestampFilter](https://geo-grpc.github.io/api/#epl.protobuf.v1.TimestampFilter), where we define the value using the `value` field or the `start`&`end` fields. And then we define a relationship type using the `rel_type` field and the [FilterRelationship](https://geo-grpc.github.io/api/#epl.protobuf.v1.FilterRelationship) enum values of `EQ`, `LTE`, `GTE`, `LT`, `GT`, `BETWEEN`, `NOT_BETWEEN`, or `NEQ`.
 
@@ -583,8 +583,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2020-11-25T18:04:00+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2020-11-25T18:03:58+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-12-08T17:48:48+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2020-12-08T17:48:46+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 

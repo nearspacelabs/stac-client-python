@@ -1,1 +1,3 @@
 ipynb2md.py
+.ipynb_checkpoints/
+venv/
