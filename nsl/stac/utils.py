@@ -365,50 +365,6 @@ def get_assets(stac_item: StacItem,
     return results
 
 
-# def get_eo_assets(stac_item: StacItem,
-#                   cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-#                   bands: List = None,
-#                   asset_types: List = None) -> Iterator[Asset]:
-#     """
-#     get generator of electro optical assets that match the query restrictions. if no restrictions are set,
-#     then the default is any cloud platform, RGB for the bands, and all raster types.
-#     :param stac_item: stac item to search for electro optical assets
-#     :param cloud_platform: cloud platform (if an asset has both GCP and AWS but you prefer AWS, set this)
-#     :param bands: the tuple of any of the bands you'd like to return
-#     :param asset_types: the tuple of any of the asset types you'd like to return
-#     :return: List of Assets
-#     """
-#
-#     if asset_types is None:
-#         asset_types = RASTER_TYPES
-#
-#     if bands is None:
-#         bands = DEFAULT_RGB
-#
-#     if cloud_platform is None:
-#         cloud_platform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM
-#
-#     assets = []
-#     for band in bands:
-#         if band == Eo.RGB or band == Eo.RGBIR:
-#             yield get_eo_assets(stac_item=stac_item,
-#                                 bands=DEFAULT_RGB,
-#                                 cloud_platform=cloud_platform,
-#                                 asset_types=asset_types)
-#             if band == Eo.RGBIR:
-#                 yield get_assets(stac_item=stac_item,
-#                                  band=Eo.NIR,
-#                                  cloud_platform=cloud_platform,
-#                                  asset_types=asset_types)
-#         else:
-#             yield get_assets(stac_item=stac_item,
-#                              band=band,
-#                              cloud_platform=cloud_platform,
-#                              asset_types=asset_types)
-#
-#     return assets
-
-
 def _asset_has_filename(asset: Asset, asset_basename):
     if os.path.basename(asset.object_path).lower() == os.path.basename(asset_basename).lower():
         return True
