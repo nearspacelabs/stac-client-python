@@ -740,6 +740,7 @@ for stac_item in client.search_ex(request):
 
 
 ```python
+import os
 import tempfile
 from IPython.display import Image, display
 
@@ -750,7 +751,6 @@ from nsl.stac import utils, enum
 request = StacRequestWrap()
 request.intersects = LineString.import_wkt(wkt='LINESTRING(622301.8284206488 3350344.236542711, 622973.3950196661 3350466.792693002)', 
                                            epsg=3744)
-
 request.set_observed(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
 request.limit = 3
 
@@ -775,7 +775,7 @@ text
     # (side-note delete=False in NamedTemporaryFile is only required for windows.)
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as file_obj:
         asset_wrap.download(file_obj=file_obj)
-        print("downloaded file {}".format(file_obj.name))
+        print("downloaded file {}".format(os.path.basename(asset_wrap.object_path)))
         print()
         # uncomment to display            
         # display(Image(filename=file_obj.name))
@@ -803,7 +803,7 @@ text
     extension: .png
     asset_key: THUMBNAIL_RGB
     
-    downloaded file /tmp/tmp4m20rvwk.png
+    downloaded file 20190822T183418Z_716_POM1_ST2_P.png
     
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
     type: "image/png"
@@ -817,7 +817,7 @@ text
     extension: .png
     asset_key: THUMBNAIL_RGB
     
-    downloaded file /tmp/tmp4qv0260d.png
+    downloaded file 20190822T183410Z_712_POM1_ST2_P.png
     
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
     type: "image/png"
@@ -831,7 +831,7 @@ text
     extension: .png
     asset_key: THUMBNAIL_RGB
     
-    downloaded file /tmp/tmpc1vbqqcs.png
+    downloaded file 20190822T183400Z_707_POM1_ST2_P.png
     
 ```
 

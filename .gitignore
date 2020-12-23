@@ -1,3 +1,7 @@
-ipynb2md.py
 .ipynb_checkpoints/
+nsl.stac.egg-info/
+
+ipynb2md.py
+
+dist/
 venv/
