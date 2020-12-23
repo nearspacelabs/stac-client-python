@@ -123,6 +123,7 @@ class Instrument(IntFlag):
     TM = _Instrument.TM
     ETM = _Instrument.ETM
     MSS = _Instrument.MSS
+    POM_2 = _Instrument.POM_2
 
 
 class Platform(IntFlag):

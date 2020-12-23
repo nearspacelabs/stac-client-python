@@ -18,8 +18,9 @@
 import os
 import datetime
 import http.client
+import re
 from urllib.parse import urlparse
-from typing import List, Iterator, IO, Union
+from typing import List, Iterator, IO, Union, Dict, Any
 
 import boto3
 import botocore
@@ -29,14 +30,18 @@ from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth, \
-    StacItem, Asset, TimestampFilter, Eo, DatetimeRange
+    StacItem, Asset, TimestampFilter, Eo, DatetimeRange, enum
 from nsl.stac.enum import Band, CloudPlatform, FilterRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
 RASTER_TYPES = [AssetType.CO_GEOTIFF, AssetType.GEOTIFF, AssetType.MRF]
+UNSUPPORTED_TIME_FILTERS = [FilterRelationship.IN,
+                            FilterRelationship.NOT_IN,
+                            FilterRelationship.LIKE,
+                            FilterRelationship.NOT_LIKE]
 
 
-def _gcp_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
+def get_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     """
     get metadata/interface for one asset in google cloud storage
     :param bucket: bucket name
@@ -69,7 +74,7 @@ def download_gcs_object(bucket: str,
         if not os.path.exists(path_to_create):
             os.makedirs(path_to_create, exist_ok=True)
 
-    blob = _gcp_blob_metadata(bucket=bucket, blob_name=blob_name)
+    blob = get_blob_metadata(bucket=bucket, blob_name=blob_name)
 
     if file_obj is not None:
         blob.download_to_file(file_obj=file_obj, client=gcs_storage_client.client)
@@ -133,16 +138,20 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
     :return: returns the save_filename. if BinaryIO is not a FileIO object type, save_filename returned is an
     empty string
     """
-    headers = {"authorization": bearer_auth.auth_header(nsl_id=nsl_id)}
-    if len(asset.type) > 0:
-        headers["content-type"] = asset.type
-
     if not asset.href:
         raise ValueError("no href on asset")
 
     host = urlparse(asset.href)
-    asset_url = "/download/{object}".format(object=asset.object_path)
     conn = http.client.HTTPConnection(host.netloc)
+
+    headers = {}
+    asset_url = host.path
+    if asset.bucket_manager == "Near Space Labs":
+        headers = {"authorization": bearer_auth.auth_header(nsl_id=nsl_id)}
+        asset_url = "/download/{object}".format(object=asset.object_path)
+
+    if len(asset.type) > 0:
+        headers["content-type"] = asset.type
     conn.request(method="GET", url=asset_url, headers=headers)
 
     res = conn.getresponse()
@@ -173,7 +182,7 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
 
 def download_asset(asset: Asset,
                    from_bucket: bool = False,
-                   file_obj: IO = None,
+                   file_obj: IO[Union[Union[str, bytes], Any]] = None,
                    save_filename: str = "",
                    save_directory: str = "",
                    requester_pays: bool = False,
@@ -247,8 +256,10 @@ def download_assets(stac_item: StacItem,
 def get_asset(stac_item: StacItem,
               asset_type: AssetType = None,
               cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-              band: Eo.Band = Eo.UNKNOWN_BAND,
-              asset_basename: str = "") -> Asset:
+              eo_bands: Eo.Band = Eo.UNKNOWN_BAND,
+              asset_regex: Dict = None,
+              asset_key: str = None,
+              b_relaxed_types: bool = False) -> Asset:
     """
     get a protobuf object(pb) asset from a stac item pb. If your parameters are broad (say, if you used all defaults)
     this function would only return you the first asset that matches the parameters. use
@@ -262,18 +273,43 @@ def get_asset(stac_item: StacItem,
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    return next(get_assets(stac_item,
-                           asset_types=[asset_type],
-                           cloud_platform=cloud_platform,
-                           band=band,
-                           asset_basename=asset_basename), None)
+    results = get_assets(stac_item, asset_type, cloud_platform, eo_bands, asset_regex, asset_key, b_relaxed_types)
+    if len(results) > 1:
+        raise ValueError("must be more specific in selecting your asset. if all enums are used, try using "
+                         "asset_key_regex")
+    elif len(results) == 1:
+        return results[0]
+    return None
+
+
+def _asset_types_match(desired_type: enum.AssetType, asset_type: enum.AssetType, b_relaxed_types: bool = False) -> bool:
+    if not b_relaxed_types:
+        return desired_type == asset_type
+    elif desired_type == enum.AssetType.TIFF:
+        return asset_type == desired_type or \
+               asset_type == enum.AssetType.GEOTIFF or \
+               asset_type == enum.AssetType.CO_GEOTIFF
+    elif desired_type == enum.AssetType.GEOTIFF:
+        return asset_type == desired_type or asset_type == enum.AssetType.CO_GEOTIFF
+    return asset_type == desired_type
+
+
+def equals_pb(left: Asset, right: Asset):
+    """
+does the AssetWrap equal a protobuf Asset
+    :param other:
+    :return:
+    """
+    return left.SerializeToString() == right.SerializeToString()
 
 
 def get_assets(stac_item: StacItem,
-               asset_types: List = None,
+               asset_type: enum.AssetType = None,
                cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-               band: Eo.Band = Eo.UNKNOWN_BAND,
-               asset_basename: str = "") -> Iterator[Asset]:
+               eo_bands: Eo.Band = Eo.UNKNOWN_BAND,
+               asset_regex: Dict = None,
+               asset_key: str = None,
+               b_relaxed_types: bool = False) -> List[Asset]:
     """
     get a generator of assets from a stac item, filtered by the parameters.
     :param stac_item: stac item whose assets we want to search by parameters
@@ -285,66 +321,48 @@ def get_assets(stac_item: StacItem,
     :param asset_basename: only return asset if the basename of the object path matches this value
     :return: asset pb object
     """
-    # if no asset_types defined, create a list of all available assets from the protobuf definition file
-    if asset_types is None or asset_types[0] is None:
-        asset_types = [asset_type for asset_type in AssetType]
+    if asset_key is not None and asset_key in stac_item.assets:
+        return [stac_item.assets[asset_key]]
+    elif asset_key is not None and asset_key and asset_key not in stac_item.assets:
+        raise ValueError("asset_key {} not found".format(asset_key))
 
-    for asset_type in asset_types:
-        for key in stac_item.assets:
-            asset = stac_item.assets[key]
-            if asset.asset_type != asset_type:
+    results = []
+    for asset_key in stac_item.assets:
+        current = stac_item.assets[asset_key]
+        b_asset_type_match = _asset_types_match(desired_type=asset_type,
+                                                asset_type=current.asset_type,
+                                                b_relaxed_types=b_relaxed_types)
+        if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and current.eo_bands != eo_bands:
+            continue
+        if (cloud_platform is not None and cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM) and \
+                current.cloud_platform != cloud_platform:
+            continue
+        if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and not b_asset_type_match:
+            continue
+        if asset_regex is not None and len(asset_regex) > 0:
+            b_continue = False
+            for key, regex_value in asset_regex.items():
+                if key == 'asset_key':
+                    if not re.match(regex_value, asset_key):
+                        b_continue = True
+                        break
+                else:
+                    if not hasattr(current, key):
+                        raise AttributeError("no key {0} in asset {1}".format(key, current))
+                    elif not re.match(regex_value, getattr(current, key)):
+                        b_continue = True
+                        break
+
+            if b_continue:
                 continue
-            if asset.eo_bands == band or band == Eo.UNKNOWN_BAND:
-                if asset.cloud_platform == cloud_platform or cloud_platform == CloudPlatform.UNKNOWN_CLOUD_PLATFORM:
-                    if asset_basename and not _asset_has_filename(asset=asset, asset_basename=asset_basename):
-                        continue
-                    yield asset
 
-    return
+        # check that asset hasn't changed between protobuf and asset_map
+        pb_asset = stac_item.assets[asset_key]
+        if not equals_pb(current, pb_asset):
+            raise ValueError("corrupted protobuf. Asset and AssetWrap have differing underlying protobuf")
 
-
-def get_eo_assets(stac_item: StacItem,
-                  cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-                  bands: List = None,
-                  asset_types: List = None) -> Iterator[Asset]:
-    """
-    get generator of electro optical assets that match the query restrictions. if no restrictions are set,
-    then the default is any cloud platform, RGB for the bands, and all raster types.
-    :param stac_item: stac item to search for electro optical assets
-    :param cloud_platform: cloud platform (if an asset has both GCP and AWS but you prefer AWS, set this)
-    :param bands: the tuple of any of the bands you'd like to return
-    :param asset_types: the tuple of any of the asset types you'd like to return
-    :return: List of Assets
-    """
-
-    if asset_types is None:
-        asset_types = RASTER_TYPES
-
-    if bands is None:
-        bands = DEFAULT_RGB
-
-    if cloud_platform is None:
-        cloud_platform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM
-
-    assets = []
-    for band in bands:
-        if band == Eo.RGB or band == Eo.RGBIR:
-            yield get_eo_assets(stac_item=stac_item,
-                                bands=DEFAULT_RGB,
-                                cloud_platform=cloud_platform,
-                                asset_types=asset_types)
-            if band == Eo.RGBIR:
-                yield get_assets(stac_item=stac_item,
-                                 band=Eo.NIR,
-                                 cloud_platform=cloud_platform,
-                                 asset_types=asset_types)
-        else:
-            yield get_assets(stac_item=stac_item,
-                             band=band,
-                             cloud_platform=cloud_platform,
-                             asset_types=asset_types)
-
-    return assets
+        results.append(current)
+    return results
 
 
 def _asset_has_filename(asset: Asset, asset_basename):
@@ -434,12 +452,28 @@ def pb_timestampfield(rel_type: FilterRelationship,
     :param tzinfo: timezone info, defaults to UTC
     :return: TimestampFilter
     """
-    if value is not None and rel_type != FilterRelationship.EQ:
+    if rel_type in UNSUPPORTED_TIME_FILTERS:
+        raise ValueError("unsupported relationship type: {}".format(rel_type.name))
+
+    if value is not None and rel_type != FilterRelationship.EQ and rel_type != FilterRelationship.NEQ:
+        if not isinstance(value, datetime.datetime):
+            if rel_type == FilterRelationship.GTE or rel_type == FilterRelationship.LT:
+                return TimestampFilter(value=pb_timestamp(value, tzinfo, b_force_min=True),
+                                       rel_type=rel_type,
+                                       sort_direction=sort_direction)
+            elif rel_type == FilterRelationship.LTE or rel_type == FilterRelationship.GT:
+                return TimestampFilter(value=pb_timestamp(value, tzinfo, b_force_min=False),
+                                       rel_type=rel_type,
+                                       sort_direction=sort_direction)
         return TimestampFilter(value=pb_timestamp(value, tzinfo), rel_type=rel_type, sort_direction=sort_direction)
-    elif value is not None and rel_type == FilterRelationship.EQ and not isinstance(value, datetime.datetime):
+    elif value is not None and not isinstance(value, datetime.datetime) and \
+            (rel_type == FilterRelationship.EQ or rel_type == FilterRelationship.NEQ):
         start = datetime.datetime.combine(value, datetime.datetime.min.time(), tzinfo=tzinfo)
         end = datetime.datetime.combine(value, datetime.datetime.max.time(), tzinfo=tzinfo)
-        rel_type = FilterRelationship.BETWEEN
+        if rel_type == FilterRelationship.EQ:
+            rel_type = FilterRelationship.BETWEEN
+        else:
+            rel_type = FilterRelationship.NOT_BETWEEN
 
     return TimestampFilter(start=pb_timestamp(start, tzinfo),
                            end=pb_timestamp(end, tzinfo),
@@ -448,7 +482,8 @@ def pb_timestampfield(rel_type: FilterRelationship,
 
 
 def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
-                 tzinfo: datetime.timezone = datetime.timezone.utc) -> timestamp_pb2.Timestamp:
+                 tzinfo: datetime.timezone = datetime.timezone.utc,
+                 b_force_min=True) -> timestamp_pb2.Timestamp:
     """
     create a google.protobuf.Timestamp from a python datetime
     :param d_utc: python datetime or date
@@ -456,12 +491,13 @@ def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
     :return:
     """
     ts = timestamp_pb2.Timestamp()
-    ts.FromDatetime(timezoned(d_utc, tzinfo))
+    ts.FromDatetime(timezoned(d_utc, tzinfo, b_force_min))
     return ts
 
 
 def timezoned(d_utc: Union[datetime.datetime, datetime.date],
-              tzinfo: datetime.timezone = datetime.timezone.utc):
+              tzinfo: datetime.timezone = datetime.timezone.utc,
+              b_force_min=True):
     # datetime is child to datetime.date, so if we reverse the order of this instance of we fail
     if isinstance(d_utc, datetime.datetime) and d_utc.tzinfo is None:
         # TODO add warning here:
@@ -476,7 +512,10 @@ def timezoned(d_utc: Union[datetime.datetime, datetime.date],
                                   tzinfo=tzinfo)
     elif not isinstance(d_utc, datetime.datetime):
         # print("warning, no timezone provided with date, so UTC is assumed")
-        d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=tzinfo)
+        if b_force_min:
+            d_utc = datetime.datetime.combine(d_utc, datetime.datetime.min.time(), tzinfo=tzinfo)
+        else:
+            d_utc = datetime.datetime.combine(d_utc, datetime.datetime.max.time(), tzinfo=tzinfo)
     return d_utc
 
 

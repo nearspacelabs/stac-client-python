@@ -14,12 +14,16 @@
 #
 # for additional information, contact:
 #   info@nearspacelabs.com
-
+import pathlib
 import tempfile
 import unittest
 import io
 import os
+import pickle
 
+from epl import geometry as epl_geometry
+from epl.geometry import Polygon
+from epl.protobuf.v1.geometry_pb2 import EnvelopeData
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
 
@@ -28,8 +32,10 @@ from nsl.stac import StacItem, Asset, TimestampFilter, GeometryData, ProjectionD
 from nsl.stac import utils, enum
 from nsl.stac.enum import AssetType, Band, CloudPlatform, Mission, FilterRelationship
 from nsl.stac.client import NSLClient
+from nsl.stac.experimental import StacRequestWrap, NSLClientEx, AssetWrap, StacItemWrap
 
 client = NSLClient(nsl_only=False)
+client_ex = NSLClientEx(nsl_only=False)
 
 
 class TestProtobufs(unittest.TestCase):
@@ -127,19 +133,23 @@ class TestLandsat(unittest.TestCase):
         stac_id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, band=Band.BLUE, cloud_platform=CloudPlatform.GCP)
+        asset = utils.get_asset(stac_item, eo_bands=Band.BLUE, cloud_platform=CloudPlatform.GCP)
         self.assertIsNotNone(asset)
-        asset = utils.get_asset(stac_item, band=Band.BLUE, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item,
+                                eo_bands=Band.BLUE,
+                                asset_type=enum.AssetType.GEOTIFF,
+                                cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
-        asset = utils.get_asset(stac_item, band=Band.LWIR_1, cloud_platform=CloudPlatform.GCP)
+        asset = utils.get_asset(stac_item, eo_bands=Band.LWIR_1, cloud_platform=CloudPlatform.GCP)
         self.assertIsNone(asset)
-        asset = utils.get_asset(stac_item, band=Band.LWIR_1, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item, eo_bands=Band.LWIR_1, cloud_platform=CloudPlatform.AWS)
         self.assertIsNone(asset)
 
-        asset = utils.get_asset(stac_item, band=Band.CIRRUS, cloud_platform=CloudPlatform.GCP)
+        asset = utils.get_asset(stac_item, eo_bands=Band.CIRRUS, cloud_platform=CloudPlatform.GCP)
         self.assertIsNotNone(asset)
-        asset = utils.get_asset(stac_item, band=Band.CIRRUS, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item, eo_bands=Band.CIRRUS, cloud_platform=CloudPlatform.AWS,
+                                asset_type=enum.AssetType.GEOTIFF)
         self.assertIsNotNone(asset)
 
         aws_count, gcp_count = 0, 0
@@ -154,18 +164,21 @@ class TestLandsat(unittest.TestCase):
         self.assertEquals(12, gcp_count)
 
     def test_basename(self):
-        asset_name = 'LO81120152015061LGN00_B2.TIF'
+        asset_name = r'.*LO81120152015061LGN00_B2\.TIF$'
         stac_id = "LO81120152015061LGN00"
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, asset_basename=asset_name)
+        asset = utils.get_asset(stac_item, asset_regex={'object_path': asset_name}, cloud_platform=CloudPlatform.AWS)
         self.assertIsNotNone(asset)
 
     def test_thumbnail(self):
         stac_id = 'LO81120152015061LGN00'
         stac_request = StacRequest(id=stac_id)
         stac_item = client.search_one(stac_request)
-        asset = utils.get_asset(stac_item, asset_type=AssetType.THUMBNAIL, cloud_platform=CloudPlatform.AWS)
+        asset = utils.get_asset(stac_item,
+                                asset_type=AssetType.THUMBNAIL,
+                                cloud_platform=CloudPlatform.AWS,
+                                asset_regex={"asset_key": ".*_2$"})
         self.assertIsNotNone(asset)
 
     def test_aws(self):
@@ -478,7 +491,7 @@ class TestHelpers(unittest.TestCase):
         asset = utils.get_asset(stac_item,
                                 asset_type=AssetType.TXT,
                                 cloud_platform=CloudPlatform.GCP,
-                                asset_basename='LO81120152015061LGN00_MTL.txt')
+                                asset_regex={'href': r'.*LO81120152015061LGN00_MTL\.txt$'})
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
@@ -561,6 +574,26 @@ class TestHelpers(unittest.TestCase):
             data4 = b.read()
             self.assertEqual(data2, data4)
 
+    def test_download_aws_href(self):
+        stac_id = 'LC80270392015025LGN00'
+        stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
+        asset = utils.get_asset(stac_item,
+                                asset_type=AssetType.THUMBNAIL,
+                                asset_regex={"asset_key": ".*_2$"},
+                                cloud_platform=enum.CloudPlatform.AWS)
+        self.assertIsNotNone(asset)
+
+        with tempfile.TemporaryDirectory() as d:
+            file_path = utils.download_asset(asset=asset, save_directory=d)
+            with open(file_path, 'rb') as f:
+                data1 = f.read()
+
+            file_path = utils.download_asset(asset=asset, save_filename=file_path)
+            with open(file_path, 'rb') as f:
+                data2 = f.read()
+
+            self.assertEqual(data1, data2)
+
 
 class TestPerf(unittest.TestCase):
     def test_query_limits(self):
@@ -586,3 +619,271 @@ class TestPerf(unittest.TestCase):
             if total % limit == 0:
                 print("stac item id: {0} at {1} index in request".format(stac_item.id, total))
         self.assertEqual(total, 1000)
+
+
+class TestWrap(unittest.TestCase):
+    def test_landsat(self):
+        stac_id = 'LO81120152015061LGN00'
+        request_wrapped = StacRequestWrap(id=stac_id)
+        for stac_wrapped in client_ex.search_ex(stac_request_wrapped=request_wrapped):
+            self.assertEqual(stac_wrapped.mission, enum.Mission.LANDSAT)
+            self.assertEqual(stac_wrapped.mission.name, enum.Mission.LANDSAT.name)
+            self.assertEqual(stac_wrapped.stac_item.mission, enum.Mission.LANDSAT.name)
+            self.assertEqual(stac_wrapped.platform, enum.Platform.LANDSAT_8)
+            self.assertEqual(stac_wrapped.platform.name, enum.Platform.LANDSAT_8.name)
+            self.assertEqual(stac_wrapped.stac_item.platform, enum.Platform.LANDSAT_8.name)
+            self.assertEqual(stac_wrapped.instrument, enum.Instrument.OLI)
+            self.assertEqual(stac_wrapped.instrument.name, enum.Instrument.OLI.name)
+            self.assertEqual(stac_wrapped.stac_item.instrument, enum.Instrument.OLI.name)
+            self.assertLessEqual(stac_wrapped.gsd, 60)
+            self.assertEqual(stac_id, stac_wrapped.stac_item.id)
+
+            asset_wrapped_keys = []
+            for asset_wrap in stac_wrapped.get_assets():
+                asset_wrapped_keys.append(asset_wrap.asset_key)
+            for asset_key in stac_wrapped.stac_item.assets:
+                self.assertTrue(asset_key in asset_wrapped_keys)
+
+        self.assertEqual(1, client_ex.count_ex(request_wrapped))
+
+    def test_constructor(self):
+        asset_wrap = AssetWrap(bucket='bucky',
+                               object_path="jebidiah/springfield.tif",
+                               asset_type=enum.AssetType.GEOTIFF,
+                               href='https://bubbles.monkey.io/jebidiah/springfield.tif',
+                               cloud_platform=enum.CloudPlatform.AZURE,
+                               bucket_manager='Smithers',
+                               bucket_region='azores')
+
+        asset_clone = AssetWrap(bucket=asset_wrap.bucket,
+                                object_path=str(pathlib.Path(asset_wrap.object_path).with_suffix('.jpg')),
+                                asset_type=enum.AssetType.THUMBNAIL,
+                                href=str(pathlib.Path(asset_wrap.href).with_suffix('.jpg')),
+                                cloud_platform=asset_wrap.cloud_platform,
+                                bucket_manager=asset_wrap.bucket_manager,
+                                bucket_region=asset_wrap.bucket_region)
+
+        self.assertEqual(asset_wrap.bucket_region, asset_clone.bucket_region)
+        self.assertEqual(asset_clone.ext, '.jpg')
+
+    def test_deep_copy(self):
+        asset_wrap = AssetWrap()
+
+        asset_wrap.cloud_platform = enum.CloudPlatform.GCP
+        pickled = pickle.dumps(asset_wrap)
+        asset_wrap_deep = pickle.loads(pickled)
+        self.assertEqual(asset_wrap.cloud_platform, asset_wrap_deep.cloud_platform)
+        self.assertEqual(asset_wrap, asset_wrap_deep)
+        asset_wrap_shallow = asset_wrap
+        self.assertEqual(asset_wrap.cloud_platform, asset_wrap_shallow.cloud_platform)
+        self.assertEqual(asset_wrap, asset_wrap_shallow)
+        asset_wrap.cloud_platform = enum.CloudPlatform.AWS
+        self.assertEqual(asset_wrap.cloud_platform, asset_wrap_shallow.cloud_platform)
+        self.assertNotEqual(asset_wrap.cloud_platform, asset_wrap_deep.cloud_platform)
+
+        stac_item = StacItemWrap()
+        print(stac_item.stac_item.ListFields())
+        stac_item.id = "pancakes"
+        pickled = pickle.dumps(stac_item)
+        stac_item_deep = pickle.loads(pickled)
+        self.assertEqual(stac_item.id, stac_item_deep.id)
+        self.assertEqual("pancakes", stac_item.id)
+        self.assertEqual(stac_item, stac_item_deep)
+        stac_item_shallow = stac_item
+        self.assertEqual(stac_item.id, stac_item_shallow.id)
+        stac_item_deep.id = 'waffles'
+        self.assertNotEqual(stac_item_deep.id, stac_item.id)
+        self.assertEqual("waffles", stac_item_deep.id)
+
+    def test_platform_landsat(self):
+        request_wrap = StacRequestWrap()
+
+        request_wrap.mission = enum.Mission.LANDSAT
+        request_wrap.platform = enum.Platform.LANDSAT_8
+        request_wrap.set_cloud_cover(rel_type=enum.FilterRelationship.GTE, value=50)
+
+        item_wrapped = client_ex.search_one_ex(request_wrap)
+        self.assertEqual(item_wrapped.platform, request_wrap.platform)
+        self.assertEqual(item_wrapped.mission, request_wrap.mission)
+
+    def test_code_example_ex(self):
+        # create our request. this interface allows us to set fields in our protobuf object
+        request = StacRequestWrap()
+
+        # our area of interest will be the coordinates of the UT Stadium in Austin Texas
+        # the order of coordinates here is longitude then latitude (x, y). The results of our query
+        # will be returned only if they intersect this point geometry we've defined (other geometry
+        # types besides points are supported)
+        # This string format, POINT(float, float) is the well-known-text geometry format:
+        # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
+        # the epsg # defines the WGS-84 elispsoid (`epsg=4326`) spatial reference
+        # (the latitude longitude  spatial reference most commonly used)
+        # the epl.geometry Polygon class is an extension of shapely's Polygon class that supports
+        # the protobuf definitions we use with STAC
+        request.intersects = Polygon.import_wkt(wkt="POINT(-97.7323317 30.2830764)", epsg=4326)
+
+        # `set_observed` allows for making sql-like queries for information
+        # LTE is an enum that means less than or equal to the value in the query field
+        # Query data from August 25, 2019
+        request.set_observed(rel_type=enum.FilterRelationship.LTE, value=date(2019, 8, 25))
+
+        request.instrument = enum.Instrument.OLI
+        # search_one_ex method requests only one item be returned that meets the query filters in the StacRequest
+        # the item returned is a wrapper of the protobuf message; StacItemWrap. search_one_ex, will only return the most
+        # recently observed results that matches the time filter and spatial filter
+        stac_item = client_ex.search_one_ex(request)
+
+        # get the thumbnail asset from the assets map. The other option would be a Geotiff,
+        # with asset key 'GEOTIFF_RGB'
+        asset = stac_item.get_asset(asset_type=enum.AssetType.GEOTIFF,
+                                    eo_bands=enum.Band.SWIR_1,
+                                    cloud_platform=enum.CloudPlatform.GCP)
+        self.assertIsNotNone(asset)
+
+        self.assertEqual(asset.asset_key, "GEOTIFF_GCP_SWIR_1")
+        asset.asset_key_suffix = "PANCAKES"
+        self.assertEqual(asset.asset_key, "GEOTIFF_GCP_SWIR_1")
+
+        self.assertTrue(asset.exists())
+
+    def test_3744_bounds(self):
+        # request wrapper
+        request = StacRequestWrap()
+        request.mission_enum = enum.Mission.SWIFT
+
+        # HARN UTM
+        neighborhood_box = (621636.1875228449, 3349964.520449501, 623157.4212553708, 3351095.8075163467)
+        # setting the bounds tests for intersection (not contains)
+        request.set_bounds(neighborhood_box, epsg=3744)
+        request.limit = 3
+        found = 0
+        # Search for data that intersects the bounding box
+        for stac_item in client_ex.search_ex(request):
+            found += 1
+        self.assertEqual(3, found)
+
+    def test_set_intersects_without_proj(self):
+        neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
+        envelope_data = EnvelopeData(xmin=neighborhood_box[0],
+                                     ymin=neighborhood_box[1],
+                                     xmax=neighborhood_box[2],
+                                     ymax=neighborhood_box[3],
+                                     proj=ProjectionData(epsg=0))
+        r = StacRequestWrap()
+        b_hit = False
+        try:
+            r.bbox = envelope_data
+        except BaseException:
+            b_hit = True
+        self.assertTrue(b_hit)
+
+        b_hit = False
+        try:
+            r.set_bounds(bounds=neighborhood_box, epsg=0)
+        except BaseException:
+            b_hit = True
+        self.assertTrue(b_hit)
+
+        b_hit = False
+        try:
+            r.set_bounds(bounds=neighborhood_box, epsg=4326)
+        except BaseException:
+            b_hit = True
+
+        self.assertFalse(b_hit)
+
+    def test_projection_error(self):
+        # request wrapper
+        request = StacRequestWrap()
+
+        # define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on
+        # the WGS-84 ellipsoid
+        neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
+        # setting the bounds tests for intersection (not contains)
+        request.set_bounds(neighborhood_box, epsg=4326)
+
+        self.assertEquals(request.bbox.xmin, neighborhood_box[0])
+        self.assertEquals(request.intersects.proj.epsg, 4326)
+
+    def test_date_vs_datetime(self):
+        r = StacRequestWrap()
+
+        d = date(2010, 1, 1)
+        d_min = datetime.combine(d, time=datetime.min.time(), tzinfo=timezone.utc)
+        r.set_observed(rel_type=enum.FilterRelationship.GTE, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_min)
+
+        r.set_observed(rel_type=enum.FilterRelationship.LT, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_min)
+
+        d_max = datetime.combine(d, time=datetime.max.time(), tzinfo=timezone.utc)
+        r.set_observed(rel_type=enum.FilterRelationship.GT, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_max)
+
+        r.set_observed(rel_type=enum.FilterRelationship.LTE, value=d)
+        time_stamp = r.stac_request.observed.value.seconds + r.stac_request.observed.value.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp, tz=timezone.utc), d_max)
+
+        d2 = date(2010, 1, 3)
+        d_max = datetime.combine(d2, time=datetime.max.time(), tzinfo=timezone.utc)
+        r.set_observed(rel_type=enum.FilterRelationship.BETWEEN, start=d_min, end=d_max)
+        time_stamp_start = r.stac_request.observed.start.seconds + r.stac_request.observed.start.nanos / 1000000000.0
+        time_stamp_end = r.stac_request.observed.end.seconds + r.stac_request.observed.end.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp_start, tz=timezone.utc), d_min)
+        self.assertEquals(datetime.fromtimestamp(time_stamp_end, tz=timezone.utc), d_max)
+
+        r.set_observed(rel_type=enum.FilterRelationship.NOT_BETWEEN, start=d_min, end=d_max)
+        time_stamp_start = r.stac_request.observed.start.seconds + r.stac_request.observed.start.nanos / 1000000000.0
+        time_stamp_end = r.stac_request.observed.end.seconds + r.stac_request.observed.end.nanos / 1000000000.0
+        self.assertEquals(datetime.fromtimestamp(time_stamp_start, tz=timezone.utc), d_min)
+        self.assertEquals(datetime.fromtimestamp(time_stamp_end, tz=timezone.utc), d_max)
+
+    def test_update_asset(self):
+        r = StacRequestWrap()
+        r.mission = enum.Mission.LANDSAT
+        r.platform = enum.Platform.LANDSAT_8
+        r.set_observed(rel_type=enum.FilterRelationship.GTE, value=date(2016, 1, 1))
+
+        item = StacItemWrap(client_ex.search_one_ex(r).stac_item)
+
+        asset_key = 'THUMBNAIL_AWS'
+        asset_wrap = item.get_asset(asset_key=asset_key)
+        self.assertEqual(asset_wrap.cloud_platform, enum.CloudPlatform.AWS)
+        self.assertEqual(asset_wrap.cloud_platform, item.stac_item.assets[asset_key].cloud_platform)
+
+        self.assertEqual(enum.CloudPlatform.AWS, item.stac_item.assets[asset_key].cloud_platform)
+        asset_wrap.cloud_platform = enum.CloudPlatform.GCP
+        self.assertEqual(asset_wrap.cloud_platform.value, item.stac_item.assets[asset_key].cloud_platform)
+        self.assertEqual(asset_wrap.cloud_platform, enum.CloudPlatform.GCP)
+        self.assertEqual(enum.CloudPlatform.GCP.value, item.stac_item.assets[asset_key].cloud_platform)
+
+    def test_feature_collection(self):
+        r = StacRequestWrap()
+        r.mission = enum.Mission.NAIP
+        r.limit = 3
+        travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, -97.8476 " \
+                     "30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, " \
+                     "-97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, " \
+                     "-98.0503 30.6251, -97.9736 30.6251)) "
+        r.intersects = Polygon.import_wkt(wkt=travis_wkt, epsg=4326)
+        feature_collection = client_ex.feature_collection_ex(r)
+        items = list(client_ex.search_ex(r))
+        r.offset = 3
+        feature_collection = client_ex.feature_collection_ex(r, feature_collection=feature_collection)
+        self.assertEqual(len(feature_collection['features']), 6)
+        items.extend(list(client_ex.search_ex(r)))
+        r.limit = 6
+        r.offset = 0
+
+        id_list = [item.id for item in items]
+        features = feature_collection['features']
+        for feature in features:
+            self.assertTrue(feature['id'] in id_list)
+        self.assertEquals(6, len(items))
+        union1 = Polygon.s_cascaded_union([item.geometry for item in items])
+        union2 = Polygon.s_cascaded_union([epl_geometry.shape(feature['geometry'], epsg=4326) for feature in features])
+        diff = union1.s_difference(union2)
+        self.assertTrue(union1.s_equals(union2), diff)

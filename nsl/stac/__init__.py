@@ -49,7 +49,7 @@ __all__ = [
     'FloatFilter', 'TimestampFilter', 'StringFilter', 'UInt32Filter',
     'StacItem', 'Asset', 'Eo', 'View', 'Mosaic', 'DatetimeRange',
     'gcs_storage_client',
-    'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'bearer_auth'
+    'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'AuthInfo', 'bearer_auth'
 ]
 
 CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
@@ -253,17 +253,21 @@ class __StacServiceStub(object):
 class AuthInfo:
     nsl_id: str = None
     nsl_secret: str = None
-    token: Dict = None
+    token: str = None
     retries: int = 0
     expiry: float = 0
+    skip_authorization: bool = False
 
-    def __init__(self, nsl_id, nsl_secret):
+    def __init__(self, nsl_id: str, nsl_secret: str):
         if not nsl_id or not nsl_secret:
             raise ValueError("nsl_id and nsl_secret must be non-zero length strings")
         self.nsl_id = nsl_id
         self.nsl_secret = nsl_secret
 
     def authorize(self, backoff: int = 0):
+        if self.skip_authorization:
+            return
+
         if self.retries >= MAX_TOKEN_ATTEMPTS:
             raise Exception("NSL authentication failed over 20 times")
 
@@ -372,12 +376,13 @@ class __BearerAuth:
             print('using profile name: {}'.format(profile_name))
             nsl_id = self._profile_map[profile_name]
 
-        if (self._auth_info_map[nsl_id].expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
-            self._auth_info_map[nsl_id].authorize()
-            diff_seconds = self._auth_info_map[nsl_id].expiry - time.time()
+        auth_info = self._auth_info_map[nsl_id]
+        if not auth_info.skip_authorization and (auth_info.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+            auth_info.authorize()
+            diff_seconds = auth_info.expiry - time.time()
             print("fetching new authorization in {0} minutes".format(
                 round(int(math.ceil(float(diff_seconds / 60) / 10) * 10))))
-        return "Bearer {token}".format(token=self._auth_info_map[nsl_id].token)
+        return "Bearer {token}".format(token=auth_info.token)
 
 
 time.sleep(NSL_NETWORK_DELAY)
