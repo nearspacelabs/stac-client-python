@@ -3,3 +3,6 @@ jupyter
 ipykernel
 shapely
 matplotlib
+ipyleaflet
+jupyter_contrib_nbextensions
+jedi==0.17.2
