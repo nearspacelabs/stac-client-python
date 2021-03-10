@@ -263,7 +263,7 @@ class AuthInfo:
 
     # this only retries if there's a timeout error
     @retry(exceptions=requests.Timeout, delay=1, backoff=2, tries=4)
-    def authorize(self, backoff: int = 0):
+    def authorize(self):
         if self.skip_authorization:
             return
 
@@ -281,15 +281,15 @@ class AuthInfo:
         auth_token_url = "{}/oauth/token".format(AUTH0_TENANT)
         res = requests.post(auth_token_url, json=post_body, headers=headers)
 
-        res_json = res.json()
         if res.status_code != 200 and res.status_code != 201:
             # evaluate codes first.
             message = "authentication failed with code '{0}' and reason '{1}'".format(res.status_code, res.reason)
             raise requests.exceptions.RequestException(message)
-        elif len(res_json) == 0:
+        elif len(res.content) == 0:
             # then if response is empty, HTTPResponse method for read returns b"" which will be zero in length
             raise requests.exceptions.RequestException("empty authentication return. notify nsl of error")
 
+        res_json = res.json()
         self.expiry = now + int(res_json["expires_in"])
         self.token = res_json["access_token"]
 
