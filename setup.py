@@ -36,7 +36,7 @@ kwargs = {
     'license': 'Apache 2.0',
     'version': '1.1.3',
     'python_requires': '>3.6.0',
-    'packages': ['nsl.stac', 'nsl.cmd'],
+    'packages': ['nsl.stac'],
     'install_requires': [
         'grpcio-tools',
         'protobuf',
