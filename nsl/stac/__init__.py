@@ -18,7 +18,6 @@
 import abc
 import os
 import re
-import http.client
 import json
 import math
 import sched
@@ -27,14 +26,16 @@ import warnings
 import logging
 
 import grpc
+import requests
 
 from pathlib import Path
 from random import randint
-from typing import Optional, Tuple, Dict
+from typing import Dict, Optional, Set, Tuple
 
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
+from retry import retry
 
 from epl.protobuf.v1 import stac_service_pb2_grpc
 from epl.protobuf.v1.geometry_pb2 import GeometryData, ProjectionData, EnvelopeData
@@ -64,16 +65,13 @@ NSL_SECRET = os.getenv("NSL_SECRET")
 NSL_NETWORK_DELAY = int(os.getenv("NSL_NETWORK_DELAY", 0))
 
 # URL of the OAuth service
-AUTH0_TENANT = os.getenv('AUTH0_TENANT', 'api.nearspacelabs.net')
+AUTH0_TENANT = os.getenv('AUTH0_TENANT', 'https://api.nearspacelabs.net')
 # Name of the API for which we issue tokens
 API_AUDIENCE = os.getenv('API_AUDIENCE', 'https://api.nearspacelabs.com')
 # Name of the service responsible for issuing NSL tokens
 ISSUER = 'https://api.nearspacelabs.net/'
 
 TOKEN_REFRESH_THRESHOLD = 60  # seconds
-TOKEN_REFRESH_SCHEDULER = sched.scheduler(time.time, time.sleep)
-MAX_TOKEN_REFRESH_BACKOFF = 60
-MAX_TOKEN_ATTEMPTS = 20
 
 MAX_GRPC_ATTEMPTS = int(os.getenv('MAX_ATTEMPTS', 4))
 INIT_BACKOFF_MS = int(os.getenv('INIT_BACKOFF_MS', 4))
@@ -254,7 +252,6 @@ class AuthInfo:
     nsl_id: str = None
     nsl_secret: str = None
     token: str = None
-    retries: int = 0
     expiry: float = 0
     skip_authorization: bool = False
 
@@ -264,58 +261,37 @@ class AuthInfo:
         self.nsl_id = nsl_id
         self.nsl_secret = nsl_secret
 
+    # this only retries if there's a timeout error
+    @retry(exceptions=requests.Timeout, delay=1, backoff=2, tries=4)
     def authorize(self, backoff: int = 0):
         if self.skip_authorization:
             return
 
-        if self.retries >= MAX_TOKEN_ATTEMPTS:
-            raise Exception("NSL authentication failed over 20 times")
-
         print("attempting NSL authentication against {}".format(AUTH0_TENANT))
         now = time.time()
-        try:
-            conn = http.client.HTTPSConnection(AUTH0_TENANT)
-            headers = {'content-type': 'application/json'}
-            post_body = {
-                'client_id': self.nsl_id,
-                'client_secret': self.nsl_secret,
-                'audience': API_AUDIENCE,
-                'grant_type': 'client_credentials'
-            }
 
-            conn.request("POST", "/oauth/token", json.dumps(post_body), headers)
-            res = conn.getresponse()
+        headers = {'content-type': 'application/json'}
+        post_body = {
+            'client_id': self.nsl_id,
+            'client_secret': self.nsl_secret,
+            'audience': API_AUDIENCE,
+            'grant_type': 'client_credentials'
+        }
 
+        auth_token_url = "{}/oauth/token".format(AUTH0_TENANT)
+        res = requests.post(auth_token_url, json=post_body, headers=headers)
+
+        res_json = res.json()
+        if res.status_code != 200 and res.status_code != 201:
             # evaluate codes first.
+            message = "authentication failed with code '{0}' and reason '{1}'".format(res.status_code, res.reason)
+            raise requests.exceptions.RequestException(message)
+        elif len(res_json) == 0:
             # then if response is empty, HTTPResponse method for read returns b"" which will be zero in length
-            res_body = res.read()
-            if (res.getcode() != 200 and res.getcode() != 201) or len(res_body) == 0:
-                warnings.warn("authentication failed with code {0}".format(res.getcode()))
+            raise requests.exceptions.RequestException("empty authentication return. notify nsl of error")
 
-                # TODO make this non-recursive
-                self.retry(backoff)
-                return
-
-            res_json = json.loads(res_body.decode("utf-8"))
-
-            self.retries = 0
-            self.expiry = now + int(res_json["expires_in"])
-            self.token = res_json["access_token"]
-        except json.JSONDecodeError as je:
-            warnings.warn("failed to decode authentication json token with error: {}".format(je))
-            self.retry(backoff)
-            return
-        except BaseException as be:
-            warnings.warn("failed to connect to authorization service with error: {0}".format(be))
-            self.retry(backoff)
-            return
-
-    def retry(self, timeout: int = 0):
-        """Retry authorization request, with exponential backoff"""
-        self.retries += 1
-        backoff = min(2 if timeout == 0 else timeout * 2, MAX_TOKEN_REFRESH_BACKOFF)
-        TOKEN_REFRESH_SCHEDULER.enter(backoff, 1, self.authorize, argument=[backoff])
-        TOKEN_REFRESH_SCHEDULER.run()
+        self.expiry = now + int(res_json["expires_in"])
+        self.token = res_json["access_token"]
 
 
 class __BearerAuth:
