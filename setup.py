@@ -34,7 +34,7 @@ kwargs = {
     'author': 'David Raleigh',
     'author_email': 'david@nearspacelabs.com',
     'license': 'Apache 2.0',
-    'version': '1.1.1',
+    'version': '1.1.3',
     'python_requires': '>3.6.0',
     'packages': ['nsl.stac'],
     'install_requires': [
@@ -43,6 +43,8 @@ kwargs = {
         'epl.protobuf.v1',
         'epl.geometry',
         'boto3',
+        'retry',
+        'requests',
         'google-cloud-storage'
     ],
     'zip_safe': False

@@ -4,3 +4,5 @@ epl.geometry==1.0.3
 google-cloud-storage>=1.14.0
 grpcio-tools==1.33.2
 protobuf>=3.8.0
+requests
+retry

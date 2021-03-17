@@ -63,7 +63,7 @@ for stac_item in client.search(stac_request):
 ```text
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
-    attempting NSL authentication against api.nearspacelabs.net
+    attempting NSL authentication against https://api.nearspacelabs.net
     fetching new authorization in 60 minutes
     SWIFT STAC item '20200703T174443Z_650_POM1_ST2_P' from 2020-07-03T17:44:43+00:00
     has a off_nadir 1.980, which should be less than or equal to requested off_nadir 10.0: confirmed True
