@@ -1,4 +1,3 @@
-requests
 jupyter
 ipykernel
 matplotlib

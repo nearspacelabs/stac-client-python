@@ -14,12 +14,13 @@
 #
 # for additional information, contact:
 #   info@nearspacelabs.com
+import io
+import json
+import os
 import pathlib
+import pickle
 import tempfile
 import unittest
-import io
-import os
-import pickle
 
 from epl import geometry as epl_geometry
 from epl.geometry import Polygon
@@ -486,12 +487,13 @@ class TestHelpers(unittest.TestCase):
             self.assertTrue(utils.has_asset(stac_item, garbage))
 
     def test_download_gcp(self):
-        stac_id = "LO81120152015061LGN00"
-        stac_item = client.search_one(stac_request=StacRequest(id=stac_id))
+        stac_request = StacRequest()
+        stac_request.platform_enum = enum.Platform.LANDSAT_8
+        stac_item = client.search_one(stac_request=stac_request)
         asset = utils.get_asset(stac_item,
                                 asset_type=AssetType.TXT,
                                 cloud_platform=CloudPlatform.GCP,
-                                asset_regex={'href': r'.*LO81120152015061LGN00_MTL\.txt$'})
+                                asset_regex={'href': r'.*_MTL\.txt$'})
         self.assertIsNotNone(asset)
         with tempfile.TemporaryDirectory() as d:
             print(d)
@@ -622,6 +624,27 @@ class TestPerf(unittest.TestCase):
 
 
 class TestWrap(unittest.TestCase):
+    def test_has_asset(self):
+        stac_id = '20190822T183518Z_746_POM1_ST2_P'
+        item = client_ex.search_one_ex(stac_request_wrapped=StacRequestWrap(id=stac_id))
+        for asset in item.get_assets():
+            self.assertTrue(asset.matches_details(asset_key=asset.asset_key))
+            self.assertTrue(asset.matches_details(asset_type=asset.asset_type))
+            self.assertTrue(asset.matches_details(cloud_platform=asset.cloud_platform))
+            self.assertTrue(asset.matches_details(eo_bands=asset.eo_bands))
+            self.assertTrue(asset.matches_details(asset_type=asset.asset_type, cloud_platform=asset.cloud_platform,
+                                                  eo_bands=asset.eo_bands))
+            self.assertFalse(asset.matches_details(asset_type=asset.asset_type, cloud_platform=asset.cloud_platform,
+                                                   eo_bands=enum.Band.RGBIR))
+            self.assertFalse(asset.matches_details(asset_type=asset.asset_type, cloud_platform=enum.CloudPlatform.AZURE,
+                                                   eo_bands=asset.eo_bands))
+            self.assertFalse(asset.matches_details(asset_type=enum.AssetType.LERC, cloud_platform=asset.cloud_platform,
+                                                   eo_bands=asset.eo_bands))
+            self.assertFalse(asset.matches_details(asset_key=asset.asset_key + "t"))
+            self.assertFalse(asset.matches_details(asset_type=enum.AssetType.LERC))
+            self.assertFalse(asset.matches_details(cloud_platform=enum.CloudPlatform.IBM))
+            self.assertFalse(asset.matches_details(eo_bands=enum.Band.BLUE))
+
     def test_landsat(self):
         stac_id = 'LO81120152015061LGN00'
         request_wrapped = StacRequestWrap(id=stac_id)
@@ -706,7 +729,8 @@ class TestWrap(unittest.TestCase):
         self.assertEqual(item_wrapped.platform, request_wrap.platform)
         self.assertEqual(item_wrapped.mission, request_wrap.mission)
 
-    def test_code_example_ex(self):
+    @unittest.skip("mono-714")
+    def test_code_example_landsat_bug(self):
         # create our request. this interface allows us to set fields in our protobuf object
         request = StacRequestWrap()
 
@@ -887,3 +911,31 @@ class TestWrap(unittest.TestCase):
         union2 = Polygon.s_cascaded_union([epl_geometry.shape(feature['geometry'], epsg=4326) for feature in features])
         diff = union1.s_difference(union2)
         self.assertTrue(union1.s_equals(union2), diff)
+
+    def test_json(self):
+        # request wrapper
+        request = StacRequestWrap()
+
+        # define our area of interest bounds using the xmin, ymin, xmax, ymax coordinates of an area on
+        # the WGS-84 ellipsoid
+        neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
+        # setting the bounds tests for intersection (not contains)
+        request.set_bounds(neighborhood_box, epsg=4326)
+        request.mission = enum.Mission.NAIP
+        request.set_observed(rel_type=enum.FilterRelationship.BETWEEN, start=date(2015, 1, 1), end=date(2017, 1, 1))
+
+        request.limit = 1
+
+        feature_collection = client_ex.feature_collection_ex(request)
+
+        answer = json.dumps(feature_collection)
+        self.assertNotEqual('', answer)
+
+        request.mission = enum.Mission.SWIFT
+        request.set_observed(rel_type=enum.FilterRelationship.GTE, value=date(2017, 1, 1))
+        request.id = '20190822T183518Z_746_POM1_ST2_P'
+        feature_collection = client_ex.feature_collection_ex(request)
+        answer = json.dumps(feature_collection)
+        self.assertNotEqual('', answer)
+        self.assertNotEqual('', feature_collection['features'][0]['id'])
+        self.assertNotEqual('', feature_collection['features'][0]['assets']['GEOTIFF_RGB']['href'])

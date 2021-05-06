@@ -816,7 +816,7 @@ then that supersedes this projection definition.
                                     asset_type=asset_type,
                                     cloud_platform=cloud_platform,
                                     eo_bands=eo_bands,
-                                    asset_regex=asset_key_regex)
+                                    asset_key_regex=asset_key_regex)
 
         return asset_wrap.download(from_bucket=from_bucket,
                                    file_obj=file_obj,
@@ -831,22 +831,18 @@ does the StacItemWrap equal a protobuf StacItem
         """
         return self.stac_item.SerializeToString() == other.SerializeToString()
 
-    def has_asset(self,
-                  asset_key: str = None,
-                  asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
-                  cloud_platform: enum.CloudPlatform = enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
-                  eo_bands: enum.Band = enum.Band.UNKNOWN_BAND,
-                  asset_regex: Dict = None,
-                  b_relaxed_types: bool = False):
-        if asset_key is not None and asset_key in self._assets:
-            return True
-        elif asset_key is not None and asset_key and asset_key not in self._assets:
-            return False
-
-        for asset in self._assets.values():
-            if asset.matches_details(asset_key, asset_type, cloud_platform, eo_bands, asset_regex, b_relaxed_types):
-                return True
-        return False
+    @staticmethod
+    def _asset_types_match(desired_type: enum.AssetType, asset_type: enum.AssetType,
+                           b_relaxed_types: bool = False) -> bool:
+        if not b_relaxed_types:
+            return desired_type == asset_type
+        elif desired_type == enum.AssetType.TIFF:
+            return asset_type == desired_type or \
+                   asset_type == enum.AssetType.GEOTIFF or \
+                   asset_type == enum.AssetType.CO_GEOTIFF
+        elif desired_type == enum.AssetType.GEOTIFF:
+            return asset_type == desired_type or asset_type == enum.AssetType.CO_GEOTIFF
+        return asset_type == desired_type
 
     def get_assets(self,
                    asset_key: str = None,
@@ -863,8 +859,32 @@ does the StacItemWrap equal a protobuf StacItem
         results = []
         for asset_key in self._assets:
             current = self._assets[asset_key]
-            if not current.matches_details(asset_key, asset_type, cloud_platform, eo_bands, asset_regex, b_relaxed_types):
+            b_asset_type_match = self._asset_types_match(desired_type=asset_type,
+                                                         asset_type=current.asset_type,
+                                                         b_relaxed_types=b_relaxed_types)
+            if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and current.eo_bands != eo_bands:
                 continue
+            if (cloud_platform is not None and cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM) and \
+                    current.cloud_platform != cloud_platform:
+                continue
+            if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and not b_asset_type_match:
+                continue
+            if asset_regex is not None and len(asset_regex) > 0:
+                b_continue = False
+                for key, regex_value in asset_regex.items():
+                    if key == 'asset_key':
+                        if not re.match(regex_value, asset_key):
+                            b_continue = True
+                            break
+                    else:
+                        if not hasattr(current, key):
+                            raise AttributeError("no key {0} in asset {1}".format(key, current))
+                        elif not re.match(regex_value, getattr(current, key)):
+                            b_continue = True
+                            break
+
+                if b_continue:
+                    continue
 
             # check that asset hasn't changed between protobuf and asset_map
             pb_asset = self.stac_item.assets[asset_key]
@@ -1223,29 +1243,62 @@ class NSLClientEx(NSLClient):
                   timeout=15,
                   nsl_id: str = None,
                   profile_name: str = None,
-                  auto_paginate: bool = False) -> Iterator[StacItemWrap]:
-        for stac_item in self.search(stac_request_wrapped.stac_request,
+                  increment_search: Optional[int] = None) -> Iterator[StacItemWrap]:
+        if increment_search is not None and increment_search > 0 and stac_request_wrapped.offset > 0:
+            raise ValueError("can't use offset and increment_search. offset should be paired with limit, "
+                             "and increment_search should be set to None")
+
+        if increment_search is not None and increment_search > stac_request_wrapped.limit:
+            # TODO put a warning here?
+            increment_search = None
+
+        if increment_search is None or increment_search <= 0:
+            for stac_item in list(self.search(stac_request_wrapped.stac_request,
+                                              timeout=timeout,
+                                              nsl_id=nsl_id,
+                                              profile_name=profile_name)):
+                if not stac_item.id:
+                    return
+                else:
+                    yield StacItemWrap(stac_item=stac_item)
+        else:
+            expected_total = stac_request_wrapped.limit
+            total = 0
+            stac_request_wrapped.limit = increment_search
+            stac_request_wrapped.offset = 0
+            items = list(self.search(stac_request_wrapped.stac_request,
                                      timeout=timeout,
                                      nsl_id=nsl_id,
-                                     profile_name=profile_name,
-                                     auto_paginate=auto_paginate):
-            yield StacItemWrap(stac_item=stac_item)
+                                     profile_name=profile_name))
+            while len(items) > 0:
+                for stac_item in items:
+                    total += 1
+                    yield StacItemWrap(stac_item=stac_item)
+                    if total >= expected_total:
+                        return
+
+                stac_request_wrapped.offset += stac_request_wrapped.limit
+                items = list(self.search(stac_request_wrapped.stac_request,
+                                         timeout=timeout,
+                                         nsl_id=nsl_id,
+                                         profile_name=profile_name))
 
     def feature_collection_ex(self,
                               stac_request_wrapped: StacRequestWrap,
                               timeout=15,
                               nsl_id: str = None,
                               profile_name: str = None,
-                              feature_collection: Dict = None,
-                              auto_paginate: bool = False) -> Dict:
+                              increment_search: int = None,
+                              feature_collection: Dict = None) -> Dict:
         if feature_collection is None:
             feature_collection = {'type': 'FeatureCollection', 'features': []}
 
-        for item in self.search_ex(stac_request_wrapped,
-                                   timeout=timeout,
-                                   nsl_id=nsl_id,
-                                   profile_name=profile_name,
-                                   auto_paginate=auto_paginate):
+        items = self.search_ex(stac_request_wrapped,
+                               timeout=timeout,
+                               nsl_id=nsl_id,
+                               profile_name=profile_name,
+                               increment_search=increment_search)
+        for item in items:
             feature_collection['features'].append(item.feature)
 
         return feature_collection

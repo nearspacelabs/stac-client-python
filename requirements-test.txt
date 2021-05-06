@@ -2,5 +2,4 @@ pytest
 flake8<3.8.0
 pytest-flake8
 numpy
-requests
 treon
