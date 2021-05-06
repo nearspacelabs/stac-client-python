@@ -910,8 +910,8 @@ class TestWrap(unittest.TestCase):
         self.assertEquals(6, len(items))
         union1 = cascaded_union([item.geometry for item in items])
         union2 = cascaded_union([shape(feature['geometry']) for feature in features])
-        diff = union1.s_difference(union2)
-        self.assertTrue(union1.s_equals(union2), diff)
+        diff = union1.difference(union2)
+        self.assertTrue(union1.equals(union2), diff)
 
     def test_json(self):
         # request wrapper
