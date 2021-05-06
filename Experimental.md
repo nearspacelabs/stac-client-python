@@ -775,30 +775,16 @@ for stac_item in client_ex.search_ex(request):
     asset_wrap = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL)
     print(asset_wrap)
     print()
-
-
-<details><summary>Expand Python Print-out</summary>
-
-
-```
-
-
-</details>
-
-text
-    # (side-note delete=False in NamedTemporaryFile is only required for windows.)
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as file_obj:
         asset_wrap.download(file_obj=file_obj)
         print("downloaded file {}".format(os.path.basename(asset_wrap.object_path)))
         print()
-        # uncomment to display            
-        # display(Image(filename=file_obj.name))
 ```
 
 
 </details>
 
-```
+
 
 
 <details><summary>Expand Python Print-out</summary>
@@ -806,7 +792,7 @@ text
 
 ```text
     warning, no projection data set. assuming WGS84
-    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x12116fdd0>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x12116f650>}
+    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x1249c9490>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x1249c9110>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183418Z_716_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -821,7 +807,7 @@ text
     
     downloaded file 20190822T183418Z_716_POM1_ST2_P.png
     
-    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x10c87bf10>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x1212068d0>}
+    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x110095310>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x124a22c50>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -836,7 +822,7 @@ text
     
     downloaded file 20190822T183410Z_712_POM1_ST2_P.png
     
-    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x12116f810>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x121206b90>}
+    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x110095750>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x124a22850>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
