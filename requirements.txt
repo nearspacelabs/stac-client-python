@@ -1,6 +1,6 @@
 boto3==1.16.10
 epl.protobuf.v1==1.0.1
-epl.geometry==1.0.3
+shapely
 google-cloud-storage>=1.14.0
 grpcio-tools==1.33.2
 protobuf>=3.8.0

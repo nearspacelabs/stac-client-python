@@ -1,5 +1,4 @@
 requests
 jupyter
 ipykernel
-shapely
 matplotlib
