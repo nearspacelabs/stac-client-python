@@ -1000,7 +1000,7 @@ class StacRequestWrap(_BaseWrap):
 
     @intersects_proj.setter
     def intersects_proj(self, value: ProjectionData):
-        if self.stac_request.HasField("geometry"):
+        if self.stac_request.HasField("intersects"):
             self.stac_request.intersects.proj.CopyFrom(value)
             return
         raise ValueError("can't set intersects projection without first setting geometry")

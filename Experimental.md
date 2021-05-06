@@ -16,7 +16,7 @@ import tempfile
 from datetime import date
 
 from IPython.display import Image, display
-from epl.geometry import Point
+from shapely.wkt import loads as loads_wkt
 from nsl.stac import enum, utils
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
 
@@ -41,7 +41,7 @@ request = StacRequestWrap()
 # the epl.geometry Point class is an extension of shapely's Point class that supports
 # the protobuf definitions we use with STAC. To extract a shapely geometry from it use
 # the shapely_dump property
-request.intersects = Point.import_wkt(wkt="POINT(-97.7323317 30.2830764)", epsg=4326)
+request.intersects = loads_wkt("POINT(-97.7323317 30.2830764)")
 
 # The `set_observed` method allows for making sql-like queries on the observed field and the
 # LTE is an enum that means less than or equal to the value in the query field
@@ -77,6 +77,7 @@ print(asset_wrap)
 ```text
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
+    warning, no projection data set. assuming WGS84
     attempting NSL authentication against https://api.nearspacelabs.net
     fetching new authorization in 60 minutes
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183518Z_746_POM1_ST2_P.png"
@@ -304,8 +305,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035)))
     STAC item id: 20200703T174303Z_595_POM1_ST2_P
     bounds:
     (-97.75153797990234, 30.269721707638205, -97.73325611269058, 30.28300247580166)
@@ -319,8 +319,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512)))
     STAC item id: 20200703T174258Z_592_POM1_ST2_P
     bounds:
     (-97.75173081772343, 30.27574130837018, -97.73339335367488, 30.289420847305855)
@@ -334,8 +333,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995)))
 ```
 
 
@@ -408,8 +406,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035)))
     TEST RESULT 'True': stac_item id 20200703T174443Z_650_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
     
     STAC item id: 20200703T174303Z_595_POM1_ST2_P
@@ -425,8 +422,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512)))
     TEST RESULT 'True': stac_item id 20200703T174303Z_595_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
     
     STAC item id: 20200703T174258Z_592_POM1_ST2_P
@@ -442,8 +438,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995)))
     TEST RESULT 'True': stac_item id 20200703T174258Z_592_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
     
 ```
@@ -466,7 +461,7 @@ Use a GeoJSON geometry to define the `intersects` property.
 ```python
 import json
 import requests
-from epl.geometry import shape as epl_shape
+from shapely.geometry import shape
 
 from nsl.stac.experimental import StacRequestWrap, NSLClientEx
 
@@ -477,7 +472,7 @@ request = StacRequestWrap()
 
 # retrieve a coarse geojson foot print of Travis County, Texas
 r = requests.get("http://raw.githubusercontent.com/johan/world.geo.json/master/countries/USA/TX/Travis.geo.json")
-travis_shape = epl_shape(r.json()['features'][0]['geometry'], epsg=4326)
+travis_shape = shape(r.json()['features'][0]['geometry'])
 
 # search for any data that intersects the travis county geometry
 request.intersects = travis_shape
@@ -503,6 +498,7 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
+    warning, no projection data set. assuming WGS84
     STAC item id: 20201001T211834Z_2012_POM1_ST2_P
     Stac item observed: 2020-10-01 21:18:34+00:00
     STAC item id: 20201001T211832Z_2011_POM1_ST2_P
@@ -525,14 +521,14 @@ Use a [WKT](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geom
 
 
 ```python
-from epl.geometry import Polygon
+from shapely.wkt import loads as loads_wkt
 
 # Same geometry as above, but a wkt geometry instead of a geojson
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, \
               -97.8476 30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, \
               -97.4916 30.2089, -97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, \
               -98.1708 30.3567, -98.1270 30.4279, -98.0503 30.6251, -97.9736 30.6251))" 
-request.intersects = Polygon.import_wkt(wkt=travis_wkt, epsg=4326)
+request.intersects = loads_wkt(travis_wkt)
 request.limit = 2
 for stac_item in client_ex.search_ex(request):
     print("STAC item id: {0} from wkt filter intersects result from geojson filter: {1}"
@@ -549,6 +545,7 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
+    warning, no projection data set. assuming WGS84
     STAC item id: 20201001T211834Z_2012_POM1_ST2_P from wkt filter intersects result from geojson filter: True
     STAC item id: 20201001T211832Z_2011_POM1_ST2_P from wkt filter intersects result from geojson filter: True
 ```
@@ -614,8 +611,8 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item date, 2021-02-07 20:29:00+00:00, is after 2019-08-21 00:00:00: True
-    STAC item date, 2021-02-07 20:28:58+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2021-04-27 17:04:09+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2021-04-27 17:04:06+00:00, is after 2019-08-21 00:00:00: True
 ```
 
 
@@ -639,13 +636,17 @@ from datetime import datetime, timezone, timedelta
 from nsl.stac.client import NSLClient
 from nsl.stac import utils, enum, StacRequest
 
+request = StacRequestWrap()
+
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
 # ... up until August 10, 2019
-end = start + timedelta(days=9)
+end = start + timedelta(days=14)
 
 request.set_observed(rel_type=enum.FilterRelationship.BETWEEN, start=start, end=end)
 request.limit = 2
+
+print(request)
 
 # get a client interface to the gRPC channel
 client_ex = NSLClientEx()
@@ -667,8 +668,20 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item date, 2019-08-06 20:42:53+00:00, is between 2019-08-01 00:00:00 and 2019-08-10 00:00:00
-    STAC item date, 2019-08-06 20:42:51+00:00, is between 2019-08-01 00:00:00 and 2019-08-10 00:00:00
+    limit: 2
+    id: ""
+    observed {
+      rel_type: BETWEEN
+      start {
+        seconds: 1564617600
+      }
+      end {
+        seconds: 1565827200
+      }
+    }
+    
+    STAC item date, 2019-08-11 19:52:10+00:00, is between 2019-08-01 00:00:00 and 2019-08-15 00:00:00
+    STAC item date, 2019-08-11 19:52:08+00:00, is between 2019-08-01 00:00:00 and 2019-08-15 00:00:00
 ```
 
 
@@ -744,19 +757,20 @@ import os
 import tempfile
 from IPython.display import Image, display
 
-from epl.geometry import LineString
+from shapely.wkt import loads as loads_wkt
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
-from nsl.stac import utils, enum
+from nsl.stac import utils, enum, ProjectionData
 
 request = StacRequestWrap()
-request.intersects = LineString.import_wkt(wkt='LINESTRING(622301.8284206488 3350344.236542711, 622973.3950196661 3350466.792693002)', 
-                                           epsg=3744)
+request.intersects = loads_wkt('LINESTRING(622301.8284206488 3350344.236542711, 622973.3950196661 3350466.792693002)')
+request.intersects_proj = ProjectionData(epsg=3744)
 request.set_observed(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
 request.limit = 3
 
 client_ex = NSLClientEx()
 
 for stac_item in client_ex.search_ex(request):
+    print(stac_item._assets)
     # get the thumbnail asset from the assets map
     asset_wrap = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL)
     print(asset_wrap)
@@ -791,6 +805,8 @@ text
 
 
 ```text
+    warning, no projection data set. assuming WGS84
+    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x1081bb090>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x106c959d0>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183418Z_716_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -805,6 +821,7 @@ text
     
     downloaded file 20190822T183418Z_716_POM1_ST2_P.png
     
+    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x11ca6c790>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x11caffa10>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -819,6 +836,7 @@ text
     
     downloaded file 20190822T183410Z_712_POM1_ST2_P.png
     
+    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x1081bb090>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x11caff550>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -854,9 +872,10 @@ In order to make our off nadir query we need to insert it inside of an [ViewRequ
 
 ```python
 from datetime import datetime, timezone
-from epl.geometry import Point
+from shapely.wkt import loads as loads_wkt
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
 from nsl.stac.enum import FilterRelationship, Mission
+from nsl.stac import ProjectionData
 
 request = StacRequestWrap()
 
@@ -867,7 +886,8 @@ request.set_off_nadir(rel_type=FilterRelationship.GTE, value=30.0)
 request.set_gsd(rel_type=FilterRelationship.LT, value=1.0)
 
 # define ourselves a point in Texas
-request.intersects = Point.import_wkt("POINT(621920.1090935947 3350833.389847579)", epsg=26914)
+request.intersects = loads_wkt("POINT(621920.1090935947 3350833.389847579)")
+request.intersects_proj = ProjectionData(epsg=26914)
 # the above could also be defined using longitude and latitude as follows:
 # request.intersects = Point.import_wkt("POINT(-97.7323317 30.2830764)", epsg=4326)
 
@@ -902,6 +922,7 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
+    warning, no projection data set. assuming WGS84
     SWIFT STAC item '20190806T202221Z_9007_POM1_ST2_P' from 2019-08-06 20:22:21+00:00
 ```
 
@@ -932,14 +953,13 @@ In order to extract a shapely geometry from the STAC item geometry use the `shap
 
 
 ```python
-from epl.geometry import LineString
+from shapely.wkt import loads as loads_wkt
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
 from nsl.stac import utils, enum
 
 request = StacRequestWrap()
 
-request.intersects = LineString.import_wkt(wkt='LINESTRING(-97.72842049283962 30.278624772098176,-97.72142529172878 30.2796624743974)', 
-                                           epsg=4326)
+request.intersects = loads_wkt('LINESTRING(-97.72842049283962 30.278624772098176,-97.72142529172878 30.2796624743974)')
 
 request.set_observed(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
 request.limit = 10
@@ -949,10 +969,10 @@ client_ex = NSLClientEx()
 unioned = None
 for stac_item in client_ex.search_ex(request):
     if unioned is None:
-        unioned = stac_item.geometry.shapely_dump
+        unioned = stac_item.geometry
     else:
         # execute shapely union
-        unioned = unioned.union(stac_item.geometry.shapely_dump)
+        unioned = unioned.union(stac_item.geometry)
 
 print(unioned)
 ```
@@ -967,6 +987,7 @@ print(unioned)
 
 
 ```text
+    warning, no projection data set. assuming WGS84
     POLYGON ((-97.73904613302376 30.28558379365554, -97.7391983503974 30.2875173500651, -97.72321588821087 30.28827923391159, -97.72318191531373 30.28782344215122, -97.71713732528039 30.28831646331542, -97.71693109816546 30.28666272574028, -97.70874633971988 30.28734610398103, -97.70818071127752 30.28287053252838, -97.70808905472636 30.28287930690277, -97.70677365314802 30.27386748307901, -97.7170478085542 30.27277749017812, -97.71706056512183 30.27243547076341, -97.71909405701686 30.27256040213442, -97.7213917618061 30.27231663689927, -97.7211668184693 30.27047840774788, -97.73716286590115 30.26897383853585, -97.73753540641121 30.27221456038255, -97.74030883925472 30.27238987412984, -97.7401564450095 30.27643992828877, -97.74061099516257 30.27646759248412, -97.74006387853352 30.28564189160005, -97.73904613302376 30.28558379365554))
 ```
 
