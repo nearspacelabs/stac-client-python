@@ -22,11 +22,12 @@ import pickle
 import tempfile
 import unittest
 
-from epl import geometry as epl_geometry
-from epl.geometry import Polygon
 from epl.protobuf.v1.geometry_pb2 import EnvelopeData
 from google.protobuf import timestamp_pb2
 from datetime import datetime, timezone, date, timedelta
+from shapely.wkt import loads as loads_wkt
+from shapely.ops import cascaded_union
+from shapely.geometry import shape
 
 from nsl.stac import StacRequest, LandsatRequest, MosaicRequest
 from nsl.stac import StacItem, Asset, TimestampFilter, GeometryData, ProjectionData, Mosaic
@@ -744,7 +745,7 @@ class TestWrap(unittest.TestCase):
         # (the latitude longitude  spatial reference most commonly used)
         # the epl.geometry Polygon class is an extension of shapely's Polygon class that supports
         # the protobuf definitions we use with STAC
-        request.intersects = Polygon.import_wkt(wkt="POINT(-97.7323317 30.2830764)", epsg=4326)
+        request.intersects = loads_wkt("POINT(-97.7323317 30.2830764)")
 
         # `set_observed` allows for making sql-like queries for information
         # LTE is an enum that means less than or equal to the value in the query field
@@ -892,7 +893,7 @@ class TestWrap(unittest.TestCase):
                      "30.4717, -97.7764 30.4279, -97.5793 30.4991, -97.3711 30.4170, -97.4916 30.2089, " \
                      "-97.6505 30.0719, -97.6669 30.0665, -97.7107 30.0226, -98.1708 30.3567, -98.1270 30.4279, " \
                      "-98.0503 30.6251, -97.9736 30.6251)) "
-        r.intersects = Polygon.import_wkt(wkt=travis_wkt, epsg=4326)
+        r.intersects = loads_wkt(travis_wkt)
         feature_collection = client_ex.feature_collection_ex(r)
         items = list(client_ex.search_ex(r))
         r.offset = 3
@@ -907,8 +908,8 @@ class TestWrap(unittest.TestCase):
         for feature in features:
             self.assertTrue(feature['id'] in id_list)
         self.assertEquals(6, len(items))
-        union1 = Polygon.s_cascaded_union([item.geometry for item in items])
-        union2 = Polygon.s_cascaded_union([epl_geometry.shape(feature['geometry'], epsg=4326) for feature in features])
+        union1 = cascaded_union([item.geometry for item in items])
+        union2 = cascaded_union([shape(feature['geometry']) for feature in features])
         diff = union1.s_difference(union2)
         self.assertTrue(union1.s_equals(union2), diff)
 

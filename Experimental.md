@@ -806,7 +806,7 @@ text
 
 ```text
     warning, no projection data set. assuming WGS84
-    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x1081bb090>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x106c959d0>}
+    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x12116fdd0>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x12116f650>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183418Z_716_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -821,7 +821,7 @@ text
     
     downloaded file 20190822T183418Z_716_POM1_ST2_P.png
     
-    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x11ca6c790>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x11caffa10>}
+    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x10c87bf10>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x1212068d0>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -836,7 +836,7 @@ text
     
     downloaded file 20190822T183410Z_712_POM1_ST2_P.png
     
-    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x1081bb090>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x11caff550>}
+    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x12116f810>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x121206b90>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB

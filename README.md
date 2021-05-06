@@ -587,8 +587,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2021-02-07T20:29:00+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2021-02-07T20:28:58+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2021-04-27T17:04:09+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2021-04-27T17:04:06+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
