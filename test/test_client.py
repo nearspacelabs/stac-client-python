@@ -787,6 +787,7 @@ class TestWrap(unittest.TestCase):
             found += 1
         self.assertEqual(3, found)
 
+    @unittest.skip("mono-759 shapely removes exceptions for projections")
     def test_set_intersects_without_proj(self):
         neighborhood_box = (-97.7352547645, 30.27526474757116, -97.7195692, 30.28532)
         envelope_data = EnvelopeData(xmin=neighborhood_box[0],
@@ -828,7 +829,7 @@ class TestWrap(unittest.TestCase):
         request.set_bounds(neighborhood_box, epsg=4326)
 
         self.assertEquals(request.bbox.xmin, neighborhood_box[0])
-        self.assertEquals(request.intersects.proj.epsg, 4326)
+        self.assertEquals(request.stac_request.intersects.proj.epsg, 4326)
 
     def test_date_vs_datetime(self):
         r = StacRequestWrap()
