@@ -792,7 +792,7 @@ for stac_item in client_ex.search_ex(request):
 
 ```text
     warning, no projection data set. assuming WGS84
-    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x1249c9490>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x1249c9110>}
+    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x102341c50>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x116d71e50>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183418Z_716_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -807,7 +807,7 @@ for stac_item in client_ex.search_ex(request):
     
     downloaded file 20190822T183418Z_716_POM1_ST2_P.png
     
-    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x110095310>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x124a22c50>}
+    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x1023e2350>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x116d7bad0>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -822,7 +822,7 @@ for stac_item in client_ex.search_ex(request):
     
     downloaded file 20190822T183410Z_712_POM1_ST2_P.png
     
-    {'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x110095750>, 'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x124a22850>}
+    {'THUMBNAIL_RGB': <nsl.stac.experimental.AssetWrap object at 0x1023e2910>, 'GEOTIFF_RGB': <nsl.stac.experimental.AssetWrap object at 0x116d7bc10>}
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -883,19 +883,12 @@ request.limit = 4
 # get a client interface to the gRPC channel
 client_ex = NSLClientEx()
 for stac_item in client_ex.search_ex(request):
-    print("{0} STAC item '{1}' from {2}\nhas a off_nadir\t{3:.2f}, which should be greater than or "
-          "equal to requested off_nadir\t{4:.3f} (confirmed {5})".format(
+    print("{0} STAC item '{1}' from {2}, off nadir {3:.2f}, gsd {4:.2f}".format(
         stac_item.mission.name,
         stac_item.id,
         stac_item.observed,
         stac_item.off_nadir,
-        request.stac_request.view.off_nadir.value,
-        request.stac_request.view.off_nadir.value < stac_item.off_nadir))
-    print("has a gsd\t{0:.3f}, which should be less than "
-          "the requested\t\t  gsd\t\t{1:.3f} (confirmed {2})".format(
-        stac_item.gsd,              
-        request.stac_request.gsd.value,
-        request.stac_request.gsd.value < stac_item.gsd))
+        stac_item.gsd))
 ```
 
 
@@ -909,23 +902,15 @@ for stac_item in client_ex.search_ex(request):
 
 ```text
     warning, no projection data set. assuming WGS84
-    SWIFT STAC item '20190806T202221Z_9007_POM1_ST2_P' from 2019-08-06 20:22:21+00:00
+    SWIFT STAC item '20190806T202221Z_9007_POM1_ST2_P' from 2019-08-06 20:22:21+00:00, off nadir 34.28, gsd 0.20
+    SWIFT STAC item '20190806T202219Z_9006_POM1_ST2_P' from 2019-08-06 20:22:19+00:00, off nadir 34.51, gsd 0.20
+    SWIFT STAC item '20190806T202153Z_8993_POM1_ST2_P' from 2019-08-06 20:21:53+00:00, off nadir 32.85, gsd 0.20
+    SWIFT STAC item '20190806T202151Z_8992_POM1_ST2_P' from 2019-08-06 20:21:51+00:00, off nadir 33.23, gsd 0.20
 ```
 
 
 </details>
 
-    has a off_nadir	34.28, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
-    SWIFT STAC item '20190806T202219Z_9006_POM1_ST2_P' from 2019-08-06 20:22:19+00:00
-    has a off_nadir	34.51, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
-    SWIFT STAC item '20190806T202153Z_8993_POM1_ST2_P' from 2019-08-06 20:21:53+00:00
-    has a off_nadir	32.85, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
-    SWIFT STAC item '20190806T202151Z_8992_POM1_ST2_P' from 2019-08-06 20:21:51+00:00
-    has a off_nadir	33.23, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
 
 
 ## Shapely Geometry
