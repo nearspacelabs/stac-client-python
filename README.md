@@ -120,6 +120,54 @@ This call will take a little bit to execute as it downloads an image.
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 import tempfile
 from IPython.display import Image, display
@@ -168,6 +216,46 @@ with tempfile.TemporaryDirectory() as d:
     filename = utils.download_asset(asset=asset, save_directory=d)
     display(Image(filename=filename))
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -236,6 +324,54 @@ The easiest query to construct is a `StacRequest` constructor with no variables,
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac.client import NSLClient
 from nsl.stac import StacRequest
@@ -248,6 +384,46 @@ stac_request = StacRequest(id='20190822T183518Z_746_POM1_ST2_P')
 stac_item = client.search_one(stac_request)
 print(stac_item)
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -388,6 +564,54 @@ The STAC specification has a bounding box `bbox` specification for STAC items. H
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac import StacRequest, EnvelopeData, ProjectionData
 from nsl.stac.client import NSLClient
@@ -410,6 +634,46 @@ stac_request = StacRequest(bbox=envelope_data)
 for stac_item in client.search(stac_request):
     print("STAC item id: {}".format(stac_item.id))
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -443,6 +707,54 @@ Above should be printed the STAC ids of 10 items (10 is the default limit for th
 #### Query By GeoJSON
 
 Next we want to try searching by geometry instead of bounding box. We'll use a geojson to define our [GeometryData](https://geo-grpc.github.io/api/#epl.protobuf.v1.GeometryData) protobuf. GeometryData can be defined using geojson, wkt, wkb, or esri_shape:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -485,6 +797,46 @@ for stac_item in client.search(stac_request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -509,6 +861,54 @@ Same geometry as above, but a wkt geometry instead of a geojson:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 # Same geometry as above, but a wkt geometry instead of a geojson
 travis_wkt = "POLYGON((-97.9736 30.6251, -97.9188 30.6032, -97.9243 30.5703, -97.8695 30.5484, \
@@ -522,6 +922,46 @@ for stac_item in client.search(stac_request):
     print("STAC item id: {0} from wkt filter intersects result from geojson filter: {1}"
           .format(stac_item.id, stac_item.id in geojson_ids))
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -558,6 +998,54 @@ When creating a time query filter, we want to use the >, >=, <, <=, ==, != opera
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from datetime import date, datetime, timezone
 from nsl.stac.client import NSLClient
@@ -583,6 +1071,46 @@ for stac_item in client.search(stac_request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -601,6 +1129,54 @@ The above result shows the datetime of the STAC item, the datetime of the query 
 #### Everything Between Two Dates
 
 Now we're going to do a range request and select data between two dates using the `start` and `end` parameters instead of the `value` parameter:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -636,6 +1212,46 @@ for stac_item in client.search(stac_request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -654,6 +1270,54 @@ In the above print out we are returned STAC items that are between the dates of 
 #### Select Data for One Day
 
 Now we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -696,6 +1360,46 @@ for stac_item in client.search(stac_request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -718,6 +1422,54 @@ To download an asset use the `bucket` + `object_path` or the `href` fields from 
 
 ### Thumbnails
 To downlad thumbnail assets follow the pattern in the below example:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -759,6 +1511,46 @@ for stac_item in client.search(stac_request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
     
 ![png](README_files/README_18_0.png)
     
@@ -778,6 +1570,54 @@ for stac_item in client.search(stac_request):
 
 ### Geotiffs
 To download the full geotiff asset follow the pattern in the below example:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -820,6 +1660,46 @@ with tempfile.TemporaryDirectory() as d:
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -838,6 +1718,54 @@ The `search` method is a gRPC streaming request. It sends a single request to th
 Otherwise, an easy way to iterate through results without timing-out on long running sub-routines is to capture the `search` results in a `list`.
 
 For example:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -877,6 +1805,46 @@ with tempfile.TemporaryDirectory() as d:
         filename = download_asset(asset=asset, save_directory=d)
         print("saved {}".format(os.path.basename(filename)))
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>

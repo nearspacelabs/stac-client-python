@@ -1,5 +1,8 @@
-requests
-jupyter
+epl.geometry==1.0.3
+
 ipykernel
-shapely
+jupyter
+jupyter_contrib_nbextensions
 matplotlib
+requests
+shapely

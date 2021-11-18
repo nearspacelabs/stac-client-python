@@ -6,18 +6,56 @@ import boto3
 import botocore.exceptions
 
 from datetime import date, datetime, timezone
-from typing import Union, Iterator, List, Optional, Tuple, Dict
+from typing import Union, Iterator, List, Optional, Tuple, Dict, BinaryIO, IO, Set
 
-from epl.protobuf.v1.geometry_pb2 import ProjectionData
 from google.protobuf.any_pb2 import Any
 from google.protobuf.wrappers_pb2 import FloatValue
-from epl.geometry import BaseGeometry, Polygon
-from typing.io import BinaryIO, IO
+from shapely.geometry.base import BaseGeometry
+from shapely.geometry import Polygon
 
-from nsl.stac import StacItem, StacRequest, View, ViewRequest, \
-    Mosaic, MosaicRequest, Eo, EoRequest, EnvelopeData, FloatFilter, Asset, enum, utils
+from nsl.stac import enum, utils, stac_service as stac_singleton, \
+    StacItem, StacRequest, View, ViewRequest, ProjectionData, GeometryData, \
+    Mosaic, MosaicRequest, Eo, EoRequest, EnvelopeData, FloatFilter, Asset, \
+    StringFilter, TimestampFilter
 from nsl.stac.client import NSLClient
-from nsl.stac import stac_service as stac_singleton
+from nsl.stac.destinations import BaseDestination
+from nsl.stac.subscription import Subscription
+
+
+def _from_protobuf(geometry_data: GeometryData) -> BaseGeometry:
+    if len(geometry_data.wkt) > 0:
+        from shapely.wkt import loads as loads_wkt
+        return loads_wkt(geometry_data.wkt)
+    elif len(geometry_data.wkb) > 0:
+        from shapely.wkb import loads as loads_wkb
+        return loads_wkb(geometry_data.wkb)
+    else:
+        raise ValueError("no geometry data")
+
+
+def _from_envelope_data(envelope_data: EnvelopeData) -> BaseGeometry:
+    return Polygon.from_bounds(xmin=envelope_data.xmin,
+                               ymin=envelope_data.ymin,
+                               xmax=envelope_data.xmax,
+                               ymax=envelope_data.ymax)
+
+
+def _to_protobuf(geometry: BaseGeometry, proj: ProjectionData = None):
+    if proj is None:
+        print("warning, no projection data set. assuming WGS84")
+        proj = ProjectionData(epsg=4326)
+    return GeometryData(wkb=geometry.wkb, proj=proj)
+
+
+def _to_envelope_data(geometry: BaseGeometry, proj: ProjectionData = None):
+    if proj is None:
+        print("warning, no projection data set. assuming WGS84")
+        proj = ProjectionData(epsg=4326)
+    return EnvelopeData(xmin=geometry.bounds[0],
+                        ymin=geometry.bounds[1],
+                        xmax=geometry.bounds[2],
+                        ymax=geometry.bounds[3],
+                        proj=proj)
 
 
 def _set_properties(stac_data, properties, type_url_prefix):
@@ -270,6 +308,56 @@ does the AssetWrap equal a protobuf Asset
                                     save_directory=save_directory,
                                     requester_pays=requester_pays,
                                     nsl_id=nsl_id)
+
+    def matches_details(self,
+                        asset_key: str = None,
+                        asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
+                        cloud_platform: enum.CloudPlatform = enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+                        eo_bands: enum.Band = enum.Band.UNKNOWN_BAND,
+                        asset_regex: Dict = None,
+                        b_relaxed_types: bool = False) -> bool:
+        if asset_key is not None and asset_key != self.asset_key:
+            return False
+
+        b_asset_type_match = self._asset_types_match(desired_type=asset_type,
+                                                     asset_type=self.asset_type,
+                                                     b_relaxed_types=b_relaxed_types)
+
+        asset_key = self.asset_key
+
+        if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and self.eo_bands != eo_bands:
+            return False
+        if (cloud_platform is not None and cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM) and \
+                self.cloud_platform != cloud_platform:
+            return False
+        if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and not b_asset_type_match:
+            return False
+
+        if asset_regex is not None and len(asset_regex) > 0:
+            for key, regex_value in asset_regex.items():
+                if key == 'asset_key':
+                    if not re.match(regex_value, asset_key):
+                        return False
+                else:
+                    if not hasattr(self, key):
+                        raise AttributeError("no key {0} in asset {1}".format(key, self))
+                    elif not re.match(regex_value, getattr(self, key)):
+                        return False
+
+        return True
+
+    @staticmethod
+    def _asset_types_match(desired_type: enum.AssetType, asset_type: enum.AssetType,
+                           b_relaxed_types: bool = False) -> bool:
+        if not b_relaxed_types:
+            return desired_type == asset_type
+        elif desired_type == enum.AssetType.TIFF:
+            return asset_type == desired_type or \
+                   asset_type == enum.AssetType.GEOTIFF or \
+                   asset_type == enum.AssetType.CO_GEOTIFF
+        elif desired_type == enum.AssetType.GEOTIFF:
+            return asset_type == desired_type or asset_type == enum.AssetType.CO_GEOTIFF
+        return asset_type == desired_type
 
     @staticmethod
     def _asset_type_details(asset_type: enum.AssetType, b_thumbnail_png: bool = True) -> (str, str):
@@ -530,14 +618,33 @@ geojson feature with geometry being only aspect defined
     @property
     def geometry(self) -> BaseGeometry:
         if self.stac_item.HasField("geometry"):
-            return BaseGeometry.import_protobuf(self.stac_item.geometry)
+            return _from_protobuf(self.stac_item.geometry)
         elif self.stac_item.HasField("bbox"):
-            return Polygon.from_envelope_data(self.stac_item.bbox)
+            return _from_envelope_data(self.stac_item.bbox)
 
     @geometry.setter
     def geometry(self, value: BaseGeometry):
-        self.stac_item.geometry.CopyFrom(value.geometry_data)
-        self.stac_item.bbox.CopyFrom(value.envelope_data)
+        if isinstance(value, BaseGeometry):
+            self.stac_item.geometry.CopyFrom(_to_protobuf(value))
+        else:
+            # try epl.geometry
+            self.stac_item.geometry.CopyFrom(value.geometry_data)
+        self.stac_item.bbox.CopyFrom(_to_envelope_data(value))
+
+    @property
+    def geometry_proj(self) -> ProjectionData:
+        if self.stac_item.HasField("geometry"):
+            return self.stac_item.geometry.proj
+        elif self.stac_item.HasField("bbox"):
+            return self.stac_item.bbox.proj
+        return None
+
+    @geometry_proj.setter
+    def geometry_proj(self, value: ProjectionData):
+        if self.stac_item.HasField("geometry"):
+            self.stac_item.geometry.proj.CopyFrom(value)
+            return
+        raise ValueError("can't set geometry projection without first setting geometry")
 
     @property
     def gsd(self) -> Optional[float]:
@@ -712,7 +819,7 @@ then that supersedes this projection definition.
                                     asset_type=asset_type,
                                     cloud_platform=cloud_platform,
                                     eo_bands=eo_bands,
-                                    asset_key_regex=asset_key_regex)
+                                    asset_regex=asset_key_regex)
 
         return asset_wrap.download(from_bucket=from_bucket,
                                    file_obj=file_obj,
@@ -727,18 +834,22 @@ does the StacItemWrap equal a protobuf StacItem
         """
         return self.stac_item.SerializeToString() == other.SerializeToString()
 
-    @staticmethod
-    def _asset_types_match(desired_type: enum.AssetType, asset_type: enum.AssetType,
-                           b_relaxed_types: bool = False) -> bool:
-        if not b_relaxed_types:
-            return desired_type == asset_type
-        elif desired_type == enum.AssetType.TIFF:
-            return asset_type == desired_type or \
-                   asset_type == enum.AssetType.GEOTIFF or \
-                   asset_type == enum.AssetType.CO_GEOTIFF
-        elif desired_type == enum.AssetType.GEOTIFF:
-            return asset_type == desired_type or asset_type == enum.AssetType.CO_GEOTIFF
-        return asset_type == desired_type
+    def has_asset(self,
+                  asset_key: str = None,
+                  asset_type: enum.AssetType = enum.AssetType.UNKNOWN_ASSET,
+                  cloud_platform: enum.CloudPlatform = enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
+                  eo_bands: enum.Band = enum.Band.UNKNOWN_BAND,
+                  asset_regex: Dict = None,
+                  b_relaxed_types: bool = False):
+        if asset_key is not None and asset_key in self._assets:
+            return True
+        elif asset_key is not None and asset_key and asset_key not in self._assets:
+            return False
+
+        for asset in self._assets.values():
+            if asset.matches_details(asset_key, asset_type, cloud_platform, eo_bands, asset_regex, b_relaxed_types):
+                return True
+        return False
 
     def get_assets(self,
                    asset_key: str = None,
@@ -755,32 +866,8 @@ does the StacItemWrap equal a protobuf StacItem
         results = []
         for asset_key in self._assets:
             current = self._assets[asset_key]
-            b_asset_type_match = self._asset_types_match(desired_type=asset_type,
-                                                         asset_type=current.asset_type,
-                                                         b_relaxed_types=b_relaxed_types)
-            if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and current.eo_bands != eo_bands:
+            if not current.matches_details(asset_key, asset_type, cloud_platform, eo_bands, asset_regex, b_relaxed_types):
                 continue
-            if (cloud_platform is not None and cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM) and \
-                    current.cloud_platform != cloud_platform:
-                continue
-            if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and not b_asset_type_match:
-                continue
-            if asset_regex is not None and len(asset_regex) > 0:
-                b_continue = False
-                for key, regex_value in asset_regex.items():
-                    if key == 'asset_key':
-                        if not re.match(regex_value, asset_key):
-                            b_continue = True
-                            break
-                    else:
-                        if not hasattr(current, key):
-                            raise AttributeError("no key {0} in asset {1}".format(key, current))
-                        elif not re.match(regex_value, getattr(current, key)):
-                            b_continue = True
-                            break
-
-                if b_continue:
-                    continue
 
             # check that asset hasn't changed between protobuf and asset_map
             pb_asset = self.stac_item.assets[asset_key]
@@ -821,15 +908,17 @@ class StacRequestWrap(_BaseWrap):
         if self.stac_request.HasField("bbox"):
             return self.stac_request.bbox
         elif self.stac_request.HasField("intersects"):
-            return self.intersects.envelope_data
+            # TODO mono-759, this seems messy
+            return _to_envelope_data(_from_protobuf(self.intersects))
         return None
 
     @bbox.setter
     def bbox(self, value: EnvelopeData):
         # this tests the spatial reference (it would be better to have a dedicated method)
-        value = Polygon.from_envelope_data(envelope_data=value).envelope_data
         self.stac_request.bbox.CopyFrom(value)
         self.stac_request.ClearField("intersects")
+        # TODO mono-759, this seems messy
+        self.stac_request.intersects.CopyFrom(_to_protobuf(_from_envelope_data(value), proj=value.proj))
 
     @property
     def collection(self) -> str:
@@ -854,6 +943,8 @@ class StacRequestWrap(_BaseWrap):
     @id.setter
     def id(self, value: str):
         self.stac_request.id = value
+        if self.stac_request.HasField("id_complex"):
+            self.stac_request.ClearField("id_complex")
 
     @property
     def instrument(self) -> enum.Instrument:
@@ -866,15 +957,38 @@ class StacRequestWrap(_BaseWrap):
     @property
     def intersects(self) -> Optional[BaseGeometry]:
         if self.stac_request.HasField("intersects"):
-            return BaseGeometry.import_protobuf(self.stac_request.intersects)
+            return _from_protobuf(self.stac_request.intersects)
         elif self.stac_request.HasField("bbox"):
-            return Polygon.from_envelope_data(self.bbox)
+            return _from_envelope_data(self.bbox)
         return None
 
     @intersects.setter
-    def intersects(self, geometry: BaseGeometry):
-        self.stac_request.intersects.CopyFrom(geometry.geometry_data)
+    def intersects(self, geometry: BaseGeometry, proj: ProjectionData = None):
+        if isinstance(geometry, BaseGeometry):
+            if proj is None:
+                print("warning, no projection data set. assuming WGS84")
+                proj = ProjectionData(epsg=4326)
+            g = GeometryData(wkb=geometry.wkb, proj=proj)
+            self.stac_request.intersects.CopyFrom(g)
+        else:
+            # assume epl.geometry
+            self.stac_request.intersects.CopyFrom(geometry.geometry_data)
         self.stac_request.ClearField("bbox")
+
+    @property
+    def intersects_proj(self) -> ProjectionData:
+        if self.stac_request.HasField("intersects"):
+            return self.stac_request.intersects.proj
+        elif self.stac_request.HasField("bbox"):
+            return self.stac_request.bbox.proj
+        return None
+
+    @intersects_proj.setter
+    def intersects_proj(self, value: ProjectionData):
+        if self.stac_request.HasField("geometry"):
+            self.stac_request.intersects.proj.CopyFrom(value)
+            return
+        raise ValueError("can't set intersects projection without first setting geometry")
 
     @property
     def limit(self) -> int:
@@ -949,6 +1063,24 @@ other quad STAC items that are contained by '02313012030' are returned.
     def stac_request(self) -> StacRequest:
         return self._stac_data
 
+    @property
+    def created(self) -> Optional[TimestampFilter]:
+        if self.stac_request.created is None or self.stac_request.created == TimestampFilter():
+            return None
+        return self.stac_request.created
+
+    @property
+    def updated(self) -> Optional[TimestampFilter]:
+        if self.stac_request.updated is None or self.stac_request.updated == TimestampFilter():
+            return None
+        return self.stac_request.updated
+
+    @property
+    def observed(self) -> Optional[TimestampFilter]:
+        if self.stac_request.observed is None or self.stac_request.observed == TimestampFilter():
+            return None
+        return self.stac_request.observed
+
     def set_bounds(self, bounds: Tuple[float, float, float, float], epsg: int = 0, proj4: str = ""):
         proj = ProjectionData(proj4=proj4)
         if epsg > 0:
@@ -968,6 +1100,14 @@ other quad STAC items that are contained by '02313012030' are returned.
 
         float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.view.azimuth.CopyFrom(float_filter)
+
+    def set_id_complex(self,
+                       value_set: Set[str],
+                       rel_type: enum.FilterRelationship = enum.FilterRelationship.IN):
+        if len(self.id) > 0:
+            self.id = ''
+
+        self.stac_request.id_complex.CopyFrom(StringFilter(set=list(value_set), rel_type=rel_type))
 
     def set_off_nadir(self,
                       rel_type: enum.FilterRelationship,
@@ -1040,6 +1180,28 @@ other quad STAC items that are contained by '02313012030' are returned.
                                                                   sort_direction=sort_direction,
                                                                   tzinfo=tzinfo))
 
+    def merge_observed(self,
+                       rel_type: enum.FilterRelationship = None,
+                       value: Union[datetime, date] = None,
+                       start: Union[datetime, date] = None,
+                       end: Union[datetime, date] = None,
+                       sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
+                       tzinfo: timezone = timezone.utc,
+                       set_if_unset=False):
+        """Merges `TimestampFilter` fields into an existing `observed` field; if unset, use `set_if_unset`."""
+        observed = self.observed
+        if observed is None:
+            if set_if_unset:
+                self.set_observed(rel_type=rel_type, value=value, start=start, end=end,
+                                  sort_direction=sort_direction, tzinfo=tzinfo)
+        else:
+            self.set_observed(rel_type=rel_type if rel_type is not None else observed.rel_type,
+                              value=value if value is not None else datetime.utcfromtimestamp(observed.value.seconds),
+                              start=start if start is not None else datetime.utcfromtimestamp(observed.start.seconds),
+                              end=end if end is not None else datetime.utcfromtimestamp(observed.end.seconds),
+                              sort_direction=sort_direction if sort_direction is not None else observed.sort_direction,
+                              tzinfo=tzinfo)
+
     def set_created(self,
                     rel_type: enum.FilterRelationship,
                     value: Union[datetime, date] = None,
@@ -1054,6 +1216,28 @@ other quad STAC items that are contained by '02313012030' are returned.
                                                                  sort_direction=sort_direction,
                                                                  tzinfo=tzinfo))
 
+    def merge_created(self,
+                      rel_type: enum.FilterRelationship = None,
+                      value: Union[datetime, date] = None,
+                      start: Union[datetime, date] = None,
+                      end: Union[datetime, date] = None,
+                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
+                      tzinfo: timezone = timezone.utc,
+                      set_if_unset=False):
+        """Merges `TimestampFilter` fields into an existing `created` field; if unset, use `set_if_unset`."""
+        created = self.created
+        if created is None:
+            if set_if_unset:
+                self.set_created(rel_type=rel_type, value=value, start=start, end=end,
+                                 sort_direction=sort_direction, tzinfo=tzinfo)
+        else:
+            self.set_created(rel_type=rel_type if rel_type is not None else created.rel_type,
+                             value=value if value is not None else datetime.utcfromtimestamp(created.value.seconds),
+                             start=start if start is not None else datetime.utcfromtimestamp(created.start.seconds),
+                             end=end if end is not None else datetime.utcfromtimestamp(created.end.seconds),
+                             sort_direction=sort_direction if sort_direction is not None else created.sort_direction,
+                             tzinfo=tzinfo)
+
     def set_updated(self,
                     rel_type: enum.FilterRelationship,
                     value: Union[datetime, date] = None,
@@ -1067,6 +1251,28 @@ other quad STAC items that are contained by '02313012030' are returned.
                                                                  end=end,
                                                                  sort_direction=sort_direction,
                                                                  tzinfo=tzinfo))
+
+    def merge_updated(self,
+                      rel_type: enum.FilterRelationship = None,
+                      value: Union[datetime, date] = None,
+                      start: Union[datetime, date] = None,
+                      end: Union[datetime, date] = None,
+                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
+                      tzinfo: timezone = timezone.utc,
+                      set_if_unset=False):
+        """Merges `TimestampFilter` fields into an existing `updated` field; if unset, use `set_if_unset`."""
+        updated = self.updated
+        if updated is None:
+            if set_if_unset:
+                self.set_updated(rel_type=rel_type, value=value, start=start, end=end,
+                                 sort_direction=sort_direction, tzinfo=tzinfo)
+        else:
+            self.set_updated(rel_type=rel_type if rel_type is not None else updated.rel_type,
+                             value=value if value is not None else datetime.utcfromtimestamp(updated.value.seconds),
+                             start=start if start is not None else datetime.utcfromtimestamp(updated.start.seconds),
+                             end=end if end is not None else datetime.utcfromtimestamp(updated.end.seconds),
+                             sort_direction=sort_direction if sort_direction is not None else updated.sort_direction,
+                             tzinfo=tzinfo)
 
     def _float_filter(self,
                       rel_type: enum.FilterRelationship,
@@ -1114,62 +1320,29 @@ class NSLClientEx(NSLClient):
                   timeout=15,
                   nsl_id: str = None,
                   profile_name: str = None,
-                  increment_search: Optional[int] = None) -> Iterator[StacItemWrap]:
-        if increment_search is not None and increment_search > 0 and stac_request_wrapped.offset > 0:
-            raise ValueError("can't use offset and increment_search. offset should be paired with limit, "
-                             "and increment_search should be set to None")
-
-        if increment_search is not None and increment_search > stac_request_wrapped.limit:
-            # TODO put a warning here?
-            increment_search = None
-
-        if increment_search is None or increment_search <= 0:
-            for stac_item in list(self.search(stac_request_wrapped.stac_request,
-                                              timeout=timeout,
-                                              nsl_id=nsl_id,
-                                              profile_name=profile_name)):
-                if not stac_item.id:
-                    return
-                else:
-                    yield StacItemWrap(stac_item=stac_item)
-        else:
-            expected_total = stac_request_wrapped.limit
-            total = 0
-            stac_request_wrapped.limit = increment_search
-            stac_request_wrapped.offset = 0
-            items = list(self.search(stac_request_wrapped.stac_request,
+                  auto_paginate: bool = False) -> Iterator[StacItemWrap]:
+        for stac_item in self.search(stac_request_wrapped.stac_request,
                                      timeout=timeout,
                                      nsl_id=nsl_id,
-                                     profile_name=profile_name))
-            while len(items) > 0:
-                for stac_item in items:
-                    total += 1
-                    yield StacItemWrap(stac_item=stac_item)
-                    if total >= expected_total:
-                        return
-
-                stac_request_wrapped.offset += stac_request_wrapped.limit
-                items = list(self.search(stac_request_wrapped.stac_request,
-                                         timeout=timeout,
-                                         nsl_id=nsl_id,
-                                         profile_name=profile_name))
+                                     profile_name=profile_name,
+                                     auto_paginate=auto_paginate):
+            yield StacItemWrap(stac_item=stac_item)
 
     def feature_collection_ex(self,
                               stac_request_wrapped: StacRequestWrap,
                               timeout=15,
                               nsl_id: str = None,
                               profile_name: str = None,
-                              increment_search: int = None,
-                              feature_collection: Dict = None) -> Dict:
+                              feature_collection: Dict = None,
+                              auto_paginate: bool = False) -> Dict:
         if feature_collection is None:
             feature_collection = {'type': 'FeatureCollection', 'features': []}
 
-        items = self.search_ex(stac_request_wrapped,
-                               timeout=timeout,
-                               nsl_id=nsl_id,
-                               profile_name=profile_name,
-                               increment_search=increment_search)
-        for item in items:
+        for item in self.search_ex(stac_request_wrapped,
+                                   timeout=timeout,
+                                   nsl_id=nsl_id,
+                                   profile_name=profile_name,
+                                   auto_paginate=auto_paginate):
             feature_collection['features'].append(item.feature)
 
         return feature_collection
@@ -1192,3 +1365,20 @@ class NSLClientEx(NSLClient):
                  profile_name: str = None) -> int:
         return self.count(stac_request=stac_request_wrapped.stac_request,
                           timeout=timeout, nsl_id=nsl_id, profile_name=profile_name)
+
+    def subscribe_ex(self,
+                     stac_request_wrapped: StacRequestWrap,
+                     destination: BaseDestination,
+                     nsl_id: str = None,
+                     profile_name: str = None) -> str:
+        return self.subscribe(stac_request=stac_request_wrapped.stac_request, destination=destination,
+                              nsl_id=nsl_id, profile_name=profile_name)
+
+    def resubscribe_ex(self, sub_id: str, nsl_id: str = None, profile_name: str = None):
+        return self.resubscribe(sub_id=sub_id, nsl_id=nsl_id, profile_name=profile_name)
+
+    def unsubscribe_ex(self, sub_id: str, nsl_id: str = None, profile_name: str = None):
+        return self.unsubscribe(sub_id=sub_id, nsl_id=nsl_id, profile_name=profile_name)
+
+    def subscriptions_ex(self, nsl_id: str = None, profile_name: str = None) -> List[Subscription]:
+        return self.subscriptions(nsl_id=nsl_id, profile_name=profile_name)
