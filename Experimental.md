@@ -11,6 +11,150 @@ This is an alternative to the original version [here](./README.md#first-code-exa
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 import tempfile
 from datetime import date
@@ -71,6 +215,126 @@ print(asset_wrap)
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -107,6 +371,150 @@ The easiest query to construct is a `StacRequestWrap` constructor with no variab
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
 
@@ -120,6 +528,126 @@ request = StacRequestWrap(id='20190822T183518Z_746_POM1_ST2_P')
 stac_item = client.search_one_ex(request)
 print(stac_item)
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -252,6 +780,150 @@ You can query for STAC items intersecting a bounding box of minx, miny, maxx, an
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac.experimental import StacRequestWrap, NSLClientEx
 
@@ -280,6 +952,126 @@ for stac_item in client_ex.search_ex(request):
     print(stac_item.geometry)
     epsg_4326_ids.append(stac_item.id)
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -355,6 +1147,150 @@ Notice that the results below are the same as the cell above (look at the `TEST-
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac.experimental import StacRequestWrap, NSLClientEx
 
@@ -384,6 +1320,126 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -463,6 +1519,150 @@ Use a GeoJSON geometry to define the `intersects` property.
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 import json
 import requests
@@ -499,6 +1699,126 @@ for stac_item in client_ex.search_ex(request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -524,6 +1844,150 @@ Use a [WKT](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geom
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from epl.geometry import Polygon
 
@@ -538,6 +2002,126 @@ for stac_item in client_ex.search_ex(request):
     print("STAC item id: {0} from wkt filter intersects result from geojson filter: {1}"
           .format(stac_item.id, stac_item.id in geojson_ids))
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -581,6 +2165,150 @@ When creating a time query filter, we want to use the >, >=, <, <=, ==, != opera
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from datetime import date, datetime, timezone
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
@@ -610,6 +2338,126 @@ for stac_item in client_ex.search_ex(request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -626,6 +2474,150 @@ for stac_item in client_ex.search_ex(request):
 #### Everything Between Two Dates
 
 Now we're going to do a range request and select data between two dates using the `start` and `end` parameters instead of the `value` parameter:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -663,6 +2655,126 @@ for stac_item in client_ex.search_ex(request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -681,6 +2793,150 @@ In the above print out we are returned STAC items that are between the dates of 
 #### Select Data for One Day
 
 Now we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -717,6 +2973,126 @@ for stac_item in client.search_ex(request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -731,6 +3107,150 @@ for stac_item in client.search_ex(request):
 
 
 ## Downloading from AssetWrap
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -767,6 +3287,126 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -852,6 +3492,150 @@ In order to make our off nadir query we need to insert it inside of an [ViewRequ
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from datetime import datetime, timezone
 from epl.geometry import Point
@@ -898,6 +3682,126 @@ for stac_item in client_ex.search_ex(request):
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -923,6 +3827,150 @@ for stac_item in client_ex.search_ex(request):
 
 ## Shapely Geometry
 In order to extract a shapely geometry from the STAC item geometry use the `shapely_dump` method.
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -963,6 +4011,126 @@ print(unioned)
 
 
 
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -985,11 +4153,275 @@ There are a number of different enum classes used for both STAC requests and STA
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 from nsl.stac import enum
 import inspect
 [m for m in inspect.getmembers(enum) if not m[0].startswith('_') and m[0][0].isupper() and m[0] != 'IntFlag']
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -1028,6 +4460,150 @@ import inspect
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 # Specific to Queries
 print("for defining the sort direction of a query")
@@ -1037,6 +4613,126 @@ print("for defining the query relationship with a value (EQ, LTE, GTE, LT, GT, N
 for f in enum.FilterRelationship:
     print(f.name)
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -1080,12 +4776,276 @@ for f in enum.FilterRelationship:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 # Specific to Assets
 print("these can be useful when getting a specific Asset from a STAC item by the type of Asset")
 for a in enum.AssetType:
     print(a.name)
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
@@ -1131,6 +5091,150 @@ for a in enum.AssetType:
 <details><summary>Expand Python Code Sample</summary>
 
 
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
 ```python
 # STAC Item details
 print("Mission, Platform and Instrument are aspects of data that can be used in queries.\nBut as NSL currently only has one platform and one instrument, these may not be useful")
@@ -1144,6 +5248,126 @@ print("\ninstruments:")
 for a in enum.Instrument:
     print(a.name)
 ```
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
+
+
+</details>
+
+
 
 
 </details>
