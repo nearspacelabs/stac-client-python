@@ -1,152 +1,11 @@
 # Experimental Features
-Here are some examples of experimental features we're planning to add to our API. These wrappers abstract away some parts of the protobuf structs, and provide easier access to geometries and `datetime`.
+Here are some examples of experimental features we're planning to add to our API. These wrappers abstract away some
+parts of the protobuf structs, and provide easier access to geometries and `datetime`.
 
 ## First Code Example
-This is an alternative to the original version [here](./README.md#first-code-example). This simplifies the setting of the `observed` field and hides the use of more verbose protobuf classes for both time filter (`observed`) and spatial filter (`intersects`).
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+This is an alternative to the original version [here](./README.md#first-code-example). This simplifies the setting of
+the `observed` field and hides the use of more verbose protobuf classes for both time filter (`observed`) and spatial
+filter (`intersects`).
 
 
 
@@ -158,6 +17,8 @@ This is an alternative to the original version [here](./README.md#first-code-exa
 ```python
 import tempfile
 from datetime import date
+
+from shapely.wkt import loads as load_wkt_shapely
 
 from IPython.display import Image, display
 from epl.geometry import Point
@@ -186,6 +47,8 @@ request = StacRequestWrap()
 # the protobuf definitions we use with STAC. To extract a shapely geometry from it use
 # the shapely_dump property
 request.intersects = Point.import_wkt(wkt="POINT(-97.7323317 30.2830764)", epsg=4326)
+# or using `shapely`
+request.intersects = load_wkt_shapely("POINT(-97.7323317 30.2830764)")
 
 # The `set_observed` method allows for making sql-like queries on the observed field and the
 # LTE is an enum that means less than or equal to the value in the query field
@@ -215,134 +78,21 @@ print(asset_wrap)
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
 ```text
+    found NSL_ID QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8 under profile name `default`
+    found NSL_ID UYw22AcAdgoy3CtRyS1jbftMqNKIXspk under profile name `ci.austin`
+    found NSL_ID GFeaOePtxSsZgEKgzWptYjG6xqWKRk9D under profile name `ci.madrid`
+    found NSL_ID 3SNdJdgKYfMeoLBpyhxDwA9S3EZNjJ3Z2 under profile name `ci.orbital`
+    found NSL_ID PIUzOjGkkmgYlZRILBfKSHTzLf10l969 under profile name `personal`
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
-    attempting NSL authentication against https://api.nearspacelabs.net
-    fetching new authorization in 60 minutes
+    warning, no projection data set. assuming WGS84
+    attempting NSL authentication against http://0.0.0.0:8000/oauth/token...
+    successfully authenticated with NSL_ID: `QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8`
+    will attempt re-authorization in 60 minutes
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183518Z_746_POM1_ST2_P.png"
     type: "image/png"
     eo_bands: RGB
@@ -362,151 +112,9 @@ print(asset_wrap)
 
 
 ## Simple Query and the Makeup of a StacItem
-The easiest query to construct is a `StacRequestWrap` constructor with no variables, and the next simplest, is the case where we know the STAC item `id` that we want to search. If we already know the STAC `id` of an item, we can construct the `StacRequestWrap` as follows:
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+The easiest query to construct is a `StacRequestWrap` constructor with no variables, and the next simplest, is the case
+where we know the STAC item `id` that we want to search. If we already know the STAC `id` of an item, we can construct
+the `StacRequestWrap` as follows:
 
 
 
@@ -528,126 +136,6 @@ request = StacRequestWrap(id='20190822T183518Z_746_POM1_ST2_P')
 stac_item = client.search_one_ex(request)
 print(stac_item)
 ```
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
 
 
 </details>
@@ -771,151 +259,10 @@ print(stac_item)
 ## Spatial Queries
 
 ### Query by Bounds
-You can query for STAC items intersecting a bounding box of minx, miny, maxx, and maxy. An [epsg](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset) code is required (4326 is the most common epsg code used for longitude and latitude). Remember, this finds STAC items that intersect the bounds, **not** STAC items contained by the bounds.
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+You can query for STAC items intersecting a bounding box of minx, miny, maxx, and maxy. An
+[epsg](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset) code is required (4326 is the most common epsg
+code used for longitude and latitude). Remember, this finds STAC items that intersect the bounds, **not** STAC items
+contained by the bounds.
 
 
 
@@ -959,126 +306,6 @@ for stac_item in client_ex.search_ex(request):
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -1096,8 +323,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035)))
     STAC item id: 20200703T174303Z_595_POM1_ST2_P
     bounds:
     (-97.75153797990234, 30.269721707638205, -97.73325611269058, 30.28300247580166)
@@ -1111,8 +337,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512)))
     STAC item id: 20200703T174258Z_592_POM1_ST2_P
     bounds:
     (-97.75173081772343, 30.27574130837018, -97.73339335367488, 30.289420847305855)
@@ -1126,8 +351,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995)))
 ```
 
 
@@ -1136,153 +360,10 @@ for stac_item in client_ex.search_ex(request):
 
 
 ### Query by Bounds; Projection Support
-Querying using geometries defined in a different projection requires defining the epsg number for the spatial reference of the data. In this example we use an epsg code for a [UTM projection](https://epsg.io/3744).
+Querying using geometries defined in a different projection requires defining the epsg number for the spatial reference
+of the data. In this example we use an epsg code for a [UTM projection](https://epsg.io/3744).
 
 Notice that the results below are the same as the cell above (look at the `TEST-->` section of the printout)
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -1315,131 +396,12 @@ for stac_item in client_ex.search_ex(request):
     print(stac_item.bbox)
     print("geometry:")
     print(stac_item.geometry)
-    print("TEST RESULT '{1}': stac_item id {0} from 3744 bounds is in the set of the 4326 bounds search results.".format(stac_item.id, stac_item.id in epsg_4326_ids))
+    print("TEST RESULT '{1}': stac_item id {0} from 3744 bounds is in the set of the 4326 bounds search results."
+          .format(stac_item.id, stac_item.id in epsg_4326_ids))
     print()
 
 
 ```
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
 
 
 </details>
@@ -1464,8 +426,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035)))
     TEST RESULT 'True': stac_item id 20200703T174443Z_650_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
     
     STAC item id: 20200703T174303Z_595_POM1_ST2_P
@@ -1481,8 +442,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512)))
     TEST RESULT 'True': stac_item id 20200703T174303Z_595_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
     
     STAC item id: 20200703T174258Z_592_POM1_ST2_P
@@ -1498,8 +458,7 @@ for stac_item in client_ex.search_ex(request):
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995))) epsg: 4326
-    
+    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995)))
     TEST RESULT 'True': stac_item id 20200703T174258Z_592_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
     
 ```
@@ -1511,150 +470,6 @@ for stac_item in client_ex.search_ex(request):
 
 ### Query by GeoJSON
 Use a GeoJSON geometry to define the `intersects` property.
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
 
 
 
@@ -1699,134 +514,14 @@ for stac_item in client_ex.search_ex(request):
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
 ```text
-    STAC item id: 20201001T211834Z_2012_POM1_ST2_P
-    Stac item observed: 2020-10-01 21:18:34+00:00
-    STAC item id: 20201001T211832Z_2011_POM1_ST2_P
-    Stac item observed: 2020-10-01 21:18:32+00:00
+    STAC item id: 20211115T204123Z_1409_POM1_ST2_13_P
+    Stac item observed: 2021-11-15 20:41:23+00:00
+    STAC item id: 20211115T204116Z_1406_POM1_ST2_13_P
+    Stac item observed: 2021-11-15 20:41:16+00:00
 ```
 
 
@@ -1835,151 +530,8 @@ for stac_item in client_ex.search_ex(request):
 
 
 ### Query by WKT
-Use a [WKT](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry) geometry to define the `intersects` property.
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+Use a [WKT](https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry) geometry to define the
+`intersects` property.
 
 
 
@@ -2009,132 +561,12 @@ for stac_item in client_ex.search_ex(request):
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
 ```text
-    STAC item id: 20201001T211834Z_2012_POM1_ST2_P from wkt filter intersects result from geojson filter: True
-    STAC item id: 20201001T211832Z_2011_POM1_ST2_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20211115T204123Z_1409_POM1_ST2_13_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20211115T204116Z_1406_POM1_ST2_13_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -2152,155 +584,15 @@ When it comes to Temporal queries there are a few things to note.
   - date for GTE or LT is defined as the date from the first nanosecond of that date
   - date for LTE or GT is defined as the date at the final nanosecond of that date
   - date for start and end with BETWEEN has a start with minimum time and an end with the max time. same for NOT_BETWEEN
-  - datetime for GTE, GT, LTE, LT, BETWEEN and NOT_BETWEEN is interpreted strictly according to the nanosecond of that datetime definition(s) provided
-
-When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range requests. We do this by using the `set_observed` method and the `value` set to a date/datetime combined with `rel_typ` set to `GTE`,`GT`, `LTE`, `LT`, `EQ`, or `NEQ`. If we use `rel_type` set to `BETWEEN` OR `NOT_BETWEEN` then we must set the `start` **and** the `end` variables.
-
-### Everything After A Secific Date
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+  - datetime for GTE, GT, LTE, LT, BETWEEN and NOT_BETWEEN is interpreted strictly according to the nanosecond of that
+  datetime definition(s) provided
+
+When creating a time query filter, we want to use the >, >=, <, <=, ==, != operations and inclusive and exclusive range
+requests. We do this by using the `set_observed` method and the `value` set to a date/datetime combined with `rel_typ`
+set to `GTE`,`GT`, `LTE`, `LT`, `EQ`, or `NEQ`. If we use `rel_type` set to `BETWEEN` OR `NOT_BETWEEN` then we must set
+the `start` **and** the `end` variables.
+
+### Everything After A Specific Date
 
 
 
@@ -2310,9 +602,9 @@ When creating a time query filter, we want to use the >, >=, <, <=, ==, != opera
 
 
 ```python
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
-from nsl.stac import utils, enum
+from nsl.stac import enum
 
 # get a client interface to the gRPC channel
 client_ex = NSLClientEx()
@@ -2338,132 +630,12 @@ for stac_item in client_ex.search_ex(request):
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
 ```text
-    STAC item date, 2021-02-07 20:29:00+00:00, is after 2019-08-21 00:00:00: True
-    STAC item date, 2021-02-07 20:28:58+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2021-11-22 20:23:25+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2021-11-22 20:22:54+00:00, is after 2019-08-21 00:00:00: True
 ```
 
 
@@ -2473,151 +645,8 @@ for stac_item in client_ex.search_ex(request):
 
 #### Everything Between Two Dates
 
-Now we're going to do a range request and select data between two dates using the `start` and `end` parameters instead of the `value` parameter:
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+Now we're going to do a range request and select data between two dates using the `start` and `end` parameters instead
+of the `value` parameter:
 
 
 
@@ -2628,8 +657,7 @@ Now we're going to do a range request and select data between two dates using th
 
 ```python
 from datetime import datetime, timezone, timedelta
-from nsl.stac.client import NSLClient
-from nsl.stac import utils, enum, StacRequest
+from nsl.stac import enum
 
 # Query data from August 1, 2019
 start = datetime(2019, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
@@ -2655,126 +683,6 @@ for stac_item in client_ex.search_ex(request):
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -2788,155 +696,16 @@ for stac_item in client_ex.search_ex(request):
 
 
 
-In the above print out we are returned STAC items that are between the dates of Aug 1 2019 and Aug 10 2019. Also, notice there's no warnings as we defined our utc timezone on the datetime objects.
+In the above print out we are returned STAC items that are between the dates of Aug 1 2019 and Aug 10 2019. Also, notice
+there's no warnings as we defined our utc timezone on the datetime objects.
 
 #### Select Data for One Day
 
-Now we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to  use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with `EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only specific down to the day, the filter is created for the entire day. This will check for everything from the start until the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+Now we'll search for everything on a specific day using a python `datetime.date` for the `value` and `rel_type` set to
+use equals (`FilterRelationship.EQ`). Python's `datetime.datetime` is a specific value and if you use it combined with
+`EQ` the query would insist that the time relationship match down to the second. But since `datetime.date` is only
+specific down to the day, the filter is created for the entire day. This will check for everything from the start until
+the end of the 8th of August, specifically in the Austin, Texas timezone (UTC -6).
 
 
 
@@ -2973,126 +742,6 @@ for stac_item in client.search_ex(request):
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -3115,150 +764,6 @@ for stac_item in client.search_ex(request):
 <details><summary>Expand Python Code Sample</summary>
 
 
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
 ```python
 import os
 import tempfile
@@ -3269,162 +774,32 @@ from nsl.stac.experimental import NSLClientEx, StacRequestWrap
 from nsl.stac import utils, enum
 
 request = StacRequestWrap()
-request.intersects = LineString.import_wkt(wkt='LINESTRING(622301.8284206488 3350344.236542711, 622973.3950196661 3350466.792693002)', 
+request.intersects = LineString.import_wkt(wkt='LINESTRING(622301.8284206488 3350344.236542711,'
+                                               '622973.3950196661 3350466.792693002)',
                                            epsg=3744)
 request.set_observed(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
 request.limit = 3
 
 client_ex = NSLClientEx()
 
-for stac_item in client_ex.search_ex(request):
-    # get the thumbnail asset from the assets map
-    asset_wrap = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL)
-    print(asset_wrap)
+stac_item = client_ex.search_one_ex(request)
+# get the thumbnail asset from the assets map
+asset_wrap = stac_item.get_asset(asset_type=enum.AssetType.THUMBNAIL)
+print(asset_wrap)
+
+# (side-note delete=False in NamedTemporaryFile is only required for windows.)
+with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as file_obj:
+    asset_wrap.download(file_obj=file_obj)
+    print("downloaded file {}".format(os.path.basename(asset_wrap.object_path)))
     print()
-
-
-<details><summary>Expand Python Print-out</summary>
-
-
+    # uncomment to display            
+    # display(Image(filename=file_obj.name))
 ```
 
 
 </details>
 
 
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-text
-    # (side-note delete=False in NamedTemporaryFile is only required for windows.)
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as file_obj:
-        asset_wrap.download(file_obj=file_obj)
-        print("downloaded file {}".format(os.path.basename(asset_wrap.object_path)))
-        print()
-        # uncomment to display            
-        # display(Image(filename=file_obj.name))
-```
-
-
-</details>
-
-```
 
 
 <details><summary>Expand Python Print-out</summary>
@@ -3442,36 +817,7 @@ text
     object_path: "20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183418Z_716_POM1_ST2_P.png"
     extension: .png
     asset_key: THUMBNAIL_RGB
-    
     downloaded file 20190822T183418Z_716_POM1_ST2_P.png
-    
-    href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
-    type: "image/png"
-    eo_bands: RGB
-    asset_type: THUMBNAIL
-    cloud_platform: GCP
-    bucket_manager: "Near Space Labs"
-    bucket_region: "us-central1"
-    bucket: "swiftera-processed-data"
-    object_path: "20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183410Z_712_POM1_ST2_P.png"
-    extension: .png
-    asset_key: THUMBNAIL_RGB
-    
-    downloaded file 20190822T183410Z_712_POM1_ST2_P.png
-    
-    href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
-    type: "image/png"
-    eo_bands: RGB
-    asset_type: THUMBNAIL
-    cloud_platform: GCP
-    bucket_manager: "Near Space Labs"
-    bucket_region: "us-central1"
-    bucket: "swiftera-processed-data"
-    object_path: "20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183400Z_707_POM1_ST2_P.png"
-    extension: .png
-    asset_key: THUMBNAIL_RGB
-    
-    downloaded file 20190822T183400Z_707_POM1_ST2_P.png
     
 ```
 
@@ -3481,153 +827,13 @@ text
 
 
 ## View
-For our ground sampling distance query we're using another query filter; this time it's the [FloatFilter](https://geo-grpc.github.io/api/#epl.protobuf.v1.FloatFilter). It behaves just as the TimestampFilter, but with floats for `value` or for `start` + `end`.
-
-In order to make our off nadir query we need to insert it inside of an [ViewRequest](https://geo-grpc.github.io/api/#epl.protobuf.v1.ViewRequest) container and set that to the `view` field of the `StacRequest`.
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+For our ground sampling distance query we're using another query filter; this time it's the
+[FloatFilter](https://geo-grpc.github.io/api/#epl.protobuf.v1.FloatFilter). It behaves just as the TimestampFilter, but
+with floats for `value` or for `start` + `end`.
+
+In order to make our off nadir query we need to insert it inside of an
+[ViewRequest](https://geo-grpc.github.io/api/#epl.protobuf.v1.ViewRequest) container and set that to the `view` field of
+the `StacRequest`.
 
 
 
@@ -3682,126 +888,6 @@ for stac_item in client_ex.search_ex(request):
 
 
 
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
 <details><summary>Expand Python Print-out</summary>
 
 
@@ -3826,151 +912,9 @@ for stac_item in client_ex.search_ex(request):
 
 
 ## Shapely Geometry
-In order to extract a shapely geometry from the STAC item geometry use the `shapely_dump` method.
 
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
+Both `StacItemWrap` and `StacRequestWrap` support `shapely` geometries by default, and can be used in place of
+`epl.geometry` types.
 
 
 
@@ -3980,16 +924,17 @@ In order to extract a shapely geometry from the STAC item geometry use the `shap
 
 
 ```python
-from epl.geometry import LineString
+from shapely.wkt import loads as loads_wkt
+
 from nsl.stac.experimental import NSLClientEx, StacRequestWrap
 from nsl.stac import utils, enum
 
 request = StacRequestWrap()
 
-request.intersects = LineString.import_wkt(wkt='LINESTRING(-97.72842049283962 30.278624772098176,-97.72142529172878 30.2796624743974)', 
-                                           epsg=4326)
+request.intersects = loads_wkt('LINESTRING(-97.72842049283962 30.278624772098176,'
+                               '-97.72142529172878 30.2796624743974)')
 
-request.set_observed(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
+request.set_observed(value=date(2019, 8, 20), rel_type=enum.FilterRelationship.LTE)
 request.limit = 10
 
 client_ex = NSLClientEx()
@@ -3997,133 +942,13 @@ client_ex = NSLClientEx()
 unioned = None
 for stac_item in client_ex.search_ex(request):
     if unioned is None:
-        unioned = stac_item.geometry.shapely_dump
+        unioned = stac_item.geometry
     else:
         # execute shapely union
-        unioned = unioned.union(stac_item.geometry.shapely_dump)
+        unioned = unioned.union(stac_item.geometry)
 
 print(unioned)
 ```
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
 
 
 </details>
@@ -4135,7 +960,8 @@ print(unioned)
 
 
 ```text
-    POLYGON ((-97.73904613302376 30.28558379365554, -97.7391983503974 30.2875173500651, -97.72321588821087 30.28827923391159, -97.72318191531373 30.28782344215122, -97.71713732528039 30.28831646331542, -97.71693109816546 30.28666272574028, -97.70874633971988 30.28734610398103, -97.70818071127752 30.28287053252838, -97.70808905472636 30.28287930690277, -97.70677365314802 30.27386748307901, -97.7170478085542 30.27277749017812, -97.71706056512183 30.27243547076341, -97.71909405701686 30.27256040213442, -97.7213917618061 30.27231663689927, -97.7211668184693 30.27047840774788, -97.73716286590115 30.26897383853585, -97.73753540641121 30.27221456038255, -97.74030883925472 30.27238987412984, -97.7401564450095 30.27643992828877, -97.74061099516257 30.27646759248412, -97.74006387853352 30.28564189160005, -97.73904613302376 30.28558379365554))
+    warning, no projection data set. assuming WGS84
+    POLYGON ((-97.72197853142319 30.27298342950026, -97.72178036133324 30.27245385797281, -97.73579589062696 30.26793906410984, -97.73794706841718 30.2741425833901, -97.74158567751194 30.27386117530614, -97.74144154657606 30.28243151045525, -97.74023350199663 30.28252151468067, -97.7404345051003 30.2830438910299, -97.72644173188067 30.28727143486248, -97.72600866344004 30.28615796986944, -97.72071547151319 30.28705703595722, -97.72037933156265 30.2853407695101, -97.7100688189238 30.28393372738422, -97.71182414094548 30.27659253040514, -97.71291710431618 30.27672847223155, -97.71304358920513 30.2761965041207, -97.71314653040032 30.27568312378152, -97.71316521494255 30.27568497255121, -97.71341376642306 30.27463961873366, -97.71640141374144 30.27502500953458, -97.716191729408 30.27409533218606, -97.72197853142319 30.27298342950026))
 ```
 
 
@@ -4153,275 +979,11 @@ There are a number of different enum classes used for both STAC requests and STA
 <details><summary>Expand Python Code Sample</summary>
 
 
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
 ```python
 from nsl.stac import enum
 import inspect
 [m for m in inspect.getmembers(enum) if not m[0].startswith('_') and m[0][0].isupper() and m[0] != 'IntFlag']
 ```
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
 
 
 </details>
@@ -4460,279 +1022,17 @@ import inspect
 <details><summary>Expand Python Code Sample</summary>
 
 
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
 ```python
 # Specific to Queries
 print("for defining the sort direction of a query")
 for s in enum.SortDirection:
     print(s.name)
-print("for defining the query relationship with a value (EQ, LTE, GTE, LT, GT, NEQ), a start-end range \n(BETWEEN, NOT_BETWEEN), a set (IN, NOT_IN) or a string (LIKE, NOT_LIKE). To be noted, EQ is the default relationship type")
+print("for defining the query relationship with a value (EQ, LTE, GTE, LT, GT, NEQ), a start-end range \n"
+      "(BETWEEN, NOT_BETWEEN), a set (IN, NOT_IN) or a string (LIKE, NOT_LIKE). "
+      "NOTE: EQ is the default relationship type")
 for f in enum.FilterRelationship:
     print(f.name)
 ```
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
 
 
 </details>
@@ -4749,7 +1049,7 @@ for f in enum.FilterRelationship:
     DESC
     ASC
     for defining the query relationship with a value (EQ, LTE, GTE, LT, GT, NEQ), a start-end range 
-    (BETWEEN, NOT_BETWEEN), a set (IN, NOT_IN) or a string (LIKE, NOT_LIKE). To be noted, EQ is the default relationship type
+    (BETWEEN, NOT_BETWEEN), a set (IN, NOT_IN) or a string (LIKE, NOT_LIKE). NOTE: EQ is the default relationship type
     EQ
     LTE
     GTE
@@ -4776,276 +1076,12 @@ for f in enum.FilterRelationship:
 <details><summary>Expand Python Code Sample</summary>
 
 
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
 ```python
 # Specific to Assets
 print("these can be useful when getting a specific Asset from a STAC item by the type of Asset")
 for a in enum.AssetType:
     print(a.name)
 ```
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
 
 
 </details>
@@ -5091,153 +1127,10 @@ for a in enum.AssetType:
 <details><summary>Expand Python Code Sample</summary>
 
 
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
-
-
-
-<details><summary>Expand Python Code Sample</summary>
-
-
 ```python
 # STAC Item details
-print("Mission, Platform and Instrument are aspects of data that can be used in queries.\nBut as NSL currently only has one platform and one instrument, these may not be useful")
+print("Mission, Platform and Instrument are aspects of data that can be used in queries.\n"
+      "But as NSL currently only has one platform and one instrument, these may not be useful")
 print("missions:")
 for a in enum.Mission:
     print(a.name)
@@ -5248,126 +1141,6 @@ print("\ninstruments:")
 for a in enum.Instrument:
     print(a.name)
 ```
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
-
-
-</details>
-
-
 
 
 </details>
@@ -5400,6 +1173,7 @@ for a in enum.Instrument:
     LANDSAT_7
     LANDSAT_8
     SWIFT_2
+    SWIFT_3
     
     instruments:
     UNKNOWN_INSTRUMENT
@@ -5411,6 +1185,233 @@ for a in enum.Instrument:
     ETM
     MSS
     POM_2
+```
+
+
+</details>
+
+
+
+## Subscriptions and Data Delivery
+This feature is useful if you want to be subscribed to a `StacRequest`, receiving published assets to a cloud bucket.
+
+### Cloud Accounts
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    - AWS id: `275780812376`
+    - GCP id: `107132813273614076540`
+    - GCP email: `thirdparty-bucket-access@swiftera-processed-data.iam.gserviceaccount.com`
+```
+
+
+</details>
+
+
+### Example
+
+Set up for the destination bucket is slightly different between AWS and GCP, so we'll review both.
+
+Assume that we have an upcoming flight covering Austin, TX and you'd like only some STAC items to be copied to your 
+bucket as they're published:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+from datetime import datetime, timezone
+
+from nsl.stac import enum
+from nsl.stac.destinations import AWSDestination, GCPDestination
+from nsl.stac.experimental import StacRequestWrap, NSLClientEx
+
+# get a client interface to the gRPC channel
+client_ex = NSLClientEx()
+
+# create a new request
+request = StacRequestWrap()
+# a polygon containing two University of Texas at Austin stadiums
+request.intersects = Polygon.import_wkt('POLYGON((-97.73521184921263 30.28551192777313,'
+                                        '-97.73522257804868 30.279369307168608,'
+                                        '-97.72501945495603 30.279313716086122,'
+                                        '-97.7251052856445 30.285530456966953,'
+                                        '-97.73521184921263 30.28551192777313))',
+                                        epsg=4326)
+# we only want images delivered after the flight was conducted
+request.set_observed(rel_type=enum.FilterRelationship.GTE, value=datetime(2021, 11, 1, tzinfo=timezone.utc))
+```
+
+
+</details>
+
+
+
+### GCP Delivery
+
+The destination bucket preparation process for GCP is fairly simple:
+
+1. Create a GCP Role with only `storage.buckets.get`, `storage.objects.get` and `storage.objects.list` permissions for
+your bucket (e.g. `my-bucket`).
+2. Assign the newly created role (e.g. `NSLSubscription`) to our GCP service account, `107132813273614076540`.
+
+Finally, lets create a `BaseDestination` object and finish creating our subscription:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+# creates a destination object to describe how assets should be delivered
+dst = GCPDestination(asset_type=enum.AssetType.GEOTIFF, # GEOTIFF by default, can also be THUMBNAIL
+                     bucket='my-bucket',                # the name of your bucket
+                     region='us-central1',              # region your bucket is located in
+                     save_directory='/')                # directory in which assets will be copied, <stac_id>.<file_ext>
+
+# create the subscription, returning its id
+sub_id = client_ex.subscribe_ex(request, destination=dst)
+print(sub_id)
+
+# retrieve all of your current subscriptions, viewing the most recent
+subs = client_ex.subscriptions_ex()
+most_recent_sub = subs[len(subs) - 1]
+print(most_recent_sub)
+
+# deactivate a subscription, pausing all deliveries
+client_ex.unsubscribe_ex(sub_id=sub_id)
+
+# reactivate a subscription, resuming all deliveries
+client_ex.resubscribe_ex(sub_id=sub_id)
+
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    created subscription with id: M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
+    M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
+    <nsl.stac.subscription.Subscription object at 0x7fde1c26a610>
+    deactivated subscription with id: M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
+    reactivated subscription with id: M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
+```
+
+
+</details>
+
+
+
+### AWS Delivery
+
+The destination bucket preparation process for AWS is slightly more involved. We're ultimately going to create an AWS
+IAM Role (e.g. `NSLDelivery`) to be assumed by NSL's AWS account,
+and an accompanying policy giving NSL's AWS account access to the destination bucket (e.g. `my-bucket`).
+  
+1. In your AWS account where the bucket is located, browse to IAM service.
+  
+2. Choose Roles -> "Create role". Choose "Another AWS account", providing NSL's AWS account ID: `275780812376`.
+  
+3. Click next to Permissions
+  
+4. Click "Create Policy", select the tab "JSON" and adjust the template below, which will whitelist actions NSL can
+perform on your chosen destination bucket.
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "VisualEditor0",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::my-bucket"
+    },
+    {
+      "Sid": "VisualEditor1",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::my-bucket/*"
+    }
+  ]
+}
+```
+  
+5. Click "Next: Tags", adding any optional tags.
+  
+6. Name this policy (e.g. `NSLBucketAccess`), and finally click "Create policy" to finish creating the policy.
+  
+7. Go back to Roles, refresh, and then select the `NSLBucketAccess` policy you just created.
+  
+8. Now we're back to finalizing the creation of the Role, so give it a meaningful name, e.g. `NSLBucketDeliverer`.
+
+9. Contact us so we can update our AWS account to assume this role and begin deliveries. 
+
+Finally, lets create a `BaseDestination` object and finish creating our subscription:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+# creates a destination object to describe how assets should be delivered
+dst = AWSDestination(asset_type=enum.AssetType.GEOTIFF, # GEOTIFF by default, can also be THUMBNAIL
+                     role_arn='arn:aws:iam::<YOUR_ACCESS_KEY_ID>:role/NSLBucketDeliverer',
+                     bucket='my-bucket',                # the name of your bucket
+                     region='us-central1',              # region your bucket is located in
+                     save_directory='/')                # directory in which assets will be copied, <stac_id>.<file_ext>
+
+# create the subscription, returning its id
+sub_id = client_ex.subscribe_ex(request, destination=dst)
+print(sub_id)
+
+# retrieve all of your current subscriptions, viewing the most recent
+subs = client_ex.subscriptions_ex()
+most_recent_sub = subs[len(subs) - 1]
+print(most_recent_sub)
+
+# deactivate a subscription, pausing all deliveries
+client_ex.unsubscribe_ex(sub_id=sub_id)
+
+# reactivate a subscription, resuming all deliveries
+client_ex.resubscribe_ex(sub_id=sub_id)
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    created subscription with id: YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
+    YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
+    <nsl.stac.subscription.Subscription object at 0x7fddd4482130>
+    deactivated subscription with id: YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
+    reactivated subscription with id: YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
 ```
 
 
