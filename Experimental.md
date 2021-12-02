@@ -82,16 +82,11 @@ print(asset_wrap)
 
 
 ```text
-    found NSL_ID QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8 under profile name `default`
-    found NSL_ID UYw22AcAdgoy3CtRyS1jbftMqNKIXspk under profile name `ci.austin`
-    found NSL_ID GFeaOePtxSsZgEKgzWptYjG6xqWKRk9D under profile name `ci.madrid`
-    found NSL_ID 3SNdJdgKYfMeoLBpyhxDwA9S3EZNjJ3Z2 under profile name `ci.orbital`
-    found NSL_ID PIUzOjGkkmgYlZRILBfKSHTzLf10l969 under profile name `personal`
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
     warning, no projection data set. assuming WGS84
-    attempting NSL authentication against http://0.0.0.0:8000/oauth/token...
-    successfully authenticated with NSL_ID: `QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8`
+    attempting NSL authentication against https://api.nearspacelabs.net/oauth/token...
+    successfully authenticated with NSL_ID: `<OMITTED>`
     will attempt re-authorization in 60 minutes
     href: "https://api.nearspacelabs.net/download/20190822T162258Z_TRAVIS_COUNTY/Published/REGION_0/20190822T183518Z_746_POM1_ST2_P.png"
     type: "image/png"
@@ -635,7 +630,7 @@ for stac_item in client_ex.search_ex(request):
 
 ```text
     STAC item date, 2021-11-22 20:23:25+00:00, is after 2019-08-21 00:00:00: True
-    STAC item date, 2021-11-22 20:22:54+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2021-11-22 20:23:09+00:00, is after 2019-08-21 00:00:00: True
 ```
 
 
@@ -1203,7 +1198,6 @@ This feature is useful if you want to be subscribed to a `StacRequest`, receivin
 
 ```text
     - AWS id: `275780812376`
-    - GCP id: `107132813273614076540`
     - GCP email: `thirdparty-bucket-access@swiftera-processed-data.iam.gserviceaccount.com`
 ```
 
@@ -1257,9 +1251,16 @@ request.set_observed(rel_type=enum.FilterRelationship.GTE, value=datetime(2021, 
 
 The destination bucket preparation process for GCP is fairly simple:
 
-1. Create a GCP Role with only `storage.buckets.get`, `storage.objects.get` and `storage.objects.list` permissions for
-your bucket (e.g. `my-bucket`).
-2. Assign the newly created role (e.g. `NSLSubscription`) to our GCP service account, `107132813273614076540`.
+1. Create a GCP Role with only `storage.objectAdmin` permissions for your bucket (e.g. `my-bucket`).
+
+2. Assign the newly created role (e.g. `NSLSubscription`) to our GCP service account,
+`thirdparty-bucket-access@swiftera-processed-data.iam.gserviceaccount.com`. This can be done from the terminal, e.g.:
+
+```bash
+$ gsutil iam ch \
+    serviceAccount:thirdparty-bucket-access@swiftera-processed-data.iam.gserviceaccount.com:roles/storage.objectAdmin \
+    gs://my-bucket
+```
 
 Finally, lets create a `BaseDestination` object and finish creating our subscription:
 
@@ -1304,11 +1305,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
-    M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
-    <nsl.stac.subscription.Subscription object at 0x7fde1c26a610>
-    deactivated subscription with id: M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
-    reactivated subscription with id: M2I0ZTYwNzctYzJkZS00YTVjLWFkNjItYTA3ZTgzMmIxNjVi
+    created subscription with id: MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
+    MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
+    <nsl.stac.subscription.Subscription object at 0x7f93e86cb6a0>
+    deactivated subscription with id: MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
+    reactivated subscription with id: MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
 ```
 
 
@@ -1407,11 +1408,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
-    YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
-    <nsl.stac.subscription.Subscription object at 0x7fddd4482130>
-    deactivated subscription with id: YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
-    reactivated subscription with id: YTJlY2Y4OWQtNDMwZC00YTIyLTg5MzctN2FmMmE0YjA3Njgx
+    created subscription with id: NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
+    NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
+    <nsl.stac.subscription.Subscription object at 0x7f93a10a3ee0>
+    deactivated subscription with id: NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
+    reactivated subscription with id: NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
 ```
 
 
