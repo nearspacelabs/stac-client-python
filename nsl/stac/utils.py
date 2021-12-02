@@ -15,12 +15,13 @@
 # for additional information, contact:
 #   info@nearspacelabs.com
 
+import base64
 import os
 import datetime
 import http.client
 import re
 from urllib.parse import urlparse
-from typing import List, Iterator, IO, Union, Dict, Any
+from typing import List, Iterator, IO, Union, Dict, Any, Optional
 
 import boto3
 import botocore
@@ -30,7 +31,7 @@ from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
 
 from nsl.stac import gcs_storage_client, bearer_auth, \
-    StacItem, Asset, TimestampFilter, Eo, DatetimeRange, enum
+    StacItem, StacRequest, Asset, TimestampFilter, Eo, DatetimeRange, enum
 from nsl.stac.enum import Band, CloudPlatform, FilterRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
@@ -82,7 +83,10 @@ def download_gcs_object(bucket: str,
             save_filename = file_obj.name
         else:
             save_filename = ""
-        file_obj.seek(0)
+        try:
+            file_obj.seek(0)
+        except:
+            pass
 
         return save_filename
     elif len(save_filename) > 0:
@@ -97,7 +101,7 @@ def download_s3_object(bucket: str,
                        blob_name: str,
                        file_obj: IO = None,
                        save_filename: str = "",
-                       requester_pays: bool = False):
+                       requester_pays: bool = False) -> str:
     extra_args = None
     if requester_pays:
         extra_args = {'RequestPayer': 'requester'}
@@ -125,7 +129,7 @@ def download_s3_object(bucket: str,
             raise
 
 
-def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str = "", nsl_id: str = None):
+def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str = "", nsl_id: str = None) -> str:
     """
     download the href of an asset
     :param asset: The asset to download
@@ -186,7 +190,7 @@ def download_asset(asset: Asset,
                    save_filename: str = "",
                    save_directory: str = "",
                    requester_pays: bool = False,
-                   nsl_id: str = None):
+                   nsl_id: str = None) -> str:
     """
     download an asset. Defaults to downloading from cloud storage. save the data to a BinaryIO file object, a filename
     on your filesystem, or to a directory on your filesystem (the filename will be chosen from the basename of the
@@ -253,13 +257,14 @@ def download_assets(stac_item: StacItem,
     return filenames
 
 
+# TODO https://pypi.org/project/Deprecated/
 def get_asset(stac_item: StacItem,
               asset_type: AssetType = None,
               cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
               eo_bands: Eo.Band = Eo.UNKNOWN_BAND,
               asset_regex: Dict = None,
               asset_key: str = None,
-              b_relaxed_types: bool = False) -> Asset:
+              b_relaxed_types: bool = False) -> Optional[Asset]:
     """
     get a protobuf object(pb) asset from a stac item pb. If your parameters are broad (say, if you used all defaults)
     this function would only return you the first asset that matches the parameters. use
@@ -303,6 +308,7 @@ does the AssetWrap equal a protobuf Asset
     return left.SerializeToString() == right.SerializeToString()
 
 
+# TODO https://pypi.org/project/Deprecated/
 def get_assets(stac_item: StacItem,
                asset_type: enum.AssetType = None,
                cloud_platform: CloudPlatform = CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
@@ -371,8 +377,8 @@ def _asset_has_filename(asset: Asset, asset_basename):
     return False
 
 
-def has_asset_type(stac_item: StacItem,
-                   asset_type: AssetType):
+# TODO https://pypi.org/project/Deprecated/
+def has_asset_type(stac_item: StacItem, asset_type: AssetType):
     """
     does the stac item contain the asset
     :param stac_item:
@@ -385,8 +391,8 @@ def has_asset_type(stac_item: StacItem,
     return False
 
 
-def has_asset(stac_item: StacItem,
-              asset: Asset):
+# TODO https://pypi.org/project/Deprecated/
+def has_asset(stac_item: StacItem, asset: Asset):
     """
     check whether a stac_item has a perfect match to the provided asset
     :param stac_item: stac item whose assets we're checking against asset
@@ -497,7 +503,7 @@ def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
 
 def timezoned(d_utc: Union[datetime.datetime, datetime.date],
               tzinfo: datetime.timezone = datetime.timezone.utc,
-              b_force_min=True):
+              b_force_min=True) -> datetime.datetime:
     # datetime is child to datetime.date, so if we reverse the order of this instance of we fail
     if isinstance(d_utc, datetime.datetime) and d_utc.tzinfo is None:
         # TODO add warning here:
@@ -519,12 +525,14 @@ def timezoned(d_utc: Union[datetime.datetime, datetime.date],
     return d_utc
 
 
+# TODO https://pypi.org/project/Deprecated/
 def duration(d_start: Union[datetime.datetime, datetime.date], d_end: Union[datetime.datetime, datetime.date]):
     d = duration_pb2.Duration()
     d.FromTimedelta(timezoned(d_end) - timezoned(d_start))
     return d
 
 
+# TODO https://pypi.org/project/Deprecated/
 def datetime_range(d_start: Union[datetime.datetime, datetime.date],
                    d_end: Union[datetime.datetime, datetime.date]) -> DatetimeRange:
     """
@@ -534,3 +542,13 @@ def datetime_range(d_start: Union[datetime.datetime, datetime.date],
     :return: DatetimeRange object
     """
     return DatetimeRange(start=pb_timestamp(d_start), end=pb_timestamp(d_end))
+
+
+def stac_request_to_b64(req: StacRequest) -> str:
+    return str(base64.b64encode(req.SerializeToString()), encoding='ascii')
+
+
+def stac_request_from_b64(encoded: str) -> StacRequest:
+    req = StacRequest()
+    req.ParseFromString(base64.b64decode(bytes(encoded, encoding='ascii')))
+    return req

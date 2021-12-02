@@ -138,6 +138,7 @@ class Platform(IntFlag):
     LANDSAT_7 = _Platform.LANDSAT_7
     LANDSAT_8 = _Platform.LANDSAT_8
     SWIFT_2 = _Platform.SWIFT_2
+    SWIFT_3 = _Platform.SWIFT_3
 
 
 # Final check to make sure that all enums have complete definitions for the associated protobufs

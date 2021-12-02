@@ -16,6 +16,7 @@
 #   info@nearspacelabs.com
 
 import abc
+import base64
 import os
 import re
 import json
@@ -267,31 +268,50 @@ class AuthInfo:
         if self.skip_authorization:
             return
 
-        print("attempting NSL authentication against {}".format(AUTH0_TENANT))
+        expiry, token = AuthInfo.get_token_client_credentials(self.nsl_id, self.nsl_secret)
+        self.expiry = expiry
+        self.token = token
+
+    @property
+    def permissions(self) -> Set[str]:
+        _, payload, _ = self.token.split('.')
+        payload = json.loads(base64.b64decode(payload + '==='))
+        return {permission for permission in payload.get('permissions', set())}
+
+    @staticmethod
+    def get_token_client_credentials(nsl_id: str, nsl_secret: str,
+                                     auth_url=f"{AUTH0_TENANT}/oauth/token",
+                                     grant_type: str = 'client_credentials',
+                                     additional_headers: dict = None):
+        print(f"attempting NSL authentication against {auth_url}...")
         now = time.time()
 
-        headers = {'content-type': 'application/json'}
+        if additional_headers is None:
+            additional_headers = dict()
+
+        headers = {'content-type': 'application/json', **additional_headers}
         post_body = {
-            'client_id': self.nsl_id,
-            'client_secret': self.nsl_secret,
+            'client_id': nsl_id,
+            'client_secret': nsl_secret,
             'audience': API_AUDIENCE,
-            'grant_type': 'client_credentials'
+            'grant_type': grant_type,
         }
 
-        auth_token_url = "{}/oauth/token".format(AUTH0_TENANT)
-        res = requests.post(auth_token_url, json=post_body, headers=headers)
+        res = requests.post(auth_url, json=post_body, headers=headers)
 
         if res.status_code != 200 and res.status_code != 201:
             # evaluate codes first.
-            message = "authentication failed with code '{0}' and reason '{1}'".format(res.status_code, res.reason)
+            message = f"authentication failed with code '{res.status_code}' and reason '{res.reason}'"
             raise requests.exceptions.RequestException(message)
         elif len(res.content) == 0:
             # then if response is empty, HTTPResponse method for read returns b"" which will be zero in length
             raise requests.exceptions.RequestException("empty authentication return. notify nsl of error")
 
+        print(f"successfully authenticated with NSL_ID: `{nsl_id}`")
         res_json = res.json()
-        self.expiry = now + int(res_json["expires_in"])
-        self.token = res_json["access_token"]
+        expiry = now + int(res_json['expires_in'])
+        token = res_json['access_token']
+        return expiry, token
 
 
 class __BearerAuth:
@@ -301,30 +321,28 @@ class __BearerAuth:
 
     def __init__(self, init=False):
         if (not NSL_ID or not NSL_SECRET) and not NSL_CREDENTIALS.exists():
-            warnings.warn("NSL_ID and NSL_SECRET environment variables not set")
+            warnings.warn(f"NSL_ID and NSL_SECRET environment variables not set, and {NSL_CREDENTIALS} does not exist")
             return
+
+        # if credentials exist, add them to our auth store
+        if NSL_CREDENTIALS and NSL_CREDENTIALS.exists():
+            for profile_name, auth_info in self.loads().items():
+                self._auth_info_map[auth_info.nsl_id] = auth_info
+                if profile_name == 'default':
+                    self._default_nsl_id = auth_info.nsl_id
+                self._profile_map[profile_name] = auth_info.nsl_id
+                print(f"found NSL_ID {auth_info.nsl_id} under profile name `{profile_name}`")
+
+        # if env vars were specified, add them as well and set them to the default
         if NSL_ID and NSL_SECRET:
+            print(f"using NSL_ID {NSL_ID} specified in env var")
             self._auth_info_map[NSL_ID] = AuthInfo(nsl_id=NSL_ID, nsl_secret=NSL_SECRET)
             self._default_nsl_id = NSL_ID
-        elif NSL_CREDENTIALS:
-            with NSL_CREDENTIALS.open('r') as file_obj:
-                lines = file_obj.readlines()
-                for i, line in enumerate(lines):
-                    if line.startswith('['):
-                        if not lines[i + 1].startswith('NSL_ID') or not lines[i + 2].startswith('NSL_SECRET'):
-                            raise ValueError("credentials should be of the format:\n[named profile]\nNSL_ID={your "
-                                             "nsl id}\nNSL_SECRET={your nsl secret}")
-                        # for id like 'NSL_ID = all_the_id_text\n', first strip remove front whitespace and newline
-                        # .strip(), now we now [6:] starts after 'NSL_ID' .strip()[6:], strip potential whitespace
-                        # between NSL_ID and '=' with .strip()[6:].strip(), start one after equal
-                        # .strip()[6:].strip()[1:], strip potential whitespace
-                        # after equal .strip()[6:].strip()[1:].strip()
-                        nsl_id = lines[i + 1].strip()[6:].strip()[1:].strip()
-                        nsl_secret = lines[i + 2].strip()[10:].strip()[1:].strip()
-                        self._auth_info_map[nsl_id] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
-                        if 'default' in line:
-                            self._default_nsl_id = nsl_id
-                        self._profile_map[line.strip().lstrip('[').rstrip(']')] = nsl_id
+
+        # if env vars are unset and no NSL_ID was tagged as default, use the first one available
+        if self.default_nsl_id is None:
+            self._default_nsl_id = list(key for key in self._auth_info_map.keys())[0]
+            print(f"using NSL_ID {self.default_nsl_id}")
 
         if init:
             self._auth_info_map[self._default_nsl_id].authorize()
@@ -333,6 +351,29 @@ class __BearerAuth:
     def default_nsl_id(self):
         return self._default_nsl_id
 
+    def auth_header(self, nsl_id: str = None, profile_name: str = None):
+        if nsl_id is None and profile_name is None:
+            nsl_id = self._default_nsl_id
+
+        if nsl_id not in self._auth_info_map and profile_name not in self._profile_map:
+            raise ValueError("credentials must be set by environment variables NSL_ID & NSL_SECRET, by setting a "
+                             "credentials file at ~/.nsl/credentials, or by using the set_credentials method")
+
+        if profile_name is not None:
+            print('using profile_name: {}'.format(profile_name))
+            nsl_id = self._profile_map[profile_name]
+
+        auth_info = self._auth_info_map[nsl_id]
+        if not auth_info.skip_authorization and (auth_info.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+            auth_info.authorize()
+            diff_seconds = auth_info.expiry - time.time()
+            ttl = round(int(math.ceil(float(diff_seconds / 60) / 10) * 10))
+            print(f"will attempt re-authorization in {ttl} minutes")
+        return "Bearer {token}".format(token=auth_info.token)
+
+    def get_credentials(self, nsl_id: str = None) -> Optional[AuthInfo]:
+        return self._auth_info_map.get(nsl_id if nsl_id is not None else self.default_nsl_id, None)
+
     def set_credentials(self, nsl_id: str, nsl_secret: str):
         if len(self._auth_info_map) == 0:
             self._default_nsl_id = nsl_id
@@ -340,25 +381,46 @@ class __BearerAuth:
         self._auth_info_map[nsl_id] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
         self._auth_info_map[nsl_id].authorize()
 
-    def auth_header(self, nsl_id: str = None, profile_name: str = None):
-        if nsl_id is None and profile_name is None:
-            nsl_id = self._default_nsl_id
+    def unset_credentials(self, profile_name: str):
+        nsl_id = self._profile_map.pop(profile_name)
+        delattr(self._auth_info_map, nsl_id)
+        if self._default_nsl_id == nsl_id:
+            if len(self._auth_info_map) == 0:
+                self._default_nsl_id = None
+            else:
+                self._default_nsl_id = list(key for key in self._auth_info_map.keys())[0]
+                print(f"using NSL_ID {self.default_nsl_id}")
 
-        if nsl_id not in self._auth_info_map and profile_name not in self._profile_map:
-            raise ValueError("credentials must be set by environment variables NSL_ID & NSL_SECRET or by using the "
-                             "set_credentials method, or by setting a credentials file at ~/.nsl/credentials")
+    def loads(self) -> Dict[str, AuthInfo]:
+        output = dict()
+        with NSL_CREDENTIALS.open('r') as file_obj:
+            lines = file_obj.readlines()
+            for i, line in enumerate(lines):
+                if line.startswith('['):
+                    if not lines[i + 1].startswith('NSL_ID') or not lines[i + 2].startswith('NSL_SECRET'):
+                        raise ValueError("credentials should be of the format:\n[named profile]\nNSL_ID={your "
+                                         "nsl id}\nNSL_SECRET={your nsl secret}")
+                    # for id like 'NSL_ID = all_the_id_text\n', first strip remove front whitespace and newline
+                    # .strip(), now we now [6:] starts after 'NSL_ID' .strip()[6:], strip potential whitespace
+                    # between NSL_ID and '=' with .strip()[6:].strip(), start one after equal
+                    # .strip()[6:].strip()[1:], strip potential whitespace
+                    # after equal .strip()[6:].strip()[1:].strip()
+                    profile_name = line.strip().lstrip('[').rstrip(']')
+                    nsl_id = lines[i + 1].strip()[6:].strip()[1:].strip()
+                    nsl_secret = lines[i + 2].strip()[10:].strip()[1:].strip()
 
-        if profile_name is not None:
-            print('using profile name: {}'.format(profile_name))
-            nsl_id = self._profile_map[profile_name]
+                    output[profile_name] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
+        return output
 
-        auth_info = self._auth_info_map[nsl_id]
-        if not auth_info.skip_authorization and (auth_info.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
-            auth_info.authorize()
-            diff_seconds = auth_info.expiry - time.time()
-            print("fetching new authorization in {0} minutes".format(
-                round(int(math.ceil(float(diff_seconds / 60) / 10) * 10))))
-        return "Bearer {token}".format(token=auth_info.token)
+    def dumps(self):
+        with NSL_CREDENTIALS.open('w') as file_obj:
+            for profile_name, nsl_id in self._profile_map.items():
+                creds = self.get_credentials(nsl_id)
+                file_obj.write(f'[{profile_name}]\n')
+                file_obj.write(f'NSL_ID={creds.nsl_id}\n')
+                file_obj.write(f'NSL_SECRET={creds.nsl_secret}\n')
+                file_obj.write('\n')
+            file_obj.close()
 
 
 time.sleep(NSL_NETWORK_DELAY)
