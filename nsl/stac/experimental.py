@@ -300,14 +300,16 @@ does the AssetWrap equal a protobuf Asset
                  save_filename: str = '',
                  save_directory: str = '',
                  requester_pays: bool = False,
-                 nsl_id: str = None) -> str:
+                 nsl_id: str = None,
+                 profile_name: str = None) -> str:
         return utils.download_asset(asset=self._asset,
                                     from_bucket=from_bucket,
                                     file_obj=file_obj,
                                     save_filename=save_filename,
                                     save_directory=save_directory,
                                     requester_pays=requester_pays,
-                                    nsl_id=nsl_id)
+                                    nsl_id=nsl_id,
+                                    profile_name=profile_name)
 
     def matches_details(self,
                         asset_key: str = None,
@@ -814,7 +816,9 @@ then that supersedes this projection definition.
                        from_bucket: bool = False,
                        file_obj: BinaryIO = None,
                        save_filename: str = "",
-                       save_directory: str = "") -> str:
+                       save_directory: str = "",
+                       nsl_id: str = None,
+                       profile_name: str = None) -> str:
         asset_wrap = self.get_asset(asset_key=asset_key,
                                     asset_type=asset_type,
                                     cloud_platform=cloud_platform,
@@ -824,7 +828,9 @@ then that supersedes this projection definition.
         return asset_wrap.download(from_bucket=from_bucket,
                                    file_obj=file_obj,
                                    save_filename=save_filename,
-                                   save_directory=save_directory)
+                                   save_directory=save_directory,
+                                   nsl_id=nsl_id,
+                                   profile_name=profile_name)
 
     def equals_pb(self, other: StacItem):
         """

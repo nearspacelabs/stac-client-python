@@ -129,16 +129,22 @@ def download_s3_object(bucket: str,
             raise
 
 
-def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str = "", nsl_id: str = None) -> str:
+def download_href_object(asset: Asset,
+                         file_obj: IO = None,
+                         save_filename: str = "",
+                         nsl_id: str = None,
+                         profile_name: str = None) -> str:
     """
     download the href of an asset
     :param asset: The asset to download
     :param file_obj: BinaryIO file object to download data into. If file_obj and save_filename and/or save_directory
     are set, then only file_obj is used
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
-    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
-    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
-        NSLClient object's set_credentials to set credentials
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one NSL_ID and NSL_SECRET have been defined with
+        set_credentials method. Specify NSL_ID to use for downloading. If NSL_ID and NSL_SECRET environment variables
+        are not set, you must use `NSLClient.set_credentials` to add at least one set of credentials.
+    :param profile_name: ADVANCED ONLY. Only necessary if more than one NSL profile has been defined with the
+        `set_credentials` method. Specifies which NSL profile to use for downloading.
     :return: returns the save_filename. if BinaryIO is not a FileIO object type, save_filename returned is an
     empty string
     """
@@ -151,7 +157,7 @@ def download_href_object(asset: Asset, file_obj: IO = None, save_filename: str =
     headers = {}
     asset_url = host.path
     if asset.bucket_manager == "Near Space Labs":
-        headers = {"authorization": bearer_auth.auth_header(nsl_id=nsl_id)}
+        headers = {"authorization": bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)}
         asset_url = "/download/{object}".format(object=asset.object_path)
 
     if len(asset.type) > 0:
@@ -190,7 +196,8 @@ def download_asset(asset: Asset,
                    save_filename: str = "",
                    save_directory: str = "",
                    requester_pays: bool = False,
-                   nsl_id: str = None) -> str:
+                   nsl_id: str = None,
+                   profile_name: str = None) -> str:
     """
     download an asset. Defaults to downloading from cloud storage. save the data to a BinaryIO file object, a filename
     on your filesystem, or to a directory on your filesystem (the filename will be chosen from the basename of the
@@ -204,9 +211,11 @@ def download_asset(asset: Asset,
     :param save_filename: absolute or relative path filename to save asset to (must have write permissions)
     :param save_directory: absolute or relative directory path to save asset in (must have write permissions). Filename
     is derived from the basename of the object_path or the href
-    :param nsl_id: ADVANCED ONLY. Only necessary if more than one nsl_id and nsl_secret have been defined with
-    set_credentials method.  Specify nsl_id to use. if NSL_ID and NSL_SECRET environment variables not set must use
-        NSLClient object's set_credentials to set credentials
+    :param nsl_id: ADVANCED ONLY. Only necessary if more than one NSL_ID and NSL_SECRET have been defined with
+        set_credentials method. Specify NSL_ID to use for downloading. If NSL_ID and NSL_SECRET environment variables
+        are not set, you must use `NSLClient.set_credentials` to add at least one set of credentials.
+    :param profile_name: ADVANCED ONLY. Only necessary if more than one NSL profile has been defined with the
+        `set_credentials` method. Specifies which NSL profile to use for downloading.
     :return:
     """
     if len(save_directory) > 0 and file_obj is None and len(save_filename) == 0:
@@ -230,7 +239,8 @@ def download_asset(asset: Asset,
         return download_href_object(asset=asset,
                                     file_obj=file_obj,
                                     save_filename=save_filename,
-                                    nsl_id=nsl_id)
+                                    nsl_id=nsl_id,
+                                    profile_name=profile_name)
 
 
 def download_assets(stac_item: StacItem,
@@ -287,7 +297,9 @@ def get_asset(stac_item: StacItem,
     return None
 
 
-def _asset_types_match(desired_type: enum.AssetType, asset_type: enum.AssetType, b_relaxed_types: bool = False) -> bool:
+def _asset_types_match(desired_type: enum.AssetType,
+                       asset_type: enum.AssetType,
+                       b_relaxed_types: bool = False) -> bool:
     if not b_relaxed_types:
         return desired_type == asset_type
     elif desired_type == enum.AssetType.TIFF:
@@ -338,12 +350,14 @@ def get_assets(stac_item: StacItem,
         b_asset_type_match = _asset_types_match(desired_type=asset_type,
                                                 asset_type=current.asset_type,
                                                 b_relaxed_types=b_relaxed_types)
-        if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and current.eo_bands != eo_bands:
+        if (eo_bands is not None and eo_bands != enum.Band.UNKNOWN_BAND) and \
+                current.eo_bands != eo_bands:
             continue
         if (cloud_platform is not None and cloud_platform != enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM) and \
                 current.cloud_platform != cloud_platform:
             continue
-        if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and not b_asset_type_match:
+        if (asset_type is not None and asset_type != enum.AssetType.UNKNOWN_ASSET) and \
+                not b_asset_type_match:
             continue
         if asset_regex is not None and len(asset_regex) > 0:
             b_continue = False
