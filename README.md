@@ -17,7 +17,7 @@ To get access to our high resolution Austin, Texas imagery, get a client id and 
   - [Spatial](#spatial-queries)
   - [Temporal](#temporal-queries)
   - [Advanced Examples](./AdvancedExamples.md)
-  - [Experimental](./Experimental.md)
+  - [Experimental](./Experimental.md) - Examples using a friendlier API, including how to download 10cm scenes and create subscriptions for data delivery
 - [Downloading](#downloading)
   - [Thumbnails](#thumbnails)
   - [Geotiffs](#geotiffs)
@@ -42,7 +42,7 @@ python setup.py install
 There are a few environment variables that the stac-client-python library relies on for accessing the STAC service:
 
 - `NSL_ID` and `NSL_SECRET`, if you're downloading Near Space Labs data you'll need credentials.
-- `STAC_SERVICE`, (not required) If left unset it defaults to "api.nearspacelabs.net:9090". This is the address of the STAC metadata service.
+- `STAC_SERVICE` (defaults to `api.nearspacelabs.net:9090`): This is the address of the STAC metadata service.
 
 ### Running Included Jupyter Notebooks
 If you are using a virtual environment, but the jupyter you use is outside that virtual env, then you'll have to add your virtual environment to jupyter using something like `python -m ipykernel install --user --name=myenv` (more [here](https://janakiev.com/blog/jupyter-virtual-envs/)). Your best python life is no packages installed globally and always living virtual environment to virtual environment.
@@ -180,10 +180,6 @@ with tempfile.TemporaryDirectory() as d:
 
 ```text
     found NSL_ID QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8 under profile name `default`
-    found NSL_ID UYw22AcAdgoy3CtRyS1jbftMqNKIXspk under profile name `ci.austin`
-    found NSL_ID GFeaOePtxSsZgEKgzWptYjG6xqWKRk9D under profile name `ci.madrid`
-    found NSL_ID 3SNdJdgKYfMeoLBpyhxDwA9S3EZNjJ3Z2 under profile name `ci.orbital`
-    found NSL_ID PIUzOjGkkmgYlZRILBfKSHTzLf10l969 under profile name `xdefault`
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
     attempting NSL authentication against https://api.nearspacelabs.net/oauth/token...
@@ -427,16 +423,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20200703T174443Z_650_POM1_ST2_P
-    STAC item id: 20200703T174303Z_595_POM1_ST2_P
-    STAC item id: 20200703T174258Z_592_POM1_ST2_P
-    STAC item id: 20200703T174234Z_579_POM1_ST2_P
-    STAC item id: 20200703T174155Z_558_POM1_ST2_P
-    STAC item id: 20200703T174034Z_516_POM1_ST2_P
-    STAC item id: 20200703T174032Z_515_POM1_ST2_P
-    STAC item id: 20200703T174028Z_513_POM1_ST2_P
-    STAC item id: 20200703T174021Z_509_POM1_ST2_P
-    STAC item id: 20200703T174019Z_508_POM1_ST2_P
+    STAC item id: 20211212T192344Z_2408_POM1_ST3_26_P
+    STAC item id: 20211212T192340Z_2405_POM1_ST3_26_P
+    STAC item id: 20211212T192336Z_2402_POM1_ST3_26_P
+    STAC item id: 20211212T192331Z_2399_POM1_ST3_26_P
+    STAC item id: 20211212T192327Z_2396_POM1_ST3_26_P
+    STAC item id: 20211212T192313Z_2386_POM1_ST3_26_P
+    STAC item id: 20211212T192309Z_2383_POM1_ST3_26_P
+    STAC item id: 20211212T192305Z_2380_POM1_ST3_26_P
+    STAC item id: 20211212T192300Z_2377_POM1_ST3_26_P
+    STAC item id: 20211212T192256Z_2374_POM1_ST3_26_P
 ```
 
 
@@ -495,8 +491,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211207T184122Z_1753_POM1_ST2_4_P
-    STAC item id: 20211207T184120Z_1752_POM1_ST2_4_P
+    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P
+    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P
 ```
 
 
@@ -539,8 +535,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211207T184122Z_1753_POM1_ST2_4_P from wkt filter intersects result from geojson filter: True
-    STAC item id: 20211207T184120Z_1752_POM1_ST2_4_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -593,8 +589,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2021-12-07T19:06:02+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2021-12-07T19:06:00+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2021-12-21T20:15:57+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2021-12-21T20:15:51+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -955,5 +951,5 @@ Use this README.ipynb notebook to update the README.md. Do not directly edit the
 curl -o ipynb2md.py https://gist.githubusercontent.com/davidraleigh/a24f637ccb018610a87aaacb12281452/raw/009a50f29b920c7b00dcd4142c51bf6bf3c0cb3b/ipynb2md.py
 ```
 
-Make your edits to the README.ipynb, in *Kernel->Restart & Run All* to confirm your changes worked, Save and Checkpoint, then run the python script `python ipynb2md.py -i README.ipynb`.
-
+Make your edits to the README.ipynb, in *Kernel->Restart & Run All* to confirm your changes worked, Save and Checkpoint, then run the python script `python ipynb2md.py -i README.ipynb`,
+or `python ipynb2md.py` to reproduce all markdown files.
