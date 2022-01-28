@@ -148,18 +148,23 @@ class NSLClient:
                 else:
                     yield item
         else:
-            page_size = 100
-            count = 0
             limit = stac_request.limit if stac_request.limit > 0 else None
             offset = stac_request.offset
+            page_size = 500
+            count = 0
 
             stac_request.limit = page_size
             items = list(self.search(stac_request, timeout=timeout, nsl_id=nsl_id, profile_name=profile_name))
             while len(items) > 0:
                 for item in items:
-                    if limit is None or count < limit:
-                        count += 1
+                    if limit is None or (limit is not None and count < limit):
                         yield item
+                        count += 1
+                    if limit is not None and count >= limit:
+                        break
+
+                if limit is not None and count >= limit:
+                    break
 
                 stac_request.offset += page_size
                 items = list(self.search(stac_request, timeout=timeout, nsl_id=nsl_id, profile_name=profile_name))
