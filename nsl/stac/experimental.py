@@ -1097,7 +1097,7 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_azimuth(self,
                     rel_type: enum.FilterRelationship,
-                    value: float,
+                    value: float = None,
                     start: float = None,
                     end: float = None,
                     sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
@@ -1117,7 +1117,7 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_off_nadir(self,
                       rel_type: enum.FilterRelationship,
-                      value: float,
+                      value: float = None,
                       start: float = None,
                       end: float = None,
                       sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
@@ -1129,7 +1129,7 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_sun_azimuth(self,
                         rel_type: enum.FilterRelationship,
-                        value: float,
+                        value: float = None,
                         start: float = None,
                         end: float = None,
                         sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
@@ -1141,7 +1141,7 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_sun_elevation(self,
                           rel_type: enum.FilterRelationship,
-                          value: float,
+                          value: float = None,
                           start: float = None,
                           end: float = None,
                           sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
@@ -1165,7 +1165,7 @@ other quad STAC items that are contained by '02313012030' are returned.
 
     def set_gsd(self,
                 rel_type: enum.FilterRelationship,
-                value: float,
+                value: float = None,
                 start: float = None,
                 end: float = None,
                 sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
