@@ -750,7 +750,7 @@ for stac_item in client_ex.search_ex(request):
 
 ## Query by GSD (ground sampling distance)
 
-Our sample imagery contains both 30cm (0.15m gsd) and 10cm (0.05m gsd) scenes. Here is a snippet below detailing how to
+Our sample imagery contains both 30cm (0.15-0.20m gsd) and 10cm (0.05m gsd) scenes. Here is a snippet below detailing how to
 filter by GSD.
 
 
@@ -1367,11 +1367,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: ZmI4ZDU5M2YtZTg3OS00ZWYwLWEzMjAtYjlmYmM1MzcxNDlh
-    ZmI4ZDU5M2YtZTg3OS00ZWYwLWEzMjAtYjlmYmM1MzcxNDlh
-    <nsl.stac.subscription.Subscription object at 0x7f6b00605460>
-    deactivated subscription with id: ZmI4ZDU5M2YtZTg3OS00ZWYwLWEzMjAtYjlmYmM1MzcxNDlh
-    reactivated subscription with id: ZmI4ZDU5M2YtZTg3OS00ZWYwLWEzMjAtYjlmYmM1MzcxNDlh
+    created subscription with id: NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
+    NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
+    <nsl.stac.subscription.Subscription object at 0x7f9eec381100>
+    deactivated subscription with id: NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
+    reactivated subscription with id: NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
 ```
 
 
@@ -1470,11 +1470,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: ZmU4NjhkMzctODZlZS00ZDQ0LTlhN2EtNDMxNDc3ZDMzMjM2
-    ZmU4NjhkMzctODZlZS00ZDQ0LTlhN2EtNDMxNDc3ZDMzMjM2
-    <nsl.stac.subscription.Subscription object at 0x7f6ab9e5a220>
-    deactivated subscription with id: ZmU4NjhkMzctODZlZS00ZDQ0LTlhN2EtNDMxNDc3ZDMzMjM2
-    reactivated subscription with id: ZmU4NjhkMzctODZlZS00ZDQ0LTlhN2EtNDMxNDc3ZDMzMjM2
+    created subscription with id: M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
+    M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
+    <nsl.stac.subscription.Subscription object at 0x7f9ea59c9dc0>
+    deactivated subscription with id: M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
+    reactivated subscription with id: M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
 ```
 
 
