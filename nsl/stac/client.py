@@ -40,8 +40,8 @@ class NSLClient:
     @property
     def default_nsl_id(self):
         """
-        if you don't set the nsl_id for each stac request, then this nsl_id is the default choice. if you set this
-        default value you must make sure that the nsl_id has already been 'set' by calling `set_credentials`
+        if you don't set the nsl_id for each stac request, then this nsl_id is the default choice.
+        if you set this default value you must make sure that the nsl_id has already been 'set' by calling `set_credentials`
         :return:
         """
         return bearer_auth.default_nsl_id
