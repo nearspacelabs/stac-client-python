@@ -3,5 +3,7 @@ nsl.stac.egg-info/
 
 ipynb2md.py
 
+build/
 dist/
+tmp/
 venv/
