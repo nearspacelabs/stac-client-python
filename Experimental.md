@@ -82,6 +82,7 @@ print(asset_wrap)
 
 
 ```text
+    found NSL_ID <OMITTED> under profile name `default`
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
     warning, no projection data set. assuming WGS84
@@ -305,48 +306,48 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item id: 20200703T174443Z_650_POM1_ST2_P
+    STAC item id: 20211212T192344Z_2408_POM1_ST3_26_P
     bounds:
-    (-97.74591162787891, 30.279053855446275, -97.7277773253055, 30.292199081479485)
+    (-97.72327610728941, 30.283027627089314, -97.71641047828436, 30.287389021410817)
     bbox (EnvelopeData protobuf):
-    xmin: -97.74591162787891
-    ymin: 30.279053855446275
-    xmax: -97.7277773253055
-    ymax: 30.292199081479485
+    xmin: -97.72327610728941
+    ymin: 30.283027627089314
+    xmax: -97.71641047828436
+    ymax: 30.287389021410817
     proj {
       epsg: 4326
     }
     
     geometry:
-    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035)))
-    STAC item id: 20200703T174303Z_595_POM1_ST2_P
+    MULTIPOLYGON (((-97.72313819724444 30.28738902141082, -97.72327610728941 30.28350757506166, -97.71654865159262 30.28302762708931, -97.71641047828436 30.28690905884208, -97.72313819724444 30.28738902141082)))
+    STAC item id: 20211212T192340Z_2405_POM1_ST3_26_P
     bounds:
-    (-97.75153797990234, 30.269721707638205, -97.73325611269058, 30.28300247580166)
+    (-97.72336403898701, 30.280434395023313, -97.71657376461101, 30.284729715466966)
     bbox (EnvelopeData protobuf):
-    xmin: -97.75153797990234
-    ymin: 30.269721707638205
-    xmax: -97.73325611269058
-    ymax: 30.28300247580166
+    xmin: -97.72336403898701
+    ymin: 30.280434395023313
+    xmax: -97.71657376461101
+    ymax: 30.284729715466966
     proj {
       epsg: 4326
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512)))
-    STAC item id: 20200703T174258Z_592_POM1_ST2_P
+    MULTIPOLYGON (((-97.72331620866298 30.28472971546697, -97.72336403898701 30.28088248402151, -97.71662185766397 30.28043439502331, -97.71657376461101 30.2842816163446, -97.72331620866298 30.28472971546697)))
+    STAC item id: 20211212T192336Z_2402_POM1_ST3_26_P
     bounds:
-    (-97.75173081772343, 30.27574130837018, -97.73339335367488, 30.289420847305855)
+    (-97.7233973669938, 30.277801049022177, -97.71670505080132, 30.28196579136081)
     bbox (EnvelopeData protobuf):
-    xmin: -97.75173081772343
-    ymin: 30.27574130837018
-    xmax: -97.73339335367488
-    ymax: 30.289420847305855
+    xmin: -97.7233973669938
+    ymin: 30.277801049022177
+    xmax: -97.71670505080132
+    ymax: 30.28196579136081
     proj {
       epsg: 4326
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995)))
+    MULTIPOLYGON (((-97.72337621943078 30.28196579136081, -97.72339736699379 30.2781914748672, -97.7167264523011 30.27780104902218, -97.71670505080132 30.28157535697231, -97.72337621943078 30.28196579136081)))
 ```
 
 
@@ -408,53 +409,53 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item id: 20200703T174443Z_650_POM1_ST2_P
+    STAC item id: 20211212T192344Z_2408_POM1_ST3_26_P
     bounds:
-    (-97.74591162787891, 30.279053855446275, -97.7277773253055, 30.292199081479485)
+    (-97.72327610728941, 30.283027627089314, -97.71641047828436, 30.287389021410817)
     bbox (EnvelopeData protobuf):
-    xmin: -97.74591162787891
-    ymin: 30.279053855446275
-    xmax: -97.7277773253055
-    ymax: 30.292199081479485
+    xmin: -97.72327610728941
+    ymin: 30.283027627089314
+    xmax: -97.71641047828436
+    ymax: 30.287389021410817
     proj {
       epsg: 4326
     }
     
     geometry:
-    MULTIPOLYGON (((-97.74591162787891 30.28747759413035, -97.74220557686867 30.27905385544627, -97.7277773253055 30.28386159376494, -97.73145460028107 30.29219908147948, -97.74591162787891 30.28747759413035)))
-    TEST RESULT 'True': stac_item id 20200703T174443Z_650_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
+    MULTIPOLYGON (((-97.72313819724444 30.28738902141082, -97.72327610728941 30.28350757506166, -97.71654865159262 30.28302762708931, -97.71641047828436 30.28690905884208, -97.72313819724444 30.28738902141082)))
+    TEST RESULT 'True': stac_item id 20211212T192344Z_2408_POM1_ST3_26_P from 3744 bounds is in the set of the 4326 bounds search results.
     
-    STAC item id: 20200703T174303Z_595_POM1_ST2_P
+    STAC item id: 20211212T192340Z_2405_POM1_ST3_26_P
     bounds:
-    (-97.75153797990234, 30.269721707638205, -97.73325611269058, 30.28300247580166)
+    (-97.72336403898701, 30.280434395023313, -97.71657376461101, 30.284729715466966)
     bbox (EnvelopeData protobuf):
-    xmin: -97.75153797990234
-    ymin: 30.269721707638205
-    xmax: -97.73325611269058
-    ymax: 30.28300247580166
+    xmin: -97.72336403898701
+    ymin: 30.280434395023313
+    xmax: -97.71657376461101
+    ymax: 30.284729715466966
     proj {
       epsg: 4326
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75153797990234 30.27820420412512, -97.74797016158224 30.2697217076382, -97.73325611269058 30.27455757923618, -97.73689448438766 30.28300247580166, -97.75153797990234 30.27820420412512)))
-    TEST RESULT 'True': stac_item id 20200703T174303Z_595_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
+    MULTIPOLYGON (((-97.72331620866298 30.28472971546697, -97.72336403898701 30.28088248402151, -97.71662185766397 30.28043439502331, -97.71657376461101 30.2842816163446, -97.72331620866298 30.28472971546697)))
+    TEST RESULT 'True': stac_item id 20211212T192340Z_2405_POM1_ST3_26_P from 3744 bounds is in the set of the 4326 bounds search results.
     
-    STAC item id: 20200703T174258Z_592_POM1_ST2_P
+    STAC item id: 20211212T192336Z_2402_POM1_ST3_26_P
     bounds:
-    (-97.75173081772343, 30.27574130837018, -97.73339335367488, 30.289420847305855)
+    (-97.7233973669938, 30.277801049022177, -97.71670505080132, 30.28196579136081)
     bbox (EnvelopeData protobuf):
-    xmin: -97.75173081772343
-    ymin: 30.27574130837018
-    xmax: -97.73339335367488
-    ymax: 30.289420847305855
+    xmin: -97.7233973669938
+    ymin: 30.277801049022177
+    xmax: -97.71670505080132
+    ymax: 30.28196579136081
     proj {
       epsg: 4326
     }
     
     geometry:
-    MULTIPOLYGON (((-97.75173081772343 30.28402515650995, -97.74761771913884 30.27574130837018, -97.73339335367488 30.28124021004074, -97.73745378448336 30.28942084730586, -97.75173081772343 30.28402515650995)))
-    TEST RESULT 'True': stac_item id 20200703T174258Z_592_POM1_ST2_P from 3744 bounds is in the set of the 4326 bounds search results.
+    MULTIPOLYGON (((-97.72337621943078 30.28196579136081, -97.72339736699379 30.2781914748672, -97.7167264523011 30.27780104902218, -97.71670505080132 30.28157535697231, -97.72337621943078 30.28196579136081)))
+    TEST RESULT 'True': stac_item id 20211212T192336Z_2402_POM1_ST3_26_P from 3744 bounds is in the set of the 4326 bounds search results.
     
 ```
 
@@ -513,10 +514,10 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item id: 20211115T204123Z_1409_POM1_ST2_13_P
-    Stac item observed: 2021-11-15 20:41:23+00:00
-    STAC item id: 20211115T204116Z_1406_POM1_ST2_13_P
-    Stac item observed: 2021-11-15 20:41:16+00:00
+    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P
+    Stac item observed: 2021-12-21 20:15:32+00:00
+    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P
+    Stac item observed: 2021-12-21 20:15:23+00:00
 ```
 
 
@@ -560,8 +561,8 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item id: 20211115T204123Z_1409_POM1_ST2_13_P from wkt filter intersects result from geojson filter: True
-    STAC item id: 20211115T204116Z_1406_POM1_ST2_13_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -629,8 +630,8 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item date, 2021-11-22 20:23:25+00:00, is after 2019-08-21 00:00:00: True
-    STAC item date, 2021-11-22 20:23:09+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2021-12-21 20:15:57+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2021-12-21 20:15:51+00:00, is after 2019-08-21 00:00:00: True
 ```
 
 
@@ -716,18 +717,15 @@ from nsl.stac import utils, enum
 
 request = StacRequestWrap()
 
+# Query all data for the entire day of August 6, 2019 (in TX time)
 texas_utc_offset = timezone(timedelta(hours=-6))
-
-value = date(2019, 8, 6)
-
-# Query all data for the entire day of August 6, 2019
-request.set_observed(rel_type=enum.FilterRelationship.EQ, value=value, tzinfo=texas_utc_offset)
+request.set_observed(value=date(2019, 8, 6), rel_type=enum.FilterRelationship.EQ, tzinfo=texas_utc_offset)
 
 request.limit = 2
 
 # get a client interface to the gRPC channel
 client_ex = NSLClientEx()
-for stac_item in client.search_ex(request):
+for stac_item in client_ex.search_ex(request):
     print(datetime.fromtimestamp(stac_item.observed.timestamp(), tz=timezone.utc))
 ```
 
@@ -743,6 +741,70 @@ for stac_item in client.search_ex(request):
 ```text
     2019-08-06 20:42:53+00:00
     2019-08-06 20:42:51+00:00
+```
+
+
+</details>
+
+
+
+## Query by GSD (ground sampling distance)
+
+Our sample imagery contains both 30cm (0.15-0.20m gsd) and 10cm (0.05m gsd) scenes. Here is a snippet below detailing how to
+filter by GSD.
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+from itertools import islice
+
+from nsl.stac.experimental import NSLClientEx
+from nsl.stac import enum
+
+request = StacRequestWrap()
+
+# Query for all imagery whose GSD is less than 0.051 (to account for minor floating point variations)
+request.set_gsd(rel_type=enum.FilterRelationship.LTE, value=0.051)
+
+# Restrict search to areas of publicly available 10cm imagery in Austin, TX
+request.intersects = Polygon.import_wkt(epsg=4326, wkt='POLYGON((-97.7344436645508 30.326004681223694,'
+                                                       '-97.7344436645508 30.29517998555933,'
+                                                       '-97.73650360107423 30.28569351372147,'
+                                                       '-97.73616027832033 30.273834133861683,'
+                                                       '-97.71796417236328 30.274130635825372,'
+                                                       '-97.71796417236328 30.28539704669346,'
+                                                       '-97.68397521972658 30.293994226755345,'
+                                                       '-97.68466186523439 30.32630102546601,'
+                                                       '-97.7344436645508 30.326004681223694))')
+
+client_ex = NSLClientEx()
+
+# filter results by the first we can download with basic credentials
+items = islice(filter(lambda item: 'REGION_0' in item.get_asset(asset_type=enum.AssetType.GEOTIFF).href,
+                      client_ex.search_ex(request, auto_paginate=True)), 1)
+
+stac_item = next(items)
+print(stac_item.id)
+print(stac_item.gsd)
+```
+
+
+</details>
+
+
+
+
+<details><summary>Expand Python Print-out</summary>
+
+
+```text
+    20211221T171926Z_855_POM1_ST3_16_P
+    0.05000000074505806
 ```
 
 
@@ -887,23 +949,23 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    SWIFT STAC item '20190806T202221Z_9007_POM1_ST2_P' from 2019-08-06 20:22:21+00:00
+    SWIFT STAC item '20211212T173532Z_2006_POM1_ST2_13_P' from 2021-12-12 17:35:32+00:00
 ```
 
 
 </details>
 
-    has a off_nadir	34.28, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
-    SWIFT STAC item '20190806T202219Z_9006_POM1_ST2_P' from 2019-08-06 20:22:19+00:00
-    has a off_nadir	34.51, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
-    SWIFT STAC item '20190806T202153Z_8993_POM1_ST2_P' from 2019-08-06 20:21:53+00:00
-    has a off_nadir	32.85, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
-    SWIFT STAC item '20190806T202151Z_8992_POM1_ST2_P' from 2019-08-06 20:21:51+00:00
-    has a off_nadir	33.23, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
-    has a gsd	0.200, which should be less than the requested		  gsd		1.000 (confirmed False)
+    has a off_nadir	30.19, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.050, which should be less than the requested		  gsd		1.000 (confirmed False)
+    SWIFT STAC item '20211212T173531Z_2005_POM1_ST2_13_P' from 2021-12-12 17:35:31+00:00
+    has a off_nadir	30.27, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.050, which should be less than the requested		  gsd		1.000 (confirmed False)
+    SWIFT STAC item '20211212T173529Z_2004_POM1_ST2_13_P' from 2021-12-12 17:35:29+00:00
+    has a off_nadir	30.33, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.050, which should be less than the requested		  gsd		1.000 (confirmed False)
+    SWIFT STAC item '20211212T173528Z_2003_POM1_ST2_13_P' from 2021-12-12 17:35:28+00:00
+    has a off_nadir	30.40, which should be greater than or equal to requested off_nadir	30.000 (confirmed True)
+    has a gsd	0.050, which should be less than the requested		  gsd		1.000 (confirmed False)
 
 
 ## Shapely Geometry
@@ -1305,11 +1367,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
-    MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
-    <nsl.stac.subscription.Subscription object at 0x7f93e86cb6a0>
-    deactivated subscription with id: MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
-    reactivated subscription with id: MjIxODE1MjktMjliOC00MzI5LTgzYTctM2RlODRiMzMwMzk3
+    created subscription with id: NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
+    NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
+    <nsl.stac.subscription.Subscription object at 0x7f9eec381100>
+    deactivated subscription with id: NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
+    reactivated subscription with id: NmRlYjVmZDctYTAwNi00ODI3LTlmZTctZTM1NzNkMTBhNGVi
 ```
 
 
@@ -1408,11 +1470,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
-    NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
-    <nsl.stac.subscription.Subscription object at 0x7f93a10a3ee0>
-    deactivated subscription with id: NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
-    reactivated subscription with id: NmUzYzE1ZjItZmFmYi00ZGJlLWE0YTYtNDNkMWY3YmU4ZDU5
+    created subscription with id: M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
+    M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
+    <nsl.stac.subscription.Subscription object at 0x7f9ea59c9dc0>
+    deactivated subscription with id: M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
+    reactivated subscription with id: M2M0ZDJiYzgtMmIxMi00NzI4LWJmY2MtZTljZDBhYmFiMzMz
 ```
 
 

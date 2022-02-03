@@ -32,19 +32,19 @@ class BaseDestination(dict):
     def file_name(self, stac_item: stac_pb2.StacItem) -> str:
         if self.asset_type == AssetType.TIFF or self.asset_type == AssetType.GEOTIFF:
             return f'{stac_item.id}.tif'
+        elif self.asset_type == AssetType.THUMBNAIL:
+            return Path(self.asset(stac_item).object_path).name
         elif self.asset_type == AssetType.JPEG:
             return f'{stac_item.id}.jpg'
         elif self.asset_type == AssetType.PNG:
             return f'{stac_item.id}.png'
         elif self.asset_type == AssetType.JPEG_2000:
             return f'{stac_item.id}.jp2'
-        elif self.asset_type == AssetType.THUMBNAIL:
-            return Path(self.asset(stac_item).object_path).name
 
         return stac_item.id
 
-    def asset(self, stac_item: stac_pb2.StacItem) -> Asset:
-        return get_asset(stac_item=stac_item, asset_type=self.asset_type)
+    def asset(self, stac_item: stac_pb2.StacItem) -> Optional[Asset]:
+        return get_asset(stac_item=stac_item, asset_type=self.asset_type, b_relaxed_types=True)
 
     def src_blob(self, stac_item: stac_pb2.StacItem):
         asset = self.asset(stac_item)
