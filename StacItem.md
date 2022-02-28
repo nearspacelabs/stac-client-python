@@ -32,10 +32,13 @@ stac_item = client.search_one(stac_request)
 
 
 ```text
+    found NSL_ID <OMITTED> under profile name `default`
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
-    attempting NSL authentication against https://api.nearspacelabs.net
-    fetching new authorization in 60 minutes
+    authorizing NSL_ID: `<OMITTED>`
+    attempting NSL authentication against https://api.nearspacelabs.net/oauth/token...
+    successfully authenticated with NSL_ID: `<OMITTED>`
+    will attempt re-authorization in 60 minutes
 ```
 
 

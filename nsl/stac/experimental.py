@@ -1,25 +1,51 @@
 import pathlib
 import re
 from copy import deepcopy
-
-import boto3
-import botocore.exceptions
-
 from datetime import date, datetime, timezone
 from typing import Union, Iterator, List, Optional, Tuple, Dict, BinaryIO, IO, Set
 
+import boto3
+import botocore.exceptions
 from google.protobuf.any_pb2 import Any
 from google.protobuf.wrappers_pb2 import FloatValue
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry import Polygon
 
 from nsl.stac import enum, utils, stac_service as stac_singleton, \
-    StacItem, StacRequest, View, ViewRequest, ProjectionData, GeometryData, \
-    Mosaic, MosaicRequest, Eo, EoRequest, EnvelopeData, FloatFilter, Asset, \
-    StringFilter, TimestampFilter
+    StacItem, StacRequest, Collection, CollectionRequest, View, ViewRequest, Mosaic, MosaicRequest, Eo, EoRequest, \
+    Extent, Interval, Provider, ProjectionData, GeometryData, EnvelopeData, \
+    FloatFilter, Asset, StringFilter, TimestampFilter
 from nsl.stac.client import NSLClient
 from nsl.stac.destinations import BaseDestination
 from nsl.stac.subscription import Subscription
+
+
+class ProviderRole:
+    LICENSOR = 'licensor'
+    PRODUCER = 'producer'
+    PROCESSOR = 'processor'
+    HOST = 'host'
+
+    @staticmethod
+    def all() -> List[str]:
+        return [ProviderRole.LICENSOR, ProviderRole.PRODUCER, ProviderRole.PROCESSOR, ProviderRole.HOST]
+
+    @staticmethod
+    def nsl() -> Provider:
+        provider = Provider()
+        provider.name = "Near Space Labs"
+        provider.description = "https://nearspacelabs.com"
+        provider.roles[:] = ProviderRole.all()
+        provider.url = "https://nearspacelabs.com"
+        return provider
+
+    @staticmethod
+    def nsl_with_roles(roles: List[str]) -> Provider:
+        provider = Provider()
+        provider.CopyFrom(Provider.nsl())
+        assert all(role in ProviderRole.all() for role in roles)
+        provider.roles[:] = roles
+        return provider
 
 
 def _from_protobuf(geometry_data: GeometryData) -> BaseGeometry:
@@ -408,7 +434,7 @@ class _BaseWrap:
         self._properties_func = properties_func
         self._type_url_prefix = type_url_prefix
 
-        if stac_data is not None and stac_data.HasField("properties") and properties_func is not None:
+        if stac_data is not None and properties_func is not None and stac_data.HasField("properties"):
             self.properties = properties_func()
             self._stac_data.properties.Unpack(self.properties)
         elif properties_func is not None:
@@ -582,7 +608,7 @@ geojson feature with geometry being only aspect defined
             'type': 'Feature',
             'geometry': self.geometry.__geo_interface__,
             'id': self.id,
-            'collection': self.collection,
+            'collection': self.inner,
             'properties': self._feature_properties(),
             'assets': self._feature_assets()
         }
@@ -1307,6 +1333,266 @@ other quad STAC items that are contained by '02313012030' are returned.
         return float_filter
 
 
+class CollectionRequestWrap(_BaseWrap):
+    def __init__(self, collection: CollectionRequest = None, id: str = ""):
+        if collection is None:
+            collection = CollectionRequest(id=id)
+
+        super().__init__(collection, None)
+
+    @property
+    def id(self) -> Optional[str]: return self.inner.id
+
+    @id.setter
+    def id(self, value: str): self.inner.id = value
+
+    @property
+    def bbox(self) -> EnvelopeData:
+        if self.inner.HasField("bbox"):
+            return self.inner.bbox
+        elif self.inner.HasField("intersects"):
+            # TODO mono-759, this seems messy
+            return _to_envelope_data(_from_protobuf(self.intersects))
+        return None
+
+    @bbox.setter
+    def bbox(self, value: EnvelopeData):
+        # this tests the spatial reference (it would be better to have a dedicated method)
+        self.inner.bbox.CopyFrom(value)
+        self.inner.ClearField("intersects")
+        # TODO mono-759, this seems messy
+        self.inner.intersects.CopyFrom(_to_protobuf(_from_envelope_data(value), proj=value.proj))
+
+    @property
+    def intersects(self) -> Optional[BaseGeometry]:
+        if self.inner.HasField("intersects"):
+            return _from_protobuf(self.inner.intersects)
+        elif self.inner.HasField("bbox"):
+            return _from_envelope_data(self.bbox)
+        return None
+
+    @intersects.setter
+    def intersects(self, value: BaseGeometry, proj: ProjectionData = None):
+        if isinstance(value, BaseGeometry):
+            if proj is None:
+                print("warning, no projection data set. assuming WGS84")
+                proj = ProjectionData(epsg=4326)
+            g = GeometryData(wkb=value.wkb, proj=proj)
+            self.inner.intersects.CopyFrom(g)
+        else:
+            # assume epl.geometry
+            self.inner.intersects.CopyFrom(value.geometry_data)
+        self.inner.ClearField("bbox")
+
+    @property
+    def intersects_proj(self) -> ProjectionData:
+        if self.inner.HasField("intersects"):
+            return self.inner.intersects.proj
+        elif self.inner.HasField("bbox"):
+            return self.inner.bbox.proj
+        return None
+
+    @intersects_proj.setter
+    def intersects_proj(self, value: ProjectionData):
+        if self.inner.HasField("geometry"):
+            self.inner.intersects.proj.CopyFrom(value)
+            return
+        raise ValueError("can't set intersects projection without first setting geometry")
+
+    @property
+    def observed_start(self) -> Optional[TimestampFilter]:
+        if self.inner.observed_start is None or \
+                self.inner.observed_start == TimestampFilter():
+            return None
+        return self.inner.observed_start
+
+    @property
+    def observed_end(self) -> Optional[TimestampFilter]:
+        if self.inner.observed_end is None or self.inner.observed_end == TimestampFilter():
+            return None
+        return self.inner.observed_end
+
+    @property
+    def last_updated(self) -> Optional[TimestampFilter]:
+        if self.inner.last_updated is None or self.inner.last_updated == TimestampFilter():
+            return None
+        return self.inner.last_updated
+
+    def set_observed_start(self,
+                           rel_type: enum.FilterRelationship,
+                           value: Union[datetime, date] = None,
+                           start: Union[datetime, date] = None,
+                           end: Union[datetime, date] = None,
+                           sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
+                           tzinfo: timezone = timezone.utc):
+        self.inner.observed_start.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
+                                                                   value=value,
+                                                                   start=start,
+                                                                   end=end,
+                                                                   sort_direction=sort_direction,
+                                                                   tzinfo=tzinfo))
+
+    def set_observed_end(self,
+                         rel_type: enum.FilterRelationship,
+                         value: Union[datetime, date] = None,
+                         start: Union[datetime, date] = None,
+                         end: Union[datetime, date] = None,
+                         sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
+                         tzinfo: timezone = timezone.utc):
+        self.inner.observed_end.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
+                                                                 value=value,
+                                                                 start=start,
+                                                                 end=end,
+                                                                 sort_direction=sort_direction,
+                                                                 tzinfo=tzinfo))
+
+    def set_last_updated(self,
+                         rel_type: enum.FilterRelationship,
+                         value: Union[datetime, date] = None,
+                         start: Union[datetime, date] = None,
+                         end: Union[datetime, date] = None,
+                         sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED,
+                         tzinfo: timezone = timezone.utc):
+        self.inner.last_updated.CopyFrom(utils.pb_timestampfield(rel_type=rel_type,
+                                                                 value=value,
+                                                                 start=start,
+                                                                 end=end,
+                                                                 sort_direction=sort_direction,
+                                                                 tzinfo=tzinfo))
+
+    @property
+    def is_static(self) -> Optional[bool]: return self.inner.is_static
+
+    @is_static.setter
+    def is_static(self, value: bool): self.inner.is_static = value
+
+    @property
+    def inner(self) -> CollectionRequest: return self._stac_data
+
+
+class CollectionWrap(_BaseWrap):
+    def __init__(self, collection: Collection = None):
+        collection_data = Collection()
+        collection_data.extent.CopyFrom(Extent())
+        if collection is not None:
+            collection_data.CopyFrom(collection)
+
+        super().__init__(collection_data, None)
+
+    @property
+    def id(self) -> str: return self.inner.id
+
+    @id.setter
+    def id(self, value: str): self.inner.id = value
+
+    @property
+    def title(self) -> str: return self.inner.title
+
+    @title.setter
+    def title(self, value: str): self.inner.title = value
+
+    @property
+    def description(self) -> str: return self.inner.description
+
+    @description.setter
+    def description(self, value: str): self.inner.description = value
+
+    @property
+    def keywords(self) -> List[str]: return self.inner.keywords
+
+    @keywords.setter
+    def keywords(self, value: List[str]): self.inner.keywords[:] = value
+
+    @property
+    def license(self) -> str: return self.inner.license
+
+    @license.setter
+    def license(self, value: str): self.inner.license = value
+
+    @property
+    def provider(self) -> Optional[Provider]:
+        if len(self.inner.providers) == 0:
+            return None
+        return self.inner.providers[0]
+
+    @provider.setter
+    def provider(self, value: Provider):
+        del self.inner.providers[:]
+        self.inner.providers.append(value)
+
+    @property
+    def bbox(self) -> Optional[EnvelopeData]:
+        if self.inner.extent is None or len(self.inner.extent.spatial) == 0:
+            return None
+        return self.inner.extent.spatial[0]
+
+    @bbox.setter
+    def bbox(self, value: EnvelopeData):
+        if self.inner.extent is None:
+            self.inner.extent = Extent()
+        del self.inner.extent.spatial[:]
+        self.inner.extent.spatial.append(value)
+
+    @property
+    def observed(self) -> Optional[Tuple[datetime, datetime]]:
+        if self.inner.extent is None or len(self.inner.extent.temporal) == 0:
+            return None
+        interval = self.inner.extent.temporal[0]
+        if interval.start is None or interval.end is None:
+            return None
+        return utils.datetime_from_pb_timestamp(interval.start), utils.datetime_from_pb_timestamp(interval.end)
+
+    @observed.setter
+    def observed(self, value: Tuple[datetime, datetime]):
+        if self.inner.extent is None:
+            self.inner.extent = Extent()
+        interval = Interval(start=utils.pb_timestamp(value[0]), end=utils.pb_timestamp(value[1]))
+        del self.inner.extent.temporal[:]
+        self.inner.extent.temporal.append(interval)
+
+    @property
+    def footprint(self) -> Optional[BaseGeometry]:
+        if self.inner.extent is None:
+            return None
+        if self.inner.extent.footprint is None:
+            return None
+        return _from_protobuf(self.inner.extent.footprint)
+
+    @footprint.setter
+    def footprint(self, value: BaseGeometry, proj: ProjectionData = None):
+        if self.inner.extent is None:
+            self.inner.extent = Extent()
+        if isinstance(value, BaseGeometry):
+            if proj is None:
+                print("warning, no projection data set. assuming WGS84")
+                proj = ProjectionData(epsg=4326)
+            g = GeometryData(wkb=value.wkb, proj=proj)
+            self.inner.extent.intersects.CopyFrom(g)
+        else:
+            # assume epl.geometry
+            self.inner.extent.intersects.CopyFrom(value.geometry_data)
+
+    # TODO: summaries
+
+    @property
+    def is_static(self) -> bool: return self.inner.is_static
+
+    @is_static.setter
+    def is_static(self, value: bool): self.inner.is_static = value
+
+    @property
+    def stac_request(self) -> Optional[StacRequestWrap]:
+        if self.inner.stac_request is None:
+            return None
+        return StacRequestWrap(self.inner.stac_request)
+
+    @stac_request.setter
+    def stac_request(self, value: StacRequestWrap): self.inner.stac_request.CopyFrom(value.stac_request)
+
+    @property
+    def inner(self) -> Collection: return self._stac_data
+
+
 class NSLClientEx(NSLClient):
     def __init__(self, nsl_only=False):
         super().__init__(nsl_only=nsl_only)
@@ -1326,12 +1612,14 @@ class NSLClientEx(NSLClient):
                   timeout=15,
                   nsl_id: str = None,
                   profile_name: str = None,
-                  auto_paginate: bool = False) -> Iterator[StacItemWrap]:
+                  auto_paginate: bool = False,
+                  only_accessible: bool = False) -> Iterator[StacItemWrap]:
         for stac_item in self.search(stac_request_wrapped.stac_request,
                                      timeout=timeout,
                                      nsl_id=nsl_id,
                                      profile_name=profile_name,
-                                     auto_paginate=auto_paginate):
+                                     auto_paginate=auto_paginate,
+                                     only_accessible=only_accessible):
             yield StacItemWrap(stac_item=stac_item)
 
     def feature_collection_ex(self,
@@ -1371,6 +1659,17 @@ class NSLClientEx(NSLClient):
                  profile_name: str = None) -> int:
         return self.count(stac_request=stac_request_wrapped.stac_request,
                           timeout=timeout, nsl_id=nsl_id, profile_name=profile_name)
+
+    def search_collections_ex(self,
+                              collection_request: CollectionRequestWrap,
+                              timeout=15,
+                              nsl_id: str = None,
+                              profile_name: str = None) -> Iterator[CollectionWrap]:
+        for collection in self.search_collections(collection_request.inner,
+                                                  timeout=timeout,
+                                                  nsl_id=nsl_id,
+                                                  profile_name=profile_name):
+            yield CollectionWrap(collection=collection)
 
     def subscribe_ex(self,
                      stac_request_wrapped: StacRequestWrap,

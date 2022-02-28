@@ -132,26 +132,26 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the UT Stadium in Austin, Texas
+# our area of interest will be coordinates in Austin, Texas
 # the order of coordinates here is longitude then latitude (x, y). The results of our query 
 # will be returned only if they intersect this point geometry we've defined (other geometry 
 # types besides points are supported)
 # This string format, POINT(float, float) is the well-known-text geometry format:
 # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
-ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
+austin_wkt = "POINT(-97.7207859 30.3818875)"
 # GeometryData is a protobuf container for GIS geometry information, the epsg in the spatial 
 # reference defines the WGS-84 ellipsoid (`epsg=4326`) spatial reference (the latitude longitude 
 # spatial reference most commonly used)
-geometry_data = GeometryData(wkt=ut_stadium_wkt, proj=ProjectionData(epsg=4326))
+geometry_data = GeometryData(wkt=austin_wkt, proj=ProjectionData(epsg=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
 # LTE is an enum that means less than or equal to the value in the query field
-# Query data from August 25, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
+# Query data from before January 1, 2022
+time_filter = utils.pb_timestampfield(value=date(2022, 1, 1), rel_type=enum.FilterRelationship.LTE)
 
 # the StacRequest is a protobuf message for making filter queries for data
-# This search looks for any type of imagery hosted in the STAC service that intersects the austin 
-# capital area of interest and was observed on or before August 25, 2019
+# This search looks for any type of imagery hosted in the STAC service that intersects the Austin
+# area area of interest and was observed on or before January 1, 2022
 stac_request = StacRequest(datetime=time_filter, intersects=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
@@ -159,8 +159,8 @@ stac_request = StacRequest(datetime=time_filter, intersects=geometry_data)
 # observed results that matches the time filter and spatial filter
 stac_item = client.search_one(stac_request)
 
-# get the thumbnail asset from the assets map. The other option would be a Geotiff, 
-# with asset key 'GEOTIFF_RGB'
+# get the thumbnail asset from the assets map. The other option would be an AssetType.GEOTIFF, 
+# whose asset key would be 'GEOTIFF_RGB'
 print("STAC id {}".format(stac_item.id))
 asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
 
@@ -179,13 +179,14 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    found NSL_ID QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8 under profile name `default`
+    found NSL_ID <OMITTED> under profile name `default`
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
+    authorizing NSL_ID: `<OMITTED>`
     attempting NSL authentication against https://api.nearspacelabs.net/oauth/token...
-    successfully authenticated with NSL_ID: `QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8`
+    successfully authenticated with NSL_ID: `<OMITTED>`
     will attempt re-authorization in 60 minutes
-    STAC id 20190822T183518Z_746_POM1_ST2_P
+    STAC id 20211115T190111Z_551_POM1_ST2_4_P
 ```
 
 
@@ -195,8 +196,31 @@ with tempfile.TemporaryDirectory() as d:
 
 
     
-![png](README_files/README_1_1.png)
+![jpeg](README_files/README_1_1.jpg)
     
+
+
+### Access to Imagery
+
+While we freely provide metadata of our entire catalog of imagery, we restrict what imagery assets can be downloaded to
+a subset of the catalog based on your credentials. To restrict your metadata query to only downloadable results, use the
+`only_accessible` parameter when making the request:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+# makes the same request as above, but fetches all matching metadata that can also be downloaded with your credentials
+stac_items = client.search(stac_request, only_accessible=True)
+```
+
+
+</details>
+
 
 
 In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) holds spatial and temporal query parameters for searching for [StacItems](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). The `client.search_one` method makes requests to the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method. In this case you can see that we've connected to the `eap.nearspacelabs.net` STAC service. In the next section we go into more detail about Protobufs, gRPC, and STAC.
@@ -423,16 +447,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211212T192344Z_2408_POM1_ST3_26_P
-    STAC item id: 20211212T192340Z_2405_POM1_ST3_26_P
-    STAC item id: 20211212T192336Z_2402_POM1_ST3_26_P
-    STAC item id: 20211212T192331Z_2399_POM1_ST3_26_P
-    STAC item id: 20211212T192327Z_2396_POM1_ST3_26_P
-    STAC item id: 20211212T192313Z_2386_POM1_ST3_26_P
-    STAC item id: 20211212T192309Z_2383_POM1_ST3_26_P
-    STAC item id: 20211212T192305Z_2380_POM1_ST3_26_P
-    STAC item id: 20211212T192300Z_2377_POM1_ST3_26_P
-    STAC item id: 20211212T192256Z_2374_POM1_ST3_26_P
+    STAC item id: 20220129T180742Z_2109_POM1_ST3_16_P
+    STAC item id: 20220129T180729Z_2099_POM1_ST3_16_P
+    STAC item id: 20220129T180725Z_2096_POM1_ST3_16_P
+    STAC item id: 20220129T180712Z_2086_POM1_ST3_16_P
+    STAC item id: 20220129T180708Z_2083_POM1_ST3_16_P
+    STAC item id: 20220129T180705Z_2080_POM1_ST3_16_P
+    STAC item id: 20220129T180654Z_2072_POM1_ST3_16_P
+    STAC item id: 20220129T180650Z_2069_POM1_ST3_16_P
+    STAC item id: 20220129T180646Z_2066_POM1_ST3_16_P
+    STAC item id: 20220129T180634Z_2057_POM1_ST3_16_P
 ```
 
 
@@ -491,8 +515,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P
-    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P
+    STAC item id: 20220130T191536Z_1489_POM1_ST3_26_P
+    STAC item id: 20220130T191127Z_1425_POM1_ST3_26_P
 ```
 
 
@@ -535,8 +559,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
-    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20220130T191536Z_1489_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20220130T191127Z_1425_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -589,8 +613,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2021-12-21T20:15:57+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2021-12-21T20:15:51+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2022-02-08T17:02:32+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2022-02-08T17:02:30+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -762,19 +786,19 @@ for stac_item in client.search(stac_request):
 
 
     
-![png](README_files/README_18_0.png)
+![png](README_files/README_20_0.png)
     
 
 
 
     
-![png](README_files/README_18_1.png)
+![png](README_files/README_20_1.png)
     
 
 
 
     
-![png](README_files/README_18_2.png)
+![png](README_files/README_20_2.png)
     
 
 

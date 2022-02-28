@@ -25,6 +25,7 @@ from epl.protobuf.v1 import stac_pb2
 from nsl.stac import AUTH0_TENANT, bearer_auth, stac_service as stac_singleton, utils, TimestampFilter
 from nsl.stac.destinations import BaseDestination, MemoryDestination
 from nsl.stac.subscription import Subscription
+from nsl.stac.utils import item_region
 
 
 class NSLClient:
@@ -117,7 +118,8 @@ class NSLClient:
                timeout=15,
                nsl_id: str = None,
                profile_name: str = None,
-               auto_paginate: bool = False) -> Iterator[stac_pb2.StacItem]:
+               auto_paginate: bool = False,
+               only_accessible: bool = False) -> Iterator[stac_pb2.StacItem]:
         """
         search for stac items by using StacRequest. return a stream of StacItems
         :param timeout: timeout for request
@@ -133,44 +135,26 @@ class NSLClient:
             - If `stac_request.offset` is specified, pagination will begin at that `offset`.
             - If set to `False` (the default), `stac_request.limit` and `stac_request.offset` can be used to manually
                 page through StacItems.
+        :param only_accessible: limits results to only StacItems downloadable by your level of sample/paid access
         :return: stream of StacItems
         """
-        # limit to only search Near Space Labs SWIFT data
-        if self._nsl_only:
-            stac_request.mission_enum = stac_pb2.SWIFT
+        for item in self._search_all(stac_request,
+                                     timeout,
+                                     nsl_id=nsl_id,
+                                     profile_name=profile_name,
+                                     auto_paginate=auto_paginate):
+            if not only_accessible or \
+                    bearer_auth.is_valid_for(item_region(item), nsl_id=nsl_id, profile_name=profile_name):
+                yield item
 
-        if not auto_paginate:
-            metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)),)
-            for item in self._stac_service.stub.SearchItems(stac_request, timeout=timeout, metadata=metadata):
-                if not item.id:
-                    warn("STAC item missing STAC id; ending search")
-                    return
-                else:
-                    yield item
-        else:
-            limit = stac_request.limit if stac_request.limit > 0 else None
-            offset = stac_request.offset
-            page_size = 500
-            count = 0
-
-            stac_request.limit = page_size
-            items = list(self.search(stac_request, timeout=timeout, nsl_id=nsl_id, profile_name=profile_name))
-            while len(items) > 0:
-                for item in items:
-                    if limit is None or (limit is not None and count < limit):
-                        yield item
-                        count += 1
-                    if limit is not None and count >= limit:
-                        break
-
-                if limit is not None and count >= limit:
-                    break
-
-                stac_request.offset += page_size
-                items = list(self.search(stac_request, timeout=timeout, nsl_id=nsl_id, profile_name=profile_name))
-
-            stac_request.offset = offset
-            stac_request.limit = limit if limit is not None else 0
+    def search_collections(self,
+                           collection_request: stac_pb2.CollectionRequest,
+                           timeout=15,
+                           nsl_id: str = None,
+                           profile_name: str = None) -> Iterator[stac_pb2.Collection]:
+        metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)),)
+        for item in self._stac_service.stub.SearchCollections(collection_request, timeout=timeout, metadata=metadata):
+            yield item
 
     def subscribe(self,
                   stac_request: stac_pb2.StacRequest,
@@ -224,6 +208,49 @@ class NSLClient:
 
         NSLClient._handle_json_response(res, 200)
         return list(Subscription(response_dict) for response_dict in res.json()['results'])
+
+    def _search_all(self,
+                    stac_request: stac_pb2.StacRequest,
+                    timeout=15,
+                    nsl_id: str = None,
+                    profile_name: str = None,
+                    auto_paginate: bool = False) -> Iterator[stac_pb2.StacItem]:
+        # limit to only search Near Space Labs SWIFT data
+        if self._nsl_only:
+            stac_request.mission_enum = stac_pb2.SWIFT
+
+        if not auto_paginate:
+            metadata = (('authorization', bearer_auth.auth_header(nsl_id=nsl_id, profile_name=profile_name)),)
+            for item in self._stac_service.stub.SearchItems(stac_request, timeout=timeout, metadata=metadata):
+                if not item.id:
+                    warn("STAC item missing STAC id; ending search")
+                    return
+                else:
+                    yield item
+        else:
+            limit = stac_request.limit if stac_request.limit > 0 else None
+            offset = stac_request.offset
+            page_size = 500
+            count = 0
+
+            stac_request.limit = page_size
+            items = list(self.search(stac_request, timeout=timeout, nsl_id=nsl_id, profile_name=profile_name))
+            while len(items) > 0:
+                for item in items:
+                    if limit is None or (limit is not None and count < limit):
+                        yield item
+                        count += 1
+                    if limit is not None and count >= limit:
+                        break
+
+                if limit is not None and count >= limit:
+                    break
+
+                stac_request.offset += page_size
+                items = list(self.search(stac_request, timeout=timeout, nsl_id=nsl_id, profile_name=profile_name))
+
+            stac_request.offset = offset
+            stac_request.limit = limit if limit is not None else 0
 
     @staticmethod
     def _json_headers(nsl_id: str = None, profile_name: str = None) -> dict:

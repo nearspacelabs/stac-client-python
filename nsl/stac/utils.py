@@ -21,7 +21,8 @@ import datetime
 import http.client
 import re
 from urllib.parse import urlparse
-from typing import List, Iterator, IO, Union, Dict, Any, Optional
+from typing import List, IO, Union, Dict, Any, Optional
+from warnings import warn
 
 import boto3
 import botocore
@@ -424,6 +425,13 @@ def has_asset(stac_item: StacItem, asset: Asset):
     return False
 
 
+def item_region(stac_item: StacItem) -> str:
+    for asset_key in stac_item.assets:
+        return stac_item.assets[asset_key].object_path.split('/')[2]
+    warn(f"failed to find STAC item's region: {stac_item.id}")
+    return ""
+
+
 def get_uri(asset: Asset, b_vsi_uri=True, prefix: str = "") -> str:
     """
     construct the uri for the resource in the asset.
@@ -513,6 +521,10 @@ def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
     ts = timestamp_pb2.Timestamp()
     ts.FromDatetime(timezoned(d_utc, tzinfo, b_force_min))
     return ts
+
+
+def datetime_from_pb_timestamp(ts: timestamp_pb2.Timestamp) -> datetime:
+    return datetime.datetime.fromtimestamp(ts.seconds + ts.nanos/1e9)
 
 
 def timezoned(d_utc: Union[datetime.datetime, datetime.date],
