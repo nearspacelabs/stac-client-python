@@ -132,26 +132,26 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the UT Stadium in Austin, Texas
+# our area of interest will be coordinates in Austin, Texas
 # the order of coordinates here is longitude then latitude (x, y). The results of our query 
 # will be returned only if they intersect this point geometry we've defined (other geometry 
 # types besides points are supported)
 # This string format, POINT(float, float) is the well-known-text geometry format:
 # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
-ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
+austin_wkt = "POINT(-97.72078592330216 30.381887552262)"
 # GeometryData is a protobuf container for GIS geometry information, the epsg in the spatial 
 # reference defines the WGS-84 ellipsoid (`epsg=4326`) spatial reference (the latitude longitude 
 # spatial reference most commonly used)
-geometry_data = GeometryData(wkt=ut_stadium_wkt, proj=ProjectionData(epsg=4326))
+geometry_data = GeometryData(wkt=austin_wkt, proj=ProjectionData(epsg=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
-# LTE is an enum that means less than or equal to the value in the query field
-# Query data from August 25, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
+# EQ is an enum that means exactly equal to the value in the query field
+# Query data from November 15, 2021
+time_filter = utils.pb_timestampfield(value=date(2021, 11, 15), rel_type=enum.FilterRelationship.EQ)
 
 # the StacRequest is a protobuf message for making filter queries for data
-# This search looks for any type of imagery hosted in the STAC service that intersects the austin 
-# capital area of interest and was observed on or before August 25, 2019
+# This search looks for any type of imagery hosted in the STAC service that intersects the Austin 
+# area of interest and was observed on November 15, 2021
 stac_request = StacRequest(datetime=time_filter, intersects=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
