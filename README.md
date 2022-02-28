@@ -179,11 +179,12 @@ with tempfile.TemporaryDirectory() as d:
 
 
 ```text
-    found NSL_ID QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8 under profile name `default`
+    found NSL_ID <OMITTED> under profile name `default`
     nsl client connecting to stac service at: api.nearspacelabs.net:9090
     
+    authorizing NSL_ID: `<OMITTED>`
     attempting NSL authentication against https://api.nearspacelabs.net/oauth/token...
-    successfully authenticated with NSL_ID: `QwCHuMm5PFt2H7ezPT73clTDd0NeKdA8`
+    successfully authenticated with NSL_ID: `<OMITTED>`
     will attempt re-authorization in 60 minutes
     STAC id 20190822T183518Z_746_POM1_ST2_P
 ```
@@ -197,6 +198,29 @@ with tempfile.TemporaryDirectory() as d:
     
 ![png](README_files/README_1_1.png)
     
+
+
+### Access to Imagery
+
+While we freely provide metadata of our entire catalog of imagery, we restrict what imagery assets can be downloaded to
+a subset of the catalog based on your credentials. To restrict your metadata query to only downloadable results, use the
+`only_accessible` parameter when making the request:
+
+
+
+
+
+<details><summary>Expand Python Code Sample</summary>
+
+
+```python
+# makes the same request as above, but fetches all matching metadata that can also be downloaded with your credentials
+stac_items = client.search(stac_request, only_accessible=True)
+```
+
+
+</details>
+
 
 
 In the above example, the [StacRequest](https://geo-grpc.github.io/api/#epl.protobuf.StacRequest) holds spatial and temporal query parameters for searching for [StacItems](https://geo-grpc.github.io/api/#epl.protobuf.StacItem). The `client.search_one` method makes requests to the [StacService's](https://geo-grpc.github.io/api/#epl.protobuf.StacService) SearchOne gRPC method. In this case you can see that we've connected to the `eap.nearspacelabs.net` STAC service. In the next section we go into more detail about Protobufs, gRPC, and STAC.
@@ -423,16 +447,16 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211212T192344Z_2408_POM1_ST3_26_P
-    STAC item id: 20211212T192340Z_2405_POM1_ST3_26_P
-    STAC item id: 20211212T192336Z_2402_POM1_ST3_26_P
-    STAC item id: 20211212T192331Z_2399_POM1_ST3_26_P
-    STAC item id: 20211212T192327Z_2396_POM1_ST3_26_P
-    STAC item id: 20211212T192313Z_2386_POM1_ST3_26_P
-    STAC item id: 20211212T192309Z_2383_POM1_ST3_26_P
-    STAC item id: 20211212T192305Z_2380_POM1_ST3_26_P
-    STAC item id: 20211212T192300Z_2377_POM1_ST3_26_P
-    STAC item id: 20211212T192256Z_2374_POM1_ST3_26_P
+    STAC item id: 20220129T180742Z_2109_POM1_ST3_16_P
+    STAC item id: 20220129T180729Z_2099_POM1_ST3_16_P
+    STAC item id: 20220129T180725Z_2096_POM1_ST3_16_P
+    STAC item id: 20220129T180712Z_2086_POM1_ST3_16_P
+    STAC item id: 20220129T180708Z_2083_POM1_ST3_16_P
+    STAC item id: 20220129T180705Z_2080_POM1_ST3_16_P
+    STAC item id: 20220129T180654Z_2072_POM1_ST3_16_P
+    STAC item id: 20220129T180650Z_2069_POM1_ST3_16_P
+    STAC item id: 20220129T180646Z_2066_POM1_ST3_16_P
+    STAC item id: 20220129T180634Z_2057_POM1_ST3_16_P
 ```
 
 
@@ -491,8 +515,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P
-    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P
+    STAC item id: 20220130T191536Z_1489_POM1_ST3_26_P
+    STAC item id: 20220130T191127Z_1425_POM1_ST3_26_P
 ```
 
 
@@ -535,8 +559,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item id: 20211221T201532Z_1741_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
-    STAC item id: 20211221T201523Z_1734_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20220130T191536Z_1489_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
+    STAC item id: 20220130T191127Z_1425_POM1_ST3_26_P from wkt filter intersects result from geojson filter: True
 ```
 
 
@@ -589,8 +613,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2021-12-21T20:15:57+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2021-12-21T20:15:51+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2022-02-06T18:08:32+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2022-02-06T18:08:31+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 
@@ -762,19 +786,19 @@ for stac_item in client.search(stac_request):
 
 
     
-![png](README_files/README_18_0.png)
+![png](README_files/README_20_0.png)
     
 
 
 
     
-![png](README_files/README_18_1.png)
+![png](README_files/README_20_1.png)
     
 
 
 
     
-![png](README_files/README_18_2.png)
+![png](README_files/README_20_2.png)
     
 
 

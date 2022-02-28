@@ -21,7 +21,6 @@ import os
 import re
 import json
 import math
-import sched
 import time
 import warnings
 import logging
@@ -29,6 +28,7 @@ import logging
 import grpc
 import requests
 
+from dataclasses import dataclass
 from pathlib import Path
 from random import randint
 from typing import Dict, Optional, Set, Tuple
@@ -41,15 +41,15 @@ from retry import retry
 from epl.protobuf.v1 import stac_service_pb2_grpc
 from epl.protobuf.v1.geometry_pb2 import GeometryData, ProjectionData, EnvelopeData
 from epl.protobuf.v1.query_pb2 import TimestampFilter, FloatFilter, StringFilter, UInt32Filter
-from epl.protobuf.v1.stac_pb2 import StacRequest, StacItem, Asset, LandsatRequest, Eo, EoRequest, Mosaic, \
-    MosaicRequest, DatetimeRange, View, ViewRequest
+from epl.protobuf.v1.stac_pb2 import StacRequest, StacItem, Asset, Collection, CollectionRequest, Eo, EoRequest, \
+    LandsatRequest, Mosaic, MosaicRequest, DatetimeRange, View, ViewRequest, Extent, Interval, Provider
 
 __all__ = [
     'stac_service', 'url_to_channel', 'STAC_SERVICE',
-    'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest', 'ViewRequest',
+    'Collection', 'CollectionRequest', 'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest', 'ViewRequest',
     'GeometryData', 'ProjectionData', 'EnvelopeData',
     'FloatFilter', 'TimestampFilter', 'StringFilter', 'UInt32Filter',
-    'StacItem', 'Asset', 'Eo', 'View', 'Mosaic', 'DatetimeRange',
+    'StacItem', 'Asset', 'Eo', 'View', 'Mosaic', 'DatetimeRange', 'Extent', 'Interval', 'Provider',
     'gcs_storage_client',
     'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'AuthInfo', 'bearer_auth'
 ]
@@ -249,12 +249,48 @@ class __StacServiceStub(object):
         self._channel, self._stub = _generate_grpc_channel(stac_service_url)
 
 
+@dataclass
+class Contract:
+    balance: int
+    region: int
+    type: str
+
+    @staticmethod
+    def from_jwt(token: str):
+        payload = json.loads(base64.b64decode(token.split('.')[1] + '=='))
+        contract = payload[f'{API_AUDIENCE}/contract']
+        return Contract(balance=contract['balance'], region=contract['region'], type=contract['type'])
+
+    def is_valid_for(self, region: str) -> bool:
+        if self.region == 1 or region == 'REGION_0' or region == 'SAMPLES':
+            return True
+
+        if region == "REGION_1":
+            masked = self.region & 2
+        elif region == "REGION_2":
+            masked = self.region & 4
+        elif region == "REGION_3":
+            masked = self.region & 8
+        elif region == "REGION_4":
+            masked = self.region & 16
+        elif region == "REGION_5":
+            masked = self.region & 32
+        elif region == "REGION_6":
+            masked = self.region & 64
+        elif region == "REGION_7":
+            masked = self.region & 128
+        else:
+            return False
+        return masked != 0 and masked <= self.region
+
+
 class AuthInfo:
     nsl_id: str = None
     nsl_secret: str = None
     token: str = None
     expiry: float = 0
     skip_authorization: bool = False
+    contract: Contract
 
     def __init__(self, nsl_id: str, nsl_secret: str):
         if not nsl_id or not nsl_secret:
@@ -271,6 +307,7 @@ class AuthInfo:
         expiry, token = AuthInfo.get_token_client_credentials(self.nsl_id, self.nsl_secret)
         self.expiry = expiry
         self.token = token
+        self.contract = Contract.from_jwt(token)
 
     @property
     def permissions(self) -> Set[str]:
@@ -352,24 +389,14 @@ class __BearerAuth:
         return self._default_nsl_id
 
     def auth_header(self, nsl_id: str = None, profile_name: str = None):
-        if nsl_id is None and profile_name is None:
-            nsl_id = self._default_nsl_id
-
-        if nsl_id not in self._auth_info_map and profile_name not in self._profile_map:
-            raise ValueError("credentials must be set by environment variables NSL_ID & NSL_SECRET, by setting a "
-                             "credentials file at ~/.nsl/credentials, or by using the set_credentials method")
-
-        if profile_name is not None:
-            print('using profile_name: {}'.format(profile_name))
-            nsl_id = self._profile_map[profile_name]
-
-        auth_info = self._auth_info_map[nsl_id]
+        auth_info = self._get_auth_info(nsl_id, profile_name)
         if not auth_info.skip_authorization and (auth_info.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
+            print(f'authorizing NSL_ID: `{auth_info.nsl_id}`')
             auth_info.authorize()
             diff_seconds = auth_info.expiry - time.time()
             ttl = round(int(math.ceil(float(diff_seconds / 60) / 10) * 10))
             print(f"will attempt re-authorization in {ttl} minutes")
-        return "Bearer {token}".format(token=auth_info.token)
+        return f"Bearer {auth_info.token}"
 
     def get_credentials(self, nsl_id: str = None) -> Optional[AuthInfo]:
         return self._auth_info_map.get(nsl_id if nsl_id is not None else self.default_nsl_id, None)
@@ -390,6 +417,10 @@ class __BearerAuth:
             else:
                 self._default_nsl_id = list(key for key in self._auth_info_map.keys())[0]
                 print(f"using NSL_ID {self.default_nsl_id}")
+
+    def is_valid_for(self, region: str, nsl_id: str = None, profile_name: str = None) -> bool:
+        auth_info = self._get_auth_info(nsl_id=nsl_id, profile_name=profile_name)
+        return auth_info.contract.is_valid_for(region)
 
     def loads(self) -> Dict[str, AuthInfo]:
         output = dict()
@@ -421,6 +452,18 @@ class __BearerAuth:
                 file_obj.write(f'NSL_SECRET={creds.nsl_secret}\n')
                 file_obj.write('\n')
             file_obj.close()
+
+    def _get_auth_info(self, nsl_id: str = None, profile_name: str = None) -> AuthInfo:
+        if nsl_id is None and profile_name is None:
+            nsl_id = self._default_nsl_id
+
+        if nsl_id not in self._auth_info_map and profile_name not in self._profile_map:
+            raise ValueError("credentials must be set by environment variables NSL_ID & NSL_SECRET, by setting a "
+                             "credentials file at ~/.nsl/credentials, or by using the set_credentials method")
+
+        if profile_name is not None:
+            nsl_id = self._profile_map[profile_name]
+        return self._auth_info_map[nsl_id]
 
 
 time.sleep(NSL_NETWORK_DELAY)
