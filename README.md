@@ -132,26 +132,26 @@ from nsl.stac.client import NSLClient
 # get a client interface to the gRPC channel. This client singleton is threadsafe
 client = NSLClient()
 
-# our area of interest will be the coordinates of the UT Stadium in Austin, Texas
+# our area of interest will be coordinates in Austin, Texas
 # the order of coordinates here is longitude then latitude (x, y). The results of our query 
 # will be returned only if they intersect this point geometry we've defined (other geometry 
 # types besides points are supported)
 # This string format, POINT(float, float) is the well-known-text geometry format:
 # https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
-ut_stadium_wkt = "POINT(-97.7323317 30.2830764)"
+austin_wkt = "POINT(-97.7207859 30.3818875)"
 # GeometryData is a protobuf container for GIS geometry information, the epsg in the spatial 
 # reference defines the WGS-84 ellipsoid (`epsg=4326`) spatial reference (the latitude longitude 
 # spatial reference most commonly used)
-geometry_data = GeometryData(wkt=ut_stadium_wkt, proj=ProjectionData(epsg=4326))
+geometry_data = GeometryData(wkt=austin_wkt, proj=ProjectionData(epsg=4326))
 
 # TimestampField is a query field that allows for making sql-like queries for information
 # LTE is an enum that means less than or equal to the value in the query field
-# Query data from August 25, 2019
-time_filter = utils.pb_timestampfield(value=date(2019, 8, 25), rel_type=enum.FilterRelationship.LTE)
+# Query data from before January 1, 2022
+time_filter = utils.pb_timestampfield(value=date(2022, 1, 1), rel_type=enum.FilterRelationship.LTE)
 
 # the StacRequest is a protobuf message for making filter queries for data
-# This search looks for any type of imagery hosted in the STAC service that intersects the austin 
-# capital area of interest and was observed on or before August 25, 2019
+# This search looks for any type of imagery hosted in the STAC service that intersects the Austin
+# area area of interest and was observed on or before January 1, 2022
 stac_request = StacRequest(datetime=time_filter, intersects=geometry_data)
 
 # search_one method requests only one item be returned that meets the query filters in the StacRequest 
@@ -159,8 +159,8 @@ stac_request = StacRequest(datetime=time_filter, intersects=geometry_data)
 # observed results that matches the time filter and spatial filter
 stac_item = client.search_one(stac_request)
 
-# get the thumbnail asset from the assets map. The other option would be a Geotiff, 
-# with asset key 'GEOTIFF_RGB'
+# get the thumbnail asset from the assets map. The other option would be an AssetType.GEOTIFF, 
+# whose asset key would be 'GEOTIFF_RGB'
 print("STAC id {}".format(stac_item.id))
 asset = utils.get_asset(stac_item, asset_type=enum.AssetType.THUMBNAIL)
 
@@ -186,7 +186,7 @@ with tempfile.TemporaryDirectory() as d:
     attempting NSL authentication against https://api.nearspacelabs.net/oauth/token...
     successfully authenticated with NSL_ID: `<OMITTED>`
     will attempt re-authorization in 60 minutes
-    STAC id 20190822T183518Z_746_POM1_ST2_P
+    STAC id 20211115T190111Z_551_POM1_ST2_4_P
 ```
 
 
@@ -196,7 +196,7 @@ with tempfile.TemporaryDirectory() as d:
 
 
     
-![png](README_files/README_1_1.png)
+![jpeg](README_files/README_1_1.jpg)
     
 
 
@@ -613,8 +613,8 @@ for stac_item in client.search(stac_request):
 
 
 ```text
-    STAC item date, 2022-02-06T18:08:32+00:00, is after 2019-08-21T00:00:00+00:00: True
-    STAC item date, 2022-02-06T18:08:31+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2022-02-08T17:02:32+00:00, is after 2019-08-21T00:00:00+00:00: True
+    STAC item date, 2022-02-08T17:02:30+00:00, is after 2019-08-21T00:00:00+00:00: True
 ```
 
 

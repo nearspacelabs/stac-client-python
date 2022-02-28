@@ -631,8 +631,8 @@ for stac_item in client_ex.search_ex(request):
 
 
 ```text
-    STAC item date, 2022-02-06 18:08:32+00:00, is after 2019-08-21 00:00:00: True
-    STAC item date, 2022-02-06 18:08:31+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2022-02-08 17:02:32+00:00, is after 2019-08-21 00:00:00: True
+    STAC item date, 2022-02-08 17:02:30+00:00, is after 2019-08-21 00:00:00: True
 ```
 
 
@@ -1368,11 +1368,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: MjU4MjY5NjUtNzc5ZC00N2M2LTk5NzItNzNhMTQzYzBkMTk2
-    MjU4MjY5NjUtNzc5ZC00N2M2LTk5NzItNzNhMTQzYzBkMTk2
-    <nsl.stac.subscription.Subscription object at 0x7f7908d74820>
-    deactivated subscription with id: MjU4MjY5NjUtNzc5ZC00N2M2LTk5NzItNzNhMTQzYzBkMTk2
-    reactivated subscription with id: MjU4MjY5NjUtNzc5ZC00N2M2LTk5NzItNzNhMTQzYzBkMTk2
+    created subscription with id: Njg1NjJlMmYtMTE5Ny00NjMyLThhMDAtZDNlYzY1MjViMWEw
+    Njg1NjJlMmYtMTE5Ny00NjMyLThhMDAtZDNlYzY1MjViMWEw
+    <nsl.stac.subscription.Subscription object at 0x7f64580d93d0>
+    deactivated subscription with id: Njg1NjJlMmYtMTE5Ny00NjMyLThhMDAtZDNlYzY1MjViMWEw
+    reactivated subscription with id: Njg1NjJlMmYtMTE5Ny00NjMyLThhMDAtZDNlYzY1MjViMWEw
 ```
 
 
@@ -1471,11 +1471,11 @@ client_ex.resubscribe_ex(sub_id=sub_id)
 
 
 ```text
-    created subscription with id: YWNhZTAzMTctYzRlZi00ZTYwLWI0MzUtYjg5MWExZjY5NDlj
-    YWNhZTAzMTctYzRlZi00ZTYwLWI0MzUtYjg5MWExZjY5NDlj
-    <nsl.stac.subscription.Subscription object at 0x7f7908d0a100>
-    deactivated subscription with id: YWNhZTAzMTctYzRlZi00ZTYwLWI0MzUtYjg5MWExZjY5NDlj
-    reactivated subscription with id: YWNhZTAzMTctYzRlZi00ZTYwLWI0MzUtYjg5MWExZjY5NDlj
+    created subscription with id: NDM3ZTAzZjQtY2Q4Yy00ZTJmLTk3YzUtYTYzOGJhNDNiODJj
+    NDM3ZTAzZjQtY2Q4Yy00ZTJmLTk3YzUtYTYzOGJhNDNiODJj
+    <nsl.stac.subscription.Subscription object at 0x7f6458152e80>
+    deactivated subscription with id: NDM3ZTAzZjQtY2Q4Yy00ZTJmLTk3YzUtYTYzOGJhNDNiODJj
+    reactivated subscription with id: NDM3ZTAzZjQtY2Q4Yy00ZTJmLTk3YzUtYTYzOGJhNDNiODJj
 ```
 
 
