@@ -82,7 +82,7 @@ MULTIPLIER = int(os.getenv('MULTIPLIER', 4))
 STAC_SERVICE = os.getenv('STAC_SERVICE', 'api.nearspacelabs.net:9090')
 BYTES_IN_MB = 1024 * 1024
 # at this point only allowing 4 MB or smaller messages
-MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 4))
+MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 20))
 GRPC_CHANNEL_OPTIONS = [('grpc.max_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB),
                         ('grpc.max_receive_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB)]
 
