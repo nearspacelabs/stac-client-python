@@ -608,7 +608,7 @@ geojson feature with geometry being only aspect defined
             'type': 'Feature',
             'geometry': self.geometry.__geo_interface__,
             'id': self.id,
-            'collection': self.inner,
+            'collection': self.collection,
             'properties': self._feature_properties(),
             'assets': self._feature_assets()
         }
