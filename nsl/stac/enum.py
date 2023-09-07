@@ -52,7 +52,6 @@ class AssetType(IntFlag):
     JSON = _AssetType.JSON
     HTML = _AssetType.HTML
     WEBP = _AssetType.WEBP
-    PCIDSK = _AssetType.PCIDSK
 
 
 class Band(IntFlag):
@@ -104,7 +103,6 @@ class Instrument(IntFlag):
     ETM = _Instrument.ETM
     MSS = _Instrument.MSS
     POM_2 = _Instrument.POM_2
-    POM_3 = _Instrument.POM_3
 
 
 class Platform(IntFlag):
@@ -120,7 +118,6 @@ class Platform(IntFlag):
     LANDSAT_8 = _Platform.LANDSAT_8
     SWIFT_2 = _Platform.SWIFT_2
     SWIFT_3 = _Platform.SWIFT_3
-    SWIFT_4 = _Platform.SWIFT_4
 
 
 class SortDirection(IntFlag):
