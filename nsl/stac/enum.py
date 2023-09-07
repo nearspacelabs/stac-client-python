@@ -25,11 +25,10 @@ from epl.protobuf.v1.stac_pb2 import Mission as _Mission
 from epl.protobuf.v1.stac_pb2 import Instrument as _Instrument
 from epl.protobuf.v1.stac_pb2 import Platform as _Platform
 from epl.protobuf.v1.stac_pb2 import Eo as _Eo
-from epl.protobuf.v1.stac_pb2 import Quality as _Quality
 
 from enum import IntFlag
 
-__all__ = ['AssetType', 'Band',  'CloudPlatform', 'Constellation', 'Mission', 'Instrument', 'Platform', 'Quality',
+__all__ = ['AssetType', 'Band',  'CloudPlatform', 'Constellation', 'Mission', 'Instrument', 'Platform',
            'FilterRelationship', 'SortDirection']
 
 
@@ -122,14 +121,6 @@ class Platform(IntFlag):
     SWIFT_2 = _Platform.SWIFT_2
     SWIFT_3 = _Platform.SWIFT_3
     SWIFT_4 = _Platform.SWIFT_4
-
-
-class Quality(IntFlag):
-    UNKNOWN_QUALITY = _Quality.UNKNOWN_QUALITY
-    GOOD = _Quality.GOOD
-    PARTIAL = _Quality.PARTIAL
-    UNUSABLE = _Quality.UNUSABLE
-    ANY = _Quality.ANY
 
 
 class SortDirection(IntFlag):
