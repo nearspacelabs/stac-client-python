@@ -47,6 +47,7 @@ kwargs = {
         'grpcio-tools==1.33.*',
         'protobuf~=3.19.0',
         'requests',
+        'shapely',
         'tenacity',
     ],
     'zip_safe': False
