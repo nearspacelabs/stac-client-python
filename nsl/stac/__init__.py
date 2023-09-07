@@ -358,7 +358,7 @@ class __BearerAuth:
 
     def __init__(self, init=False):
         if (not NSL_ID or not NSL_SECRET) and not NSL_CREDENTIALS.exists():
-            warnings.warn(f"NSL_ID and NSL_SECRET environment variables not set, and {NSL_CREDENTIALS} does not exist")
+            logger.debug(f"NSL_ID and NSL_SECRET environment variables not set, and {NSL_CREDENTIALS} does not exist")
             return
 
         # if credentials exist, add them to our auth store
