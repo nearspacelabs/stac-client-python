@@ -4,4 +4,4 @@ google-cloud-storage>=1.14.0
 grpcio-tools~=1.33.0
 protobuf~=3.19.0
 requests
-retry
+tenacity==8.0.1

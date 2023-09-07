@@ -1,8 +1,11 @@
 import pathlib
 import re
+import typing
+import uuid
+
 from copy import deepcopy
 from datetime import date, datetime, timezone
-from typing import Union, Iterator, List, Optional, Tuple, Dict, BinaryIO, IO, Set
+from typing import BinaryIO, Dict, IO, Iterator, List, Optional, Set, Tuple, Union
 
 import boto3
 import botocore.exceptions
@@ -14,7 +17,7 @@ from shapely.geometry import Polygon
 from nsl.stac import enum, utils, stac_service as stac_singleton, \
     StacItem, StacRequest, Collection, CollectionRequest, View, ViewRequest, Mosaic, MosaicRequest, Eo, EoRequest, \
     Extent, Interval, Provider, ProjectionData, GeometryData, EnvelopeData, \
-    FloatFilter, Asset, StringFilter, TimestampFilter
+    Asset, FloatFilter, StringFilter, TimestampFilter
 from nsl.stac.client import NSLClient
 from nsl.stac.destinations import BaseDestination
 from nsl.stac.subscription import Subscription
@@ -388,7 +391,7 @@ does the AssetWrap equal a protobuf Asset
         return asset_type == desired_type
 
     @staticmethod
-    def _asset_type_details(asset_type: enum.AssetType, b_thumbnail_png: bool = True) -> (str, str):
+    def _asset_type_details(asset_type: enum.AssetType, b_thumbnail_png: bool = True) -> Tuple[str, str]:
         """
 for asset type and bool, get the extension and href type
         :param asset_type:
@@ -423,7 +426,11 @@ for asset type and bool, get the extension and href type
 
 
 class _BaseWrap:
-    def __init__(self, stac_data, properties_func, type_url_prefix="nearspacelabs.com/proto/"):
+    def __init__(self,
+                 stac_data,
+                 properties_func,
+                 type_url_prefix="nearspacelabs.com/proto/",
+                 correlation_id: str = None):
         """
         Whether it's a stac_request or a stac_item, allow for the repack_properties method to work
         :param stac_data:
@@ -433,6 +440,7 @@ class _BaseWrap:
         self.properties = None
         self._properties_func = properties_func
         self._type_url_prefix = type_url_prefix
+        self._correlation_id = correlation_id if correlation_id is not None else str(uuid.uuid4())
 
         if stac_data is not None and properties_func is not None and stac_data.HasField("properties"):
             self.properties = properties_func()
@@ -447,12 +455,12 @@ class _BaseWrap:
     def _set_properties(self, properties):
         self._stac_data, self.properties = _set_properties(self._stac_data, properties, self._type_url_prefix)
 
-    def _get_field(self, metadata_key: str, key: str):
+    def _get_field(self, metadata_key: str, key: str) -> Optional[typing.Any]:
         if self.properties.HasField(metadata_key):
             return getattr(getattr(self.properties, metadata_key), key)
         return None
 
-    def _get_wrapped_field(self, metadata_key: str, key: str):
+    def _get_wrapped_field(self, metadata_key: str, key: str) -> Optional[typing.Any]:
         if self.properties.HasField(metadata_key):
             return getattr(getattr(getattr(self.properties, metadata_key), key), "value")
         return None
@@ -475,15 +483,23 @@ class _BaseWrap:
     def _set_nested_field(self, metadata_key: str, object_key: str, value_key: str, value):
         setattr(getattr(getattr(self.properties, metadata_key), object_key), value_key, value)
 
-    def _get_nested_field(self, metadata_key: str, object_key: str, value_key: str):
+    def _get_nested_field(self, metadata_key: str, object_key: str, value_key: str) -> Optional[typing.Any]:
         if self.properties.HasField(metadata_key):
             return getattr(getattr(getattr(self.properties, metadata_key), object_key), value_key)
         return None
 
-    def _get_nested_wrapped_field(self, metadata_key: str, object_key: str, value_key: str):
+    def _get_nested_wrapped_field(self, metadata_key: str, object_key: str, value_key: str) -> Optional[typing.Any]:
         if self.properties.HasField(metadata_key):
             return getattr(getattr(getattr(getattr(self.properties, metadata_key), object_key), value_key), "value")
         return None
+
+    @property
+    def correlation_id(self) -> str:
+        return self._correlation_id
+
+    @correlation_id.setter
+    def correlation_id(self, correlation_id: str):
+        self._correlation_id = correlation_id
 
 
 class StacItemWrap(_BaseWrap):
@@ -497,7 +513,7 @@ Wrapper for StacItem protobuf
 
         return self.equals_pb(other.stac_item)
 
-    def __init__(self, stac_item: StacItem = None, properties_constructor=None):
+    def __init__(self, stac_item: StacItem = None, properties_constructor=None, correlation_id: str = None):
         self._assets = {}
         if stac_item is None:
             stac_data = StacItem()
@@ -508,7 +524,7 @@ Wrapper for StacItem protobuf
             for asset_key in stac_data.assets:
                 self._assets[asset_key] = AssetWrap(stac_data.assets[asset_key], asset_key=asset_key)
 
-        super().__init__(stac_data, properties_constructor)
+        super().__init__(stac_data=stac_data, properties_func=properties_constructor, correlation_id=correlation_id)
         if self.created is None:
             self.created = datetime.now(tz=timezone.utc)
 
@@ -591,7 +607,7 @@ the enum describing the constellation
 
     @property
     def end_observed(self) -> Optional[datetime]:
-        return self.stac_item.end_observed
+        return self.stac_item.end_observation
 
     @end_observed.setter
     def end_observed(self, value: Union[datetime, date]):
@@ -601,7 +617,7 @@ the enum describing the constellation
     @property
     def feature(self):
         """
-geojson feature with geometry being only aspect defined
+        geojson feature with geometry being only aspect defined
         :return:
         """
         return {
@@ -730,15 +746,17 @@ geojson feature with geometry being only aspect defined
     @property
     def mosaic_quad_key(self) -> Optional[str]:
         """
-If the STAC item is a quad from a mosaic, then it has a quad key that defines the boundaries of the quad. The quad tree
-definition is assumed to be the convention defined by Google Maps, based off of there Pseudo-Web Mercator projection.
+        If the STAC item is a quad from a mosaic, then it has a quad key that defines the boundaries of the quad. The
+        quad tree definition is assumed to be the convention defined by Google Maps, based off of there Pseudo-Web
+        Mercator projection.
 
-An example quad key is '02313012030231'. Quads use 2-bit tile interleaved addresses. The first character defines the
-largest quadrant (in this case 0 is upper left), the next character ('2') is the upper right quadrant of that first
-quadrant, the 3rd character ('3') is the lower left quadrant of the previous quadrant and so on.
+        An example quad key is '02313012030231'. Quads use 2-bit tile interleaved addresses. The first character
+        defines the largest quadrant (in this case 0 is upper left), the next character ('2') is the upper right
+        quadrant of that first quadrant, the 3rd character ('3') is the lower left quadrant of the previous quadrant
+        and so on.
 
-For more details on the quad tree tiling for maps use `openstreetmaps docs
-<https://wiki.openstreetmap.org/wiki/QuadTiles#Quadtile_implementation>`
+        For more details on the quad tree tiling for maps use `openstreetmaps docs
+        <https://wiki.openstreetmap.org/wiki/QuadTiles#Quadtile_implementation>`
         :return:
         """
         if self.stac_item.HasField("mosaic"):
@@ -795,8 +813,8 @@ For more details on the quad tree tiling for maps use `openstreetmaps docs
     @property
     def provenance_ids(self) -> List[str]:
         """
-The stac_ids that went into creating the current mosaic. They are in the array in the order which they were used in
-the mosaic
+        The stac_ids that went into creating the current mosaic. They are in the array in the order which they were
+        used in the mosaic
         :return:
         """
         return self.stac_item.mosaic.provenance_ids
@@ -804,8 +822,8 @@ the mosaic
     @property
     def proj(self) -> ProjectionData:
         """
-The projection for all assets of this STAC item. If an Asset has its own proj definition,
-then that supersedes this projection definition.
+        The projection for all assets of this STAC item. If an Asset has its own proj definition,
+        then that supersedes this projection definition.
         :return: projection information
         """
         return self.stac_item.proj
@@ -860,7 +878,7 @@ then that supersedes this projection definition.
 
     def equals_pb(self, other: StacItem):
         """
-does the StacItemWrap equal a protobuf StacItem
+        does the StacItemWrap equal a protobuf StacItem
         :param other:
         :return:
         """
@@ -872,7 +890,7 @@ does the StacItemWrap equal a protobuf StacItem
                   cloud_platform: enum.CloudPlatform = enum.CloudPlatform.UNKNOWN_CLOUD_PLATFORM,
                   eo_bands: enum.Band = enum.Band.UNKNOWN_BAND,
                   asset_regex: Dict = None,
-                  b_relaxed_types: bool = False):
+                  b_relaxed_types: bool = False) -> bool:
         if asset_key is not None and asset_key in self._assets:
             return True
         elif asset_key is not None and asset_key and asset_key not in self._assets:
@@ -927,13 +945,36 @@ does the StacItemWrap equal a protobuf StacItem
     def check_assets_exist(self, b_raise) -> List[str]:
         return _check_assets_exist(self.stac_item, b_raise=b_raise)
 
+    def append_mosaic_provenance(self, provenance_stac_id: str):
+        """
+        Add a provenance stac_id to a mosaic. The 0th item is the first item added to the mosaic, and is therefore the
+        bottom-most image in the mosaic. The -1 item is the last item added to the mosaic; ie the topmost image in the
+        mosaic.
+        :param provenance_stac_id:
+        """
+        if not self.stac_item.HasField("mosaic"):
+            self.stac_item.mosaic.CopyFrom(Mosaic(provenance_ids=[provenance_stac_id]))
+        else:
+            self.stac_item.mosaic.provenance_ids.append(provenance_stac_id)
+
+    def set_mosaic_datetime_range(self, d_start, d_end):
+        datetime_range = utils.datetime_range(d_start=d_start, d_end=d_end)
+        if not self.stac_item.HasField("mosaic"):
+            self.stac_item.mosaic.CopyFrom(Mosaic(observation_range=datetime_range))
+        else:
+            self.stac_item.mosaic.observation_range.CopyFrom(datetime_range)
+
 
 class StacRequestWrap(_BaseWrap):
-    def __init__(self, stac_request: StacRequest = None, properties_constructor=None, id: str = ""):
+    def __init__(self,
+                 stac_request: StacRequest = None,
+                 properties_constructor=None,
+                 id: str = "",
+                 correlation_id: str = None):
         if stac_request is None:
             stac_request = StacRequest(id=id)
 
-        super().__init__(stac_request, properties_constructor)
+        super().__init__(stac_data=stac_request, properties_func=properties_constructor, correlation_id=correlation_id)
 
     @property
     def bbox(self) -> EnvelopeData:
@@ -1130,16 +1171,19 @@ other quad STAC items that are contained by '02313012030' are returned.
         if not self.stac_request.HasField("view"):
             self.stac_request.view.CopyFrom(ViewRequest())
 
-        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        float_filter = StacRequestWrap.new_float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.view.azimuth.CopyFrom(float_filter)
 
     def set_id_complex(self,
                        value_set: Set[str],
-                       rel_type: enum.FilterRelationship = enum.FilterRelationship.IN):
+                       rel_type: enum.FilterRelationship = enum.FilterRelationship.IN,
+                       sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
         if len(self.id) > 0:
             self.id = ''
 
-        self.stac_request.id_complex.CopyFrom(StringFilter(set=list(value_set), rel_type=rel_type))
+        self.stac_request.id_complex.CopyFrom(StringFilter(set=list(value_set),
+                                                           rel_type=rel_type,
+                                                           sort_direction=sort_direction))
 
     def set_off_nadir(self,
                       rel_type: enum.FilterRelationship,
@@ -1150,7 +1194,7 @@ other quad STAC items that are contained by '02313012030' are returned.
         if not self.stac_request.HasField("view"):
             self.stac_request.view.CopyFrom(ViewRequest())
 
-        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        float_filter = StacRequestWrap.new_float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.view.off_nadir.CopyFrom(float_filter)
 
     def set_sun_azimuth(self,
@@ -1162,7 +1206,7 @@ other quad STAC items that are contained by '02313012030' are returned.
         if not self.stac_request.HasField("view"):
             self.stac_request.view.CopyFrom(ViewRequest())
 
-        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        float_filter = StacRequestWrap.new_float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.view.sun_azimuth.CopyFrom(float_filter)
 
     def set_sun_elevation(self,
@@ -1174,7 +1218,7 @@ other quad STAC items that are contained by '02313012030' are returned.
         if not self.stac_request.HasField("view"):
             self.stac_request.view.CopyFrom(ViewRequest())
 
-        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        float_filter = StacRequestWrap.new_float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.view.sun_elevation.CopyFrom(float_filter)
 
     def set_cloud_cover(self,
@@ -1186,7 +1230,7 @@ other quad STAC items that are contained by '02313012030' are returned.
         if not self.stac_request.HasField("eo"):
             self.stac_request.eo.CopyFrom(EoRequest())
 
-        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        float_filter = StacRequestWrap.new_float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.eo.cloud_cover.CopyFrom(float_filter)
 
     def set_gsd(self,
@@ -1195,7 +1239,7 @@ other quad STAC items that are contained by '02313012030' are returned.
                 start: float = None,
                 end: float = None,
                 sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
-        float_filter = self._float_filter(rel_type, value, start, end, sort_direction)
+        float_filter = StacRequestWrap.new_float_filter(rel_type, value, start, end, sort_direction)
         self.stac_request.gsd.CopyFrom(float_filter)
 
     def set_observed(self,
@@ -1306,12 +1350,12 @@ other quad STAC items that are contained by '02313012030' are returned.
                              sort_direction=sort_direction if sort_direction is not None else updated.sort_direction,
                              tzinfo=tzinfo)
 
-    def _float_filter(self,
-                      rel_type: enum.FilterRelationship,
-                      value: float = None,
-                      start: float = None,
-                      end: float = None,
-                      sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
+    @staticmethod
+    def new_float_filter(rel_type: enum.FilterRelationship,
+                         value: float = None,
+                         start: float = None,
+                         end: float = None,
+                         sort_direction: enum.SortDirection = enum.SortDirection.NOT_SORTED):
         if value is not None:
             if start is not None or end is not None:
                 raise ValueError("if value is defined, start and end cannot be used")
@@ -1334,11 +1378,14 @@ other quad STAC items that are contained by '02313012030' are returned.
 
 
 class CollectionRequestWrap(_BaseWrap):
-    def __init__(self, collection: CollectionRequest = None, id: str = ""):
+    def __init__(self,
+                 collection: CollectionRequest = None,
+                 id: str = "",
+                 correlation_id: str = None):
         if collection is None:
             collection = CollectionRequest(id=id)
 
-        super().__init__(collection, None)
+        super().__init__(stac_data=collection, properties_func=None, correlation_id=correlation_id)
 
     @property
     def id(self) -> Optional[str]: return self.inner.id
@@ -1471,13 +1518,13 @@ class CollectionRequestWrap(_BaseWrap):
 
 
 class CollectionWrap(_BaseWrap):
-    def __init__(self, collection: Collection = None):
+    def __init__(self, collection: Collection = None, correlation_id: str = None):
         collection_data = Collection()
         collection_data.extent.CopyFrom(Extent())
         if collection is not None:
             collection_data.CopyFrom(collection)
 
-        super().__init__(collection_data, None)
+        super().__init__(stac_data=collection_data, properties_func=None, correlation_id=correlation_id)
 
     @property
     def id(self) -> str: return self.inner.id
@@ -1594,8 +1641,8 @@ class CollectionWrap(_BaseWrap):
 
 
 class NSLClientEx(NSLClient):
-    def __init__(self, nsl_only=False):
-        super().__init__(nsl_only=nsl_only)
+    def __init__(self, nsl_only=False, **kwargs):
+        super().__init__(nsl_only=nsl_only, **kwargs)
         self._internal_stac_service = stac_singleton
 
     def update_service_url(self, stac_service_url):
@@ -1613,13 +1660,16 @@ class NSLClientEx(NSLClient):
                   nsl_id: str = None,
                   profile_name: str = None,
                   auto_paginate: bool = False,
-                  only_accessible: bool = False) -> Iterator[StacItemWrap]:
+                  only_accessible: bool = False,
+                  page_size: int = 50) -> Iterator[StacItemWrap]:
         for stac_item in self.search(stac_request_wrapped.stac_request,
                                      timeout=timeout,
                                      nsl_id=nsl_id,
                                      profile_name=profile_name,
                                      auto_paginate=auto_paginate,
-                                     only_accessible=only_accessible):
+                                     only_accessible=only_accessible,
+                                     page_size=page_size,
+                                     correlation_id=stac_request_wrapped.correlation_id):
             yield StacItemWrap(stac_item=stac_item)
 
     def feature_collection_ex(self,
@@ -1647,7 +1697,8 @@ class NSLClientEx(NSLClient):
                       nsl_id: str = None,
                       profile_name: str = None) -> Optional[StacItemWrap]:
         stac_item = self.search_one(stac_request=stac_request_wrapped.stac_request,
-                                    timeout=timeout, nsl_id=nsl_id, profile_name=profile_name)
+                                    timeout=timeout, nsl_id=nsl_id, profile_name=profile_name,
+                                    correlation_id=stac_request_wrapped.correlation_id)
         if not stac_item.id:
             return None
         return StacItemWrap(stac_item=stac_item)
@@ -1658,7 +1709,8 @@ class NSLClientEx(NSLClient):
                  nsl_id: str = None,
                  profile_name: str = None) -> int:
         return self.count(stac_request=stac_request_wrapped.stac_request,
-                          timeout=timeout, nsl_id=nsl_id, profile_name=profile_name)
+                          timeout=timeout, nsl_id=nsl_id, profile_name=profile_name,
+                          correlation_id=stac_request_wrapped.correlation_id)
 
     def search_collections_ex(self,
                               collection_request: CollectionRequestWrap,
@@ -1668,7 +1720,8 @@ class NSLClientEx(NSLClient):
         for collection in self.search_collections(collection_request.inner,
                                                   timeout=timeout,
                                                   nsl_id=nsl_id,
-                                                  profile_name=profile_name):
+                                                  profile_name=profile_name,
+                                                  correlation_id=collection_request.correlation_id):
             yield CollectionWrap(collection=collection)
 
     def subscribe_ex(self,

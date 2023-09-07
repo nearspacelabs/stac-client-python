@@ -36,7 +36,7 @@ from typing import Dict, Optional, Set, Tuple
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import storage as gcp_storage
 from google.oauth2 import service_account
-from retry import retry
+from tenacity import retry, stop_after_delay, wait_fixed
 
 from epl.protobuf.v1 import stac_service_pb2_grpc
 from epl.protobuf.v1.geometry_pb2 import GeometryData, ProjectionData, EnvelopeData
@@ -45,13 +45,12 @@ from epl.protobuf.v1.stac_pb2 import StacRequest, StacItem, Asset, Collection, C
     LandsatRequest, Mosaic, MosaicRequest, DatetimeRange, View, ViewRequest, Extent, Interval, Provider
 
 __all__ = [
-    'stac_service', 'url_to_channel', 'STAC_SERVICE',
-    'Collection', 'CollectionRequest', 'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest', 'ViewRequest',
-    'GeometryData', 'ProjectionData', 'EnvelopeData',
-    'FloatFilter', 'TimestampFilter', 'StringFilter', 'UInt32Filter',
-    'StacItem', 'Asset', 'Eo', 'View', 'Mosaic', 'DatetimeRange', 'Extent', 'Interval', 'Provider',
-    'gcs_storage_client',
-    'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'AuthInfo', 'bearer_auth'
+    'bearer_auth', 'gcs_storage_client', 'stac_service', 'url_to_channel',
+    'CollectionRequest', 'EoRequest', 'StacRequest', 'LandsatRequest', 'MosaicRequest', 'ViewRequest',
+    'Collection', 'Eo', 'StacItem', 'Mosaic', 'View', 'Asset',
+    'GeometryData', 'ProjectionData', 'EnvelopeData', 'FloatFilter', 'TimestampFilter', 'StringFilter', 'UInt32Filter',
+    'DatetimeRange', 'Extent', 'Interval', 'Provider',
+    'AUTH0_TENANT', 'API_AUDIENCE', 'ISSUER', 'STAC_SERVICE', 'AuthInfo',
 ]
 
 CLOUD_PROJECT = os.getenv("CLOUD_PROJECT")
@@ -79,10 +78,11 @@ INIT_BACKOFF_MS = int(os.getenv('INIT_BACKOFF_MS', 4))
 MAX_BACKOFF_MS = int(os.getenv('MAX_BACKOFF_MS', 4))
 MULTIPLIER = int(os.getenv('MULTIPLIER', 4))
 
-STAC_SERVICE = os.getenv('STAC_SERVICE', 'api.nearspacelabs.net:9090')
+STAC_SERVICE_HOST = os.getenv('STAC_SERVICE_HOST', 'api.nearspacelabs.net')
+STAC_SERVICE = os.getenv('STAC_SERVICE', f'{STAC_SERVICE_HOST}:9090')
 BYTES_IN_MB = 1024 * 1024
-# at this point only allowing 4 MB or smaller messages
-MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 20))
+# at this point only allowing 10 MB or smaller messages
+MESSAGE_SIZE_MB = int(os.getenv('MESSAGE_SIZE_MB', 10))
 GRPC_CHANNEL_OPTIONS = [('grpc.max_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB),
                         ('grpc.max_receive_message_length', MESSAGE_SIZE_MB * BYTES_IN_MB)]
 
@@ -299,7 +299,7 @@ class AuthInfo:
         self.nsl_secret = nsl_secret
 
     # this only retries if there's a timeout error
-    @retry(exceptions=requests.Timeout, delay=1, backoff=2, tries=4)
+    @retry(reraise=True, stop=stop_after_delay(3), wait=wait_fixed(0.5))
     def authorize(self):
         if self.skip_authorization:
             return
@@ -388,7 +388,7 @@ class __BearerAuth:
     def default_nsl_id(self):
         return self._default_nsl_id
 
-    def auth_header(self, nsl_id: str = None, profile_name: str = None):
+    def auth_header(self, nsl_id: str = None, profile_name: str = None) -> str:
         auth_info = self._get_auth_info(nsl_id, profile_name)
         if not auth_info.skip_authorization and (auth_info.expiry - time.time()) < TOKEN_REFRESH_THRESHOLD:
             print(f'authorizing NSL_ID: `{auth_info.nsl_id}`')
@@ -398,15 +398,19 @@ class __BearerAuth:
             print(f"will attempt re-authorization in {ttl} minutes")
         return f"Bearer {auth_info.token}"
 
-    def get_credentials(self, nsl_id: str = None) -> Optional[AuthInfo]:
+    def get_credentials(self, nsl_id: str = None, profile_name: str = None) -> Optional[AuthInfo]:
+        if profile_name is not None:
+            nsl_id = self._profile_map.get(profile_name, None)
         return self._auth_info_map.get(nsl_id if nsl_id is not None else self.default_nsl_id, None)
 
-    def set_credentials(self, nsl_id: str, nsl_secret: str):
+    def set_credentials(self, nsl_id: str, nsl_secret: str, profile_name: str = None):
         if len(self._auth_info_map) == 0:
             self._default_nsl_id = nsl_id
 
         self._auth_info_map[nsl_id] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
         self._auth_info_map[nsl_id].authorize()
+        if profile_name is not None:
+            self._profile_map[profile_name] = nsl_id
 
     def unset_credentials(self, profile_name: str):
         nsl_id = self._profile_map.pop(profile_name)
@@ -431,14 +435,14 @@ class __BearerAuth:
                     if not lines[i + 1].startswith('NSL_ID') or not lines[i + 2].startswith('NSL_SECRET'):
                         raise ValueError("credentials should be of the format:\n[named profile]\nNSL_ID={your "
                                          "nsl id}\nNSL_SECRET={your nsl secret}")
-                    # for id like 'NSL_ID = all_the_id_text\n', first strip remove front whitespace and newline
+                    # for id like 'NSL_ID = all_the_id_text\n', first strip remove front whitespace and newline, and optionally the leading quote
                     # .strip(), now we now [6:] starts after 'NSL_ID' .strip()[6:], strip potential whitespace
                     # between NSL_ID and '=' with .strip()[6:].strip(), start one after equal
                     # .strip()[6:].strip()[1:], strip potential whitespace
                     # after equal .strip()[6:].strip()[1:].strip()
                     profile_name = line.strip().lstrip('[').rstrip(']')
-                    nsl_id = lines[i + 1].strip()[6:].strip()[1:].strip()
-                    nsl_secret = lines[i + 2].strip()[10:].strip()[1:].strip()
+                    nsl_id = lines[i + 1].strip()[6:].strip().strip('"')[1:].strip().strip('"')
+                    nsl_secret = lines[i + 2].strip()[10:].strip().strip('"')[1:].strip().strip('"')
 
                     output[profile_name] = AuthInfo(nsl_id=nsl_id, nsl_secret=nsl_secret)
         return output
@@ -448,8 +452,8 @@ class __BearerAuth:
             for profile_name, nsl_id in self._profile_map.items():
                 creds = self.get_credentials(nsl_id)
                 file_obj.write(f'[{profile_name}]\n')
-                file_obj.write(f'NSL_ID={creds.nsl_id}\n')
-                file_obj.write(f'NSL_SECRET={creds.nsl_secret}\n')
+                file_obj.write(f'NSL_ID="{creds.nsl_id}"\n')
+                file_obj.write(f'NSL_SECRET="{creds.nsl_secret}"\n')
                 file_obj.write('\n')
             file_obj.close()
 

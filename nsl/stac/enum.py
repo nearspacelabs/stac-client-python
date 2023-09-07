@@ -25,11 +25,12 @@ from epl.protobuf.v1.stac_pb2 import Mission as _Mission
 from epl.protobuf.v1.stac_pb2 import Instrument as _Instrument
 from epl.protobuf.v1.stac_pb2 import Platform as _Platform
 from epl.protobuf.v1.stac_pb2 import Eo as _Eo
+from epl.protobuf.v1.stac_pb2 import Quality as _Quality
 
 from enum import IntFlag
 
-__all__ = ['AssetType', 'CloudPlatform', 'FilterRelationship', 'SortDirection', 'Platform', 'Constellation', 'Band',
-           'Instrument', 'Mission']
+__all__ = ['AssetType', 'Band',  'CloudPlatform', 'Constellation', 'Mission', 'Instrument', 'Platform', 'Quality',
+           'FilterRelationship', 'SortDirection']
 
 
 class AssetType(IntFlag):
@@ -52,6 +53,7 @@ class AssetType(IntFlag):
     JSON = _AssetType.JSON
     HTML = _AssetType.HTML
     WEBP = _AssetType.WEBP
+    PCIDSK = _AssetType.PCIDSK
 
 
 class Band(IntFlag):
@@ -71,12 +73,6 @@ class Band(IntFlag):
     CIRRUS = _Eo.CIRRUS
     LWIR_1 = _Eo.LWIR_1
     LWIR_2 = _Eo.LWIR_2
-
-
-class SortDirection(IntFlag):
-    NOT_SORTED = _SortDirection.NOT_SORTED
-    DESC = _SortDirection.DESC
-    ASC = _SortDirection.ASC
 
 
 class CloudPlatform(IntFlag):
@@ -99,21 +95,6 @@ class Mission(IntFlag):
     PNOA = _Mission.PNOA
 
 
-class FilterRelationship(IntFlag):
-    EQ = _FilterRelationship.EQ
-    LTE = _FilterRelationship.LTE
-    GTE = _FilterRelationship.GTE
-    LT = _FilterRelationship.LT
-    GT = _FilterRelationship.GT
-    BETWEEN = _FilterRelationship.BETWEEN
-    NOT_BETWEEN = _FilterRelationship.NOT_BETWEEN
-    NEQ = _FilterRelationship.NEQ
-    IN = _FilterRelationship.IN
-    NOT_IN = _FilterRelationship.NOT_IN
-    LIKE = _FilterRelationship.LIKE
-    NOT_LIKE = _FilterRelationship.NOT_LIKE
-
-
 class Instrument(IntFlag):
     UNKNOWN_INSTRUMENT = _Instrument.UNKNOWN_INSTRUMENT
     OLI = _Instrument.OLI
@@ -124,6 +105,7 @@ class Instrument(IntFlag):
     ETM = _Instrument.ETM
     MSS = _Instrument.MSS
     POM_2 = _Instrument.POM_2
+    POM_3 = _Instrument.POM_3
 
 
 class Platform(IntFlag):
@@ -139,6 +121,36 @@ class Platform(IntFlag):
     LANDSAT_8 = _Platform.LANDSAT_8
     SWIFT_2 = _Platform.SWIFT_2
     SWIFT_3 = _Platform.SWIFT_3
+    SWIFT_4 = _Platform.SWIFT_4
+
+
+class Quality(IntFlag):
+    UNKNOWN_QUALITY = _Quality.UNKNOWN_QUALITY
+    GOOD = _Quality.GOOD
+    PARTIAL = _Quality.PARTIAL
+    UNUSABLE = _Quality.UNUSABLE
+    ANY = _Quality.ANY
+
+
+class SortDirection(IntFlag):
+    NOT_SORTED = _SortDirection.NOT_SORTED
+    DESC = _SortDirection.DESC
+    ASC = _SortDirection.ASC
+
+
+class FilterRelationship(IntFlag):
+    EQ = _FilterRelationship.EQ
+    LTE = _FilterRelationship.LTE
+    GTE = _FilterRelationship.GTE
+    LT = _FilterRelationship.LT
+    GT = _FilterRelationship.GT
+    BETWEEN = _FilterRelationship.BETWEEN
+    NOT_BETWEEN = _FilterRelationship.NOT_BETWEEN
+    NEQ = _FilterRelationship.NEQ
+    IN = _FilterRelationship.IN
+    NOT_IN = _FilterRelationship.NOT_IN
+    LIKE = _FilterRelationship.LIKE
+    NOT_LIKE = _FilterRelationship.NOT_LIKE
 
 
 # Final check to make sure that all enums have complete definitions for the associated protobufs
