@@ -28,8 +28,8 @@ from epl.protobuf.v1.stac_pb2 import Eo as _Eo
 
 from enum import IntFlag
 
-__all__ = ['AssetType', 'CloudPlatform', 'FilterRelationship', 'SortDirection', 'Platform', 'Constellation', 'Band',
-           'Instrument', 'Mission']
+__all__ = ['AssetType', 'Band',  'CloudPlatform', 'Constellation', 'Mission', 'Instrument', 'Platform',
+           'FilterRelationship', 'SortDirection']
 
 
 class AssetType(IntFlag):
@@ -73,12 +73,6 @@ class Band(IntFlag):
     LWIR_2 = _Eo.LWIR_2
 
 
-class SortDirection(IntFlag):
-    NOT_SORTED = _SortDirection.NOT_SORTED
-    DESC = _SortDirection.DESC
-    ASC = _SortDirection.ASC
-
-
 class CloudPlatform(IntFlag):
     UNKNOWN_CLOUD_PLATFORM = _CloudPlatform.UNKNOWN_CLOUD_PLATFORM
     AWS = _CloudPlatform.AWS
@@ -97,21 +91,6 @@ class Mission(IntFlag):
     NAIP = _Mission.NAIP
     SWIFT = _Mission.SWIFT
     PNOA = _Mission.PNOA
-
-
-class FilterRelationship(IntFlag):
-    EQ = _FilterRelationship.EQ
-    LTE = _FilterRelationship.LTE
-    GTE = _FilterRelationship.GTE
-    LT = _FilterRelationship.LT
-    GT = _FilterRelationship.GT
-    BETWEEN = _FilterRelationship.BETWEEN
-    NOT_BETWEEN = _FilterRelationship.NOT_BETWEEN
-    NEQ = _FilterRelationship.NEQ
-    IN = _FilterRelationship.IN
-    NOT_IN = _FilterRelationship.NOT_IN
-    LIKE = _FilterRelationship.LIKE
-    NOT_LIKE = _FilterRelationship.NOT_LIKE
 
 
 class Instrument(IntFlag):
@@ -139,6 +118,27 @@ class Platform(IntFlag):
     LANDSAT_8 = _Platform.LANDSAT_8
     SWIFT_2 = _Platform.SWIFT_2
     SWIFT_3 = _Platform.SWIFT_3
+
+
+class SortDirection(IntFlag):
+    NOT_SORTED = _SortDirection.NOT_SORTED
+    DESC = _SortDirection.DESC
+    ASC = _SortDirection.ASC
+
+
+class FilterRelationship(IntFlag):
+    EQ = _FilterRelationship.EQ
+    LTE = _FilterRelationship.LTE
+    GTE = _FilterRelationship.GTE
+    LT = _FilterRelationship.LT
+    GT = _FilterRelationship.GT
+    BETWEEN = _FilterRelationship.BETWEEN
+    NOT_BETWEEN = _FilterRelationship.NOT_BETWEEN
+    NEQ = _FilterRelationship.NEQ
+    IN = _FilterRelationship.IN
+    NOT_IN = _FilterRelationship.NOT_IN
+    LIKE = _FilterRelationship.LIKE
+    NOT_LIKE = _FilterRelationship.NOT_LIKE
 
 
 # Final check to make sure that all enums have complete definitions for the associated protobufs

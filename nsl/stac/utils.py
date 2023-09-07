@@ -30,9 +30,11 @@ import botocore.exceptions
 import botocore.client
 from google.cloud import storage
 from google.protobuf import timestamp_pb2, duration_pb2
+from tenacity import retry, stop_after_delay, wait_fixed
 
+from epl.protobuf.v1.stac_pb2 import epl_dot_protobuf_dot_v1_dot_query__pb2 as query
 from nsl.stac import gcs_storage_client, bearer_auth, \
-    StacItem, StacRequest, Asset, TimestampFilter, Eo, DatetimeRange, enum
+    StacItem, StacRequest, Asset, TimestampFilter, DatetimeRange, Eo, FloatFilter, enum
 from nsl.stac.enum import Band, CloudPlatform, FilterRelationship, SortDirection, AssetType
 
 DEFAULT_RGB = [Band.RED, Band.GREEN, Band.BLUE, Band.NIR]
@@ -57,6 +59,7 @@ def get_blob_metadata(bucket: str, blob_name: str) -> storage.Blob:
     return bucket.get_blob(blob_name=blob_name.strip('/'))
 
 
+@retry(reraise=True, stop=stop_after_delay(3), wait=wait_fixed(0.5))
 def download_gcs_object(bucket: str,
                         blob_name: str,
                         file_obj: IO[bytes] = None,
@@ -524,7 +527,7 @@ def pb_timestamp(d_utc: Union[datetime.datetime, datetime.date],
 
 
 def datetime_from_pb_timestamp(ts: timestamp_pb2.Timestamp) -> datetime:
-    return datetime.datetime.fromtimestamp(ts.seconds + ts.nanos/1e9)
+    return datetime.datetime.utcfromtimestamp(ts.seconds + ts.nanos/1e9)
 
 
 def timezoned(d_utc: Union[datetime.datetime, datetime.date],
@@ -578,3 +581,36 @@ def stac_request_from_b64(encoded: str) -> StacRequest:
     req = StacRequest()
     req.ParseFromString(base64.b64decode(bytes(encoded, encoding='ascii')))
     return req
+
+
+def stac_item_to_b64(item: StacItem) -> str:
+    return str(base64.b64encode(item.SerializeToString()), encoding='ascii')
+
+
+def stac_item_from_b64(encoded: str) -> StacItem:
+    item = StacItem()
+    item.ParseFromString(base64.b64decode(bytes(encoded, encoding='ascii')))
+    return item
+
+
+def eval_float_filter(float_filter: FloatFilter, val: float) -> bool:
+    rel = float_filter.rel_type
+
+    if rel == enum.FilterRelationship.EQ:
+        return val == float_filter.value
+    elif rel == enum.FilterRelationship.NEQ:
+        return val != float_filter.value
+    elif rel == enum.FilterRelationship.BETWEEN:
+        return float_filter.start < val < float_filter.end
+    elif rel == enum.FilterRelationship.NOT_BETWEEN:
+        return val < float_filter.start or val > float_filter.end
+    elif rel == enum.FilterRelationship.GTE:
+        return val >= float_filter.value
+    elif rel == enum.FilterRelationship.GT:
+        return val > float_filter.value
+    elif rel == enum.FilterRelationship.LTE:
+        return val <= float_filter.value
+    elif rel == enum.FilterRelationship.LT:
+        return val < float_filter.value
+    else:
+        raise ValueError(f"not currently evaluating float filters of type: {query.FilterRelationship.Name(rel)}")
